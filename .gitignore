@@ -1,0 +1,80 @@
+# Dependencies
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Build outputs
+dist/
+build/
+*.tgz
+*.tar.gz
+
+# Test outputs
+test-output/
+test-results/
+coverage/
+mochawesome-report/
+playwright-report/
+test-user-data/
+test-user-data-*/
+
+# Logs
+logs/
+*.log
+
+# OS generated files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# Editor directories and files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# Runtime data
+pids/
+*.pid
+*.seed
+*.pid.lock
+
+# Coverage directory used by tools like istanbul
+coverage/
+*.lcov
+
+# nyc test coverage
+.nyc_output
+
+# Temporary folders
+tmp/
+temp/
+
+# Puppeteer/Browser user data
+puppeteer-user-data/
+puppeteer-*/
+*.user-data
+
+# Chrome extension specific
+*.crx
+extensions/
+
+# Local env files
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+# Package manager lock files (uncomment if needed)
+# package-lock.json
+# yarn.lock
+
+# Keep package-lock.json for reproducible builds
+!package-lock.json

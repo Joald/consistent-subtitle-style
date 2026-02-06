@@ -1,0 +1,125 @@
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  padding: 0;
+  font-family: Arial, sans-serif;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  min-width: 300px;
+  min-height: 400px;
+}
+
+.container {
+  padding: 20px;
+}
+
+h1 {
+  margin: 0 0 15px 0;
+  font-size: 18px;
+  color: white;
+  text-align: center;
+}
+
+#settings-form {
+  background: white;
+  border-radius: 8px;
+  padding: 20px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+}
+
+.form-group {
+  margin-bottom: 15px;
+}
+
+label {
+  display: block;
+  font-size: 14px;
+  font-weight: 600;
+  color: #333;
+  margin-bottom: 5px;
+}
+
+input[type="text"],
+input[type="color"],
+input[type="number"],
+select {
+  width: 100%;
+  padding: 8px 10px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  font-size: 14px;
+  font-family: inherit;
+}
+
+input[type="color"] {
+  padding: 2px;
+  height: 40px;
+  cursor: pointer;
+}
+
+.button-group {
+  display: flex;
+  gap: 10px;
+  margin-top: 20px;
+}
+
+button {
+  flex: 1;
+  padding: 10px 15px;
+  border: none;
+  border-radius: 4px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+#save-btn {
+  background: #4CAF50;
+  color: white;
+}
+
+#save-btn:hover {
+  background: #45a049;
+}
+
+#reset-btn {
+  background: #f44336;
+  color: white;
+}
+
+#reset-btn:hover {
+  background: #da190b;
+}
+
+.message {
+  padding: 10px;
+  border-radius: 4px;
+  margin-top: 10px;
+  text-align: center;
+  font-size: 13px;
+  display: none;
+}
+
+.message.success {
+  background: #d4edda;
+  color: #155724;
+  border: 1px solid #c3e6cb;
+  display: block !important;
+}
+
+.message.error {
+  background: #f8d7da;
+  color: #721c24;
+  border: 1px solid #f5c6cb;
+  display: block !important;
+}
+
+.message.info {
+  background: #e7f3ff;
+  color: #0c5460;
+  border: 1px solid #b3d4fc;
+  display: block !important;
+}

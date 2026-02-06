@@ -1,0 +1,43 @@
+{
+  "name": "subtitle-extension",
+  "version": "1.0.0",
+  "description": "Chrome extension for subtitle style management with native/CSS hybrid approach",
+  "main": "main.js",
+  "type": "module",
+  "scripts": {
+    "build": "node esbuild.config.js",
+    "build:dev": "cross-env NODE_ENV=development node esbuild.config.js",
+    "build:prod": "cross-env NODE_ENV=production node esbuild.config.js",
+    "watch": "npm run build:dev -- --watch",
+    "clean": "rimraf dist",
+    "typecheck": "tsc --noEmit",
+    "dev": "npm run watch"
+  },
+  "keywords": [
+    "chrome-extension",
+    "youtube",
+    "subtitles",
+    "accessibility",
+    "drop-shadow",
+    "netflix",
+    "disney",
+    "captions",
+    "subtitle-styles"
+  ],
+  "author": "Jacek Olczyk",
+  "license": "MIT",
+  "devDependencies": {
+    "@types/chrome": "^0.1.36",
+    "@types/node": "^25.1.0",
+    "cross-env": "^7.0.3",
+    "esbuild": "^0.27.2",
+    "rimraf": "^6.1.2",
+    "typescript": "^5.9.3"
+  },
+  "engines": {
+    "node": ">=16.0.0"
+  },
+  "dependencies": {
+    "eslint": "^9.39.2"
+  }
+}
