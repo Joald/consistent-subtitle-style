@@ -56,7 +56,6 @@ function processSettings(platform: PlatformConfig, extensionSettings: StorageSet
 
 async function applyStyles(platform: PlatformConfig): Promise<void> {
   const { toApply } = processSettings(platform, currentSettings);
-  const elements = document.querySelectorAll(platform.selector);
 
   // Initialize application log
   for (const { key } of toApply) {
@@ -66,6 +65,7 @@ async function applyStyles(platform: PlatformConfig): Promise<void> {
   }
 
   // Apply settings using per-platform per-setting configuration
+  // Note: For YouTube, this uses the player API, not DOM elements
   for (const { key, value } of toApply) {
     const config = platform.settings[key];
     const report = config.applySetting(value);
