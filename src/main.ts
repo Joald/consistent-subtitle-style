@@ -1,26 +1,29 @@
 import { loadSettings, saveSettings } from './storage.js';
 import { detectPlatform, getPlatformConfig, PLATFORMS } from './platforms/index.js';
-import type { StorageSettings, PlatformConfig, ApplicationLog, ProcessedSettings, StyleElement, StorageKey, CharacterEdgeStyle, DebugWindow, StorageChanges, ValidCharacterEdgeStyles, ValidOpacityValues } from './types/index.js';
+import type { StorageSettings, PlatformConfig, ApplicationLog, ProcessedSettings, StyleElement, StorageKey, CharacterEdgeStyle, DebugWindow, StorageChanges, ValidCharacterEdgeStyles, ValidOpacityValues, Platform } from './types/index.js';
 
 let currentSettings: StorageSettings = {
   characterEdgeStyle: 'auto',
   backgroundOpacity: 'auto',
   windowOpacity: 'auto'
 };
-let currentPlatform: string;
+let currentPlatform: Platform | 'unknown';
 let applicationLog: ApplicationLog = {};
 
 console.log('Subtitle styler content script loaded');
 
-(window as DebugWindow).subtitleStylerDebug = () => {
-  return {
-    platform: currentPlatform,
-    settings: currentSettings,
-    log: applicationLog,
-    config: currentPlatform ? getPlatformConfig(currentPlatform) : null,
-    status: 'loading'
+  (window as DebugWindow).subtitleStylerDebug = () => {
+    return {
+      platform: currentPlatform,
+      settings: currentSettings,
+      log: applicationLog,
+      config: currentPlatform !== 'unknown' ? getPlatformConfig(currentPlatform) : null,
+      status: 'loading',
+      chromeAPIs: !!(chrome && chrome.storage && chrome.runtime),
+      playerElement: !!document.querySelector('#movie_player'),
+      storageBridge: !!(window as any).subtitleStylerBridge
+    };
   };
-};
 
 function processSettings(platform: PlatformConfig, extensionSettings: StorageSettings): {
   toApply: Array<{ key: keyof StorageSettings; value: StorageSettings[keyof StorageSettings] }>
@@ -89,6 +92,11 @@ async function initialize(): Promise<void> {
     currentPlatform = detectPlatform();
     const platform = getPlatformConfig(currentPlatform);
 
+    if (!platform) {
+      console.error(`No configuration found for platform: ${currentPlatform}`);
+      return;
+    }
+
     console.log(`Platform detected: ${currentPlatform} (${platform.name})`);
 
     currentSettings = await loadSettings();
@@ -107,7 +115,7 @@ async function initialize(): Promise<void> {
         platform: currentPlatform,
         settings: currentSettings,
         log: applicationLog,
-        config: currentPlatform ? getPlatformConfig(currentPlatform) : null
+        config: currentPlatform !== 'unknown' ? getPlatformConfig(currentPlatform) : null
       };
     };
   }
@@ -118,7 +126,7 @@ async function initialize(): Promise<void> {
     platform: currentPlatform,
     settings: currentSettings,
     log: applicationLog,
-    config: currentPlatform ? getPlatformConfig(currentPlatform) : null
+    config: currentPlatform !== 'unknown' ? getPlatformConfig(currentPlatform) : null
   };
 }
 
@@ -149,11 +157,13 @@ chrome.storage.onChanged.addListener((changes, namespace) => {
 
     console.log('Updated settings:', currentSettings);
 
-    if (currentPlatform) {
+    if (currentPlatform !== 'unknown') {
       const platform = getPlatformConfig(currentPlatform);
-      applyStyles(platform).catch(error => {
-        console.error('Failed to apply updated styles:', error);
-      });
+      if (platform) {
+        applyStyles(platform).catch(error => {
+          console.error('Failed to apply updated styles:', error);
+        });
+      }
     }
   }
 });

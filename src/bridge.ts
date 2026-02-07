@@ -36,7 +36,7 @@
     },
     
     set: (settings: any) => {
-      return new Promise((resolve) => {
+      return new Promise<void>((resolve) => {
         const id = ++requestId;
         
         const handleMessage = (event: any) => {
@@ -53,27 +53,32 @@
           data: { action: 'set', settings }
         }, '*');
       });
-    },
-    
-    onChanged: {
-      addListener: (callback: (changes: any) => void) => {
-        const id = ++requestId;
-        
-        const handleMessage = (event: any) => {
-          if (event.data.type === 'subtitleStylerChanged') {
-            callback(event.data.data);
-          }
-        };
-        
-        window.addEventListener('message', handleMessage);
-        
-        // Request to start listening for changes
-        window.postMessage({
-          type: 'subtitleStyler',
-          requestId: id,
-          data: { action: 'onChanged' }
-        }, '*');
-      }
+    }
+  };
+  
+  // Also create the onChanged property
+  (window as any).chrome.storage.onChanged = {
+    addListener: (callback: (changes: any) => void) => {
+      console.log('🔍 DEBUG: Storage onChanged listener registered in main world');
+      const id = ++requestId;
+      
+      const handleMessage = (event: any) => {
+        if (event.data.type === 'subtitleStylerChanged') {
+          console.log('🔍 DEBUG: Storage change received in main world:', event.data.data);
+          callback(event.data.data);
+        }
+      };
+      
+      window.addEventListener('message', handleMessage);
+      
+      // Request to start listening for changes
+      window.postMessage({
+        type: 'subtitleStyler',
+        requestId: id,
+        data: { action: 'onChanged' }
+      }, '*');
+      
+      console.log('🔍 DEBUG: Storage onChanged setup complete');
     }
   };
   

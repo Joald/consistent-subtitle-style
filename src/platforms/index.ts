@@ -1,8 +1,9 @@
-import type { PlatformConfig, PlatformRegistry, StorageSettings, Platform, SettingApplicationReport } from '../types/index.js';
+import type { PlatformConfig, StorageSettings, CharacterEdgeStyle, SettingApplicationReport, PlatformSettingConfig } from '../types/index.js';
 import { youtube } from './youtube.js';
 
-// CSS application helper
+// CSS application helpers
 function applyCharacterEdgeStyle(elements: NodeListOf<Element>, value: StorageSettings['characterEdgeStyle']): SettingApplicationReport {
+  console.log('🔍 CSS FALLBACK: applyCharacterEdgeStyle called with value:', value);
   try {
     elements.forEach(element => {
       if (element instanceof HTMLElement) {
@@ -26,14 +27,13 @@ function applyCharacterEdgeStyle(elements: NodeListOf<Element>, value: StorageSe
 }
 
 function applyBackgroundOpacity(elements: NodeListOf<Element>, value: StorageSettings['backgroundOpacity']): SettingApplicationReport {
+  console.log('🔍 CSS FALLBACK: applyBackgroundOpacity called with value:', value);
   try {
     const opacity = value === 'auto' ? '' : value === '0' ? '0' : (parseInt(value) / 100).toString();
     elements.forEach(element => {
       if (element instanceof HTMLElement) {
         if (opacity) {
           element.style.backgroundColor = `rgba(0, 0, 0, ${opacity})`;
-        } else {
-          element.style.backgroundColor = '';
         }
       }
     });
@@ -44,6 +44,7 @@ function applyBackgroundOpacity(elements: NodeListOf<Element>, value: StorageSet
 }
 
 function applyWindowOpacity(elements: NodeListOf<Element>, value: StorageSettings['windowOpacity']): SettingApplicationReport {
+  console.log('🔍 CSS FALLBACK: applyWindowOpacity called with value:', value);
   try {
     const opacity = value === 'auto' ? '' : value === '0' ? '0' : (parseInt(value) / 100).toString();
     elements.forEach(element => {
@@ -62,7 +63,8 @@ function applyWindowOpacity(elements: NodeListOf<Element>, value: StorageSetting
   }
 }
 
-export const PLATFORMS: PlatformRegistry = {
+// Platform registry with CSS fallback configurations
+export const PLATFORMS: { [platformName: string]: PlatformConfig } = {
   youtube,
   netflix: {
     selector: '.player-timedtext',
@@ -70,15 +72,15 @@ export const PLATFORMS: PlatformRegistry = {
     settings: {
       characterEdgeStyle: {
         getCurrentValue() { return undefined; },
-        applySetting: (value) => applyCharacterEdgeStyle(document.querySelectorAll('.player-timedtext'), value as StorageSettings['characterEdgeStyle'])
+        applySetting: (value: StorageSettings['characterEdgeStyle']) => applyCharacterEdgeStyle(document.querySelectorAll('.player-timedtext'), value)
       },
       backgroundOpacity: {
         getCurrentValue() { return undefined; },
-        applySetting: (value) => applyBackgroundOpacity(document.querySelectorAll('.player-timedtext'), value as StorageSettings['backgroundOpacity'])
+        applySetting: (value: StorageSettings['backgroundOpacity']) => applyBackgroundOpacity(document.querySelectorAll('.player-timedtext'), value)
       },
       windowOpacity: {
         getCurrentValue() { return undefined; },
-        applySetting: (value) => applyWindowOpacity(document.querySelectorAll('.player-timedtext'), value as StorageSettings['windowOpacity'])
+        applySetting: (value: StorageSettings['windowOpacity']) => applyWindowOpacity(document.querySelectorAll('.player-timedtext'), value)
       }
     },
     detectNativeCapabilities(): boolean {
@@ -95,15 +97,15 @@ export const PLATFORMS: PlatformRegistry = {
     settings: {
       characterEdgeStyle: {
         getCurrentValue() { return undefined; },
-        applySetting: (value) => applyCharacterEdgeStyle(document.querySelectorAll('.dss-subtitle-renderer'), value as StorageSettings['characterEdgeStyle'])
+        applySetting: (value: StorageSettings['characterEdgeStyle']) => applyCharacterEdgeStyle(document.querySelectorAll('.dss-subtitle-renderer'), value)
       },
       backgroundOpacity: {
         getCurrentValue() { return undefined; },
-        applySetting: (value) => applyBackgroundOpacity(document.querySelectorAll('.dss-subtitle-renderer'), value as StorageSettings['backgroundOpacity'])
+        applySetting: (value: StorageSettings['backgroundOpacity']) => applyBackgroundOpacity(document.querySelectorAll('.dss-subtitle-renderer'), value)
       },
       windowOpacity: {
         getCurrentValue() { return undefined; },
-        applySetting: (value) => applyWindowOpacity(document.querySelectorAll('.dss-subtitle-renderer'), value as StorageSettings['windowOpacity'])
+        applySetting: (value: StorageSettings['windowOpacity']) => applyWindowOpacity(document.querySelectorAll('.dss-subtitle-renderer'), value)
       }
     },
     detectNativeCapabilities(): boolean {
@@ -115,6 +117,8 @@ export const PLATFORMS: PlatformRegistry = {
   }
 };
 
+export type Platform = 'youtube' | 'netflix' | 'disney';
+
 export function detectPlatform(): Platform | 'unknown' {
   const hostname = window.location.hostname.toLowerCase();
 
@@ -125,8 +129,7 @@ export function detectPlatform(): Platform | 'unknown' {
   return 'unknown';
 }
 
-export function getPlatformConfig(platform: string): PlatformConfig {
-  const platformKey = platform as keyof typeof PLATFORMS;
-  const config = PLATFORMS[platformKey] ?? PLATFORMS['youtube'];
-  return config as PlatformConfig;
+export function getPlatformConfig(platform: Platform | 'unknown'): PlatformConfig | null {
+  if (platform === 'unknown') return null;
+  return PLATFORMS[platform] ?? null;
 }

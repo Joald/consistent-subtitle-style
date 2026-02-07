@@ -15,7 +15,7 @@ export interface SettingApplicationReport {
 
 export interface PlatformSettingConfig {
   getCurrentValue(): StorageSettings[keyof StorageSettings] | undefined;
-  applySetting(value: string): SettingApplicationReport;
+  applySetting(value: StorageSettings[keyof StorageSettings]): SettingApplicationReport;
 }
 
 export interface PlatformConfig {

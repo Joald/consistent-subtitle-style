@@ -38,10 +38,14 @@
     
     const { type, data, requestId } = event.data;
     
+    console.log('🔍 DEBUG: Isolated world received message:', { type, data, requestId });
+    
     if (type === 'subtitleStyler') {
       // Handle storage requests from main world
       if (data.action === 'get') {
+        console.log('🔍 DEBUG: Handling storage GET request');
         bridge.storage.get().then(result => {
+          console.log('🔍 DEBUG: Storage GET result:', result);
           window.postMessage({
             type: 'subtitleStylerResponse',
             requestId,
@@ -49,7 +53,9 @@
           }, '*');
         });
       } else if (data.action === 'set') {
+        console.log('🔍 DEBUG: Handling storage SET request:', data.settings);
         bridge.storage.set(data.settings).then(() => {
+          console.log('🔍 DEBUG: Storage SET complete');
           window.postMessage({
             type: 'subtitleStylerResponse',
             requestId,
@@ -57,7 +63,9 @@
           }, '*');
         });
       } else if (data.action === 'onChanged') {
+        console.log('🔍 DEBUG: Setting up storage change listener');
         bridge.storage.onChanged((changes) => {
+          console.log('🔍 DEBUG: Forwarding storage changes to main world:', changes);
           window.postMessage({
             type: 'subtitleStylerChanged',
             data: changes

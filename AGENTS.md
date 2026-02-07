@@ -182,4 +182,4 @@ newplatform: {
 
 This TypeScript architecture prioritizes type safety, maintainability, and developer experience while preserving comprehensive functionality across streaming platforms. Agents should focus on maintaining type safety and leveraging the build system for optimal development workflow.
 
-**CRITICAL: Always run `npm run build` after every single edit to verify the project compiles successfully.**
+**CRITICAL: Always run `npm run build` AND `npm run typecheck` after every single edit to verify the project compiles successfully.**
