@@ -1,4 +1,5 @@
 import type { PlatformConfig, StorageSettings, YouTubeDisplaySettings, CharacterEdgeStyle, SettingApplicationReport, YouTubePlayerElement } from '../types/index.js';
+import { debug } from '../debug.js';
 
 const EDGE_STYLE_MAP = {
   none: 0,
@@ -17,39 +18,39 @@ const REVERSE_EDGE_STYLE_MAP: Record<number, CharacterEdgeStyle> = {
 };
 
 function getYouTubePlayer(): YouTubePlayerElement | null {
-  console.log('🔍 DEBUG: Looking for YouTube player...');
+  debug.log('🔍 DEBUG: Looking for YouTube player...');
   const moviePlayer = document.querySelector('#movie_player') as any;
   
-  console.log('🔍 DEBUG: #movie_player element found:', !!moviePlayer);
-  console.log('🔍 DEBUG: Element tag:', moviePlayer?.tagName);
-  console.log('🔍 DEBUG: Element classes:', moviePlayer?.className);
+  debug.log('🔍 DEBUG: #movie_player element found:', !!moviePlayer);
+  debug.log('🔍 DEBUG: Element tag:', moviePlayer?.tagName);
+  debug.log('🔍 DEBUG: Element classes:', moviePlayer?.className);
   
   if (moviePlayer) {
-    console.log('🔍 DEBUG: Checking for getSubtitlesUserSettings method...');
-    console.log('🔍 DEBUG: getSubtitlesUserSettings type:', typeof moviePlayer.getSubtitlesUserSettings);
+    debug.log('🔍 DEBUG: Checking for getSubtitlesUserSettings method...');
+    debug.log('🔍 DEBUG: getSubtitlesUserSettings type:', typeof moviePlayer.getSubtitlesUserSettings);
     
-    console.log('🔍 DEBUG: Checking for updateSubtitlesUserSettings method...');
-    console.log('🔍 DEBUG: updateSubtitlesUserSettings type:', typeof moviePlayer.updateSubtitlesUserSettings);
+    debug.log('🔍 DEBUG: Checking for updateSubtitlesUserSettings method...');
+    debug.log('🔍 DEBUG: updateSubtitlesUserSettings type:', typeof moviePlayer.updateSubtitlesUserSettings);
     
     if (typeof moviePlayer.getSubtitlesUserSettings === 'function' && typeof moviePlayer.updateSubtitlesUserSettings === 'function') {
-      console.log('✅ SUCCESS: Found YouTube player with subtitle methods!');
+      debug.log('✅ SUCCESS: Found YouTube player with subtitle methods!');
       
       // Test if methods actually work
       try {
         const testSettings = moviePlayer.getSubtitlesUserSettings();
-        console.log('🔍 DEBUG: Test getSubtitlesUserSettings() returned:', testSettings);
-        console.log('✅ SUCCESS: YouTube API methods are functional!');
+        debug.log('🔍 DEBUG: Test getSubtitlesUserSettings() returned:', testSettings);
+        debug.log('✅ SUCCESS: YouTube API methods are functional!');
         return moviePlayer as YouTubePlayerElement;
       } catch (e) {
-        console.log('❌ ERROR: YouTube API methods exist but failed when called:', e);
+        debug.log('❌ ERROR: YouTube API methods exist but failed when called:', e);
         return moviePlayer as YouTubePlayerElement;
       }
     }
   }
   
-  console.log('❌ FAILED: No YouTube player with subtitle methods found');
-  console.log('🔍 DEBUG: Player element properties:', moviePlayer ? Object.getOwnPropertyNames(moviePlayer) : 'null');
-  console.log('🔍 DEBUG: Player prototype:', moviePlayer ? Object.getPrototypeOf(moviePlayer) : 'null');
+  debug.log('❌ FAILED: No YouTube player with subtitle methods found');
+  debug.log('🔍 DEBUG: Player element properties:', moviePlayer ? Object.getOwnPropertyNames(moviePlayer) : 'null');
+  debug.log('🔍 DEBUG: Player prototype:', moviePlayer ? Object.getPrototypeOf(moviePlayer) : 'null');
   
   return null;
 }

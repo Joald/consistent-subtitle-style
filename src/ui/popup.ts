@@ -48,8 +48,35 @@ async function saveSettings(settings: Partial<StorageSettings>): Promise<void> {
   
   return new Promise<void>((resolve, reject) => {
     chrome.storage.sync.set(settings, () => {
-      if (chrome.runtime.lastError) reject(chrome.runtime.lastError);
-      else resolve();
+      if (chrome.runtime.lastError) {
+        reject(chrome.runtime.lastError);
+      } else {
+        console.log('Settings saved to Chrome storage:', settings);
+        // Notify content scripts that settings have changed
+        try {
+          chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
+            if (chrome.runtime.lastError) {
+              console.warn('🔍 POPUP: Could not query tabs:', chrome.runtime.lastError);
+              return;
+            }
+            if (tabs[0]?.id) {
+              chrome.tabs.sendMessage(tabs[0].id, {
+                type: 'subtitleStylerPopupUpdate',
+                settings: settings
+              }, (response) => {
+                if (chrome.runtime.lastError) {
+                  console.warn('🔍 POPUP: Could not send message to tab:', chrome.runtime.lastError);
+                } else {
+                  console.log('🔍 POPUP: Successfully notified content script');
+                }
+              });
+            }
+          });
+        } catch (error) {
+          console.warn('🔍 POPUP: Tabs API not available in popup context:', error);
+        }
+        resolve();
+      }
     });
   });
 }
@@ -89,7 +116,7 @@ function collectSettings(): Partial<StorageSettings> {
   const backgroundOpacityValue = backgroundOpacityEl instanceof HTMLSelectElement ? backgroundOpacityEl.value : 'auto';
   const windowOpacityValue = windowOpacityEl instanceof HTMLSelectElement ? windowOpacityEl.value : 'auto';
   
-  console.log('collectSettings:', {
+  console.log('🔍 POPUP: collectSettings:', {
     characterEdgeStyle: characterEdgeValue,
     backgroundOpacity: backgroundOpacityValue,
     windowOpacity: windowOpacityValue,
@@ -125,15 +152,15 @@ function showMessage(message: string, type: 'info' | 'success' | 'error' = 'info
 }
 
 async function handleSave(): Promise<void> {
-  console.log('handleSave called');
+  console.log('🔍 POPUP: handleSave called');
   try {
     const settings = collectSettings();
-    console.log('Collected settings:', settings);
+    console.log('🔍 POPUP: Collected settings:', settings);
     await saveSettings(settings);
-    console.log('Settings saved to storage');
-    showMessage('Settings saved', 'success');
+    console.log('🔍 POPUP: Settings saved to storage and content scripts notified');
+    showMessage('Settings saved and applied', 'success');
   } catch (error) {
-    console.error('Failed to save settings:', error);
+    console.error('🔍 POPUP: Failed to save settings:', error);
     showMessage('Failed to save settings', 'error');
   }
 }

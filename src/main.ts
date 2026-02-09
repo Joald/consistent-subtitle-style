@@ -1,5 +1,6 @@
 import { loadSettings, saveSettings } from './storage.js';
 import { detectPlatform, getPlatformConfig, PLATFORMS } from './platforms/index.js';
+import { debug } from './debug.js';
 import type { StorageSettings, PlatformConfig, ApplicationLog, ProcessedSettings, StyleElement, StorageKey, CharacterEdgeStyle, DebugWindow, StorageChanges, ValidCharacterEdgeStyles, ValidOpacityValues, Platform } from './types/index.js';
 
 let currentSettings: StorageSettings = {
@@ -57,7 +58,7 @@ function processSettings(platform: PlatformConfig, extensionSettings: StorageSet
 async function applyStyles(platform: PlatformConfig): Promise<void> {
   const { toApply } = processSettings(platform, currentSettings);
   
-  console.log(`🔍 DEBUG: Processing ${toApply.length} settings to apply for ${platform.name}`);
+    debug.log(`🔍 DEBUG: Processing ${toApply.length} settings to apply for ${platform.name}`);
 
   // Initialize application log
   for (const { key } of toApply) {
@@ -69,7 +70,7 @@ async function applyStyles(platform: PlatformConfig): Promise<void> {
   // Apply settings using per-platform per-setting configuration
   // Note: For YouTube, this uses the player API, not DOM elements
   for (const { key, value } of toApply) {
-    console.log(`🔍 DEBUG: Applying setting ${key}: ${value}`);
+    debug.log(`🔍 DEBUG: Applying setting ${key}: ${value}`);
     const config = platform.settings[key];
     const report = config.applySetting(value);
     
@@ -81,13 +82,13 @@ async function applyStyles(platform: PlatformConfig): Promise<void> {
     }
   }
   
-  console.log('✅ DEBUG: All settings processed');
+  debug.log('✅ DEBUG: All settings processed');
 }
 
 async function initialize(): Promise<void> {
   try {
-    console.log('Initializing subtitle extension...');
-    console.log('Chrome APIs available:', {
+    debug.log('Initializing subtitle extension...');
+    debug.log('Chrome APIs available:', {
       chrome: !!chrome,
       storage: !!(chrome?.storage),
       runtime: !!(chrome?.runtime),
@@ -95,7 +96,7 @@ async function initialize(): Promise<void> {
     });
 
     currentPlatform = detectPlatform();
-    console.log('🔍 DEBUG: Platform detected, getting config...');
+    debug.log('🔍 DEBUG: Platform detected, getting config...');
     const platform = getPlatformConfig(currentPlatform);
 
     if (!platform) {
@@ -103,16 +104,23 @@ async function initialize(): Promise<void> {
       return;
     }
 
-    console.log(`Platform detected: ${currentPlatform} (${platform.name})`);
-    console.log('🔍 DEBUG: About to load settings...');
-    
+    debug.log(`Platform detected: ${currentPlatform} (${platform.name})`);
+    debug.log('🔍 DEBUG: About to load settings...');
     currentSettings = await loadSettings();
-    console.log('✅ SUCCESS: Settings loaded:', currentSettings);
-    console.log('🔍 DEBUG: About to apply styles...');
+    debug.log('✅ SUCCESS: Settings loaded:', currentSettings);
+    debug.log('🔍 DEBUG: About to apply styles...');
     await applyStyles(platform);
-    console.log('✅ SUCCESS: Styles applied');
+    debug.log('✅ SUCCESS: Styles applied');
     console.log('Extension initialized successfully');
-
+    
+    // Set up storage change listener
+    if ((window as any).subtitleStylerBridge) {
+      debug.log('🔍 DEBUG: Setting up storage change listener via bridge...');
+      (window as any).subtitleStylerBridge.onChanged(() => {
+        debug.log('🔍 DEBUG: Storage change listener callback called');
+      });
+    }
+    
   } catch (error) {
     console.error('Failed to initialize extension:', error);
 
@@ -137,9 +145,15 @@ async function initialize(): Promise<void> {
   };
 }
 
-chrome.storage.onChanged.addListener((changes, namespace) => {
-  if (namespace === 'sync') {
-    console.log('Storage changed:', changes);
+// Listen for storage changes forwarded from bridge
+window.addEventListener('message', (event) => {
+  if (event.source !== window) return;
+  
+  console.log('🔍 MAIN WORLD: Received message:', event.data.type, event.data);
+  
+  if (event.data.type === 'subtitleStylerChanged') {
+    const changes = event.data.data;
+    debug.log('Storage changed:', changes);
 
     const settingKeys = Object.keys(changes) as Array<keyof StorageSettings>;
     settingKeys.forEach(key => {
@@ -162,11 +176,12 @@ chrome.storage.onChanged.addListener((changes, namespace) => {
       }
     });
 
-    console.log('Updated settings:', currentSettings);
+    debug.log('Updated settings:', currentSettings);
 
     if (currentPlatform !== 'unknown') {
       const platform = getPlatformConfig(currentPlatform);
       if (platform) {
+        debug.log('🔍 DEBUG: About to apply styles from storage change...');
         applyStyles(platform).catch(error => {
           console.error('Failed to apply updated styles:', error);
         });

@@ -1,4 +1,5 @@
 import type { StorageSettings, ValidCharacterEdgeStyles, ValidOpacityValues, ValidationValuesMap } from './types/index.js';
+import { debug } from './debug.js';
 
 type CharacterEdgeStyle = StorageSettings['characterEdgeStyle'];
 
@@ -10,7 +11,7 @@ const DEFAULTS: StorageSettings = {
 
 export function loadSettings(): Promise<StorageSettings> {
   // Since main script runs in main world, use direct bridge communication
-  console.log('🔍 DEBUG: Using direct bridge communication for storage');
+  debug.log('🔍 DEBUG: Using direct bridge communication for storage');
   
   return new Promise((resolve) => {
     const requestId = Date.now();
@@ -21,7 +22,7 @@ export function loadSettings(): Promise<StorageSettings> {
       if (event.data.type === 'subtitleStylerResponse' && event.data.requestId === requestId) {
         window.removeEventListener('message', messageHandler);
         
-        console.log('🔍 DEBUG: Got bridge response:', event.data.data);
+        debug.log('🔍 DEBUG: Got bridge response:', event.data.data);
         const result = event.data.data as Record<string, unknown>;
         
         const settings: StorageSettings = { ...DEFAULTS };
@@ -43,7 +44,7 @@ export function loadSettings(): Promise<StorageSettings> {
           settings.windowOpacity = winOpacity as StorageSettings['windowOpacity'];
         }
         
-        console.log('🔍 DEBUG: Final settings after validation:', settings);
+        debug.log('🔍 DEBUG: Final settings after validation:', settings);
         resolve(settings);
       }
     };

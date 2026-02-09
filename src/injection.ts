@@ -31,13 +31,14 @@
     }
   };
 
-  // Listen for messages from main world
+  // Listen for messages from main world and popup
   window.addEventListener('message', (event) => {
     // Only accept messages from same window
     if (event.source !== window) return;
     
     const { type, data, requestId } = event.data;
     
+    // Only log debug messages in debug builds - keep these for functionality
     console.log('🔍 DEBUG: Isolated world received message:', { type, data, requestId });
     
     if (type === 'subtitleStyler') {
@@ -64,13 +65,17 @@
         });
       } else if (data.action === 'onChanged') {
         console.log('🔍 DEBUG: Setting up storage change listener');
-        bridge.storage.onChanged((changes) => {
-          console.log('🔍 DEBUG: Forwarding storage changes to main world:', changes);
-          window.postMessage({
-            type: 'subtitleStylerChanged',
-            data: changes
-          }, '*');
+        chrome.storage.onChanged.addListener((changes, namespace) => {
+          console.log('🔍 DEBUG: Storage onChanged triggered! namespace:', namespace, 'changes:', changes);
+          if (namespace === 'sync') {
+            console.log('🔍 DEBUG: Forwarding storage changes to main world:', changes);
+            window.postMessage({
+              type: 'subtitleStylerChanged',
+              data: changes
+            }, '*');
+          }
         });
+        console.log('🔍 DEBUG: Storage onChanged listener added');
         window.postMessage({
           type: 'subtitleStylerResponse',
           requestId,
@@ -78,6 +83,25 @@
         }, '*');
       }
     }
+  });
+
+  // Listen for messages from popup via Chrome runtime
+  chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
+    console.log('🔍 DEBUG: Received message from popup:', message);
+    
+    if (message.type === 'subtitleStylerPopupUpdate') {
+      console.log('🔍 DEBUG: Forwarding popup update to main world:', message.settings);
+      // Forward to main world to trigger style application
+      window.postMessage({
+        type: 'subtitleStylerChanged',
+        data: Object.keys(message.settings).reduce((acc, key) => {
+          acc[key] = { newValue: message.settings[key] };
+          return acc;
+        }, {} as any)
+      }, '*');
+    }
+    
+    sendResponse({ success: true });
   });
 
   // Function to inject scripts into main world
