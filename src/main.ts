@@ -56,6 +56,8 @@ function processSettings(platform: PlatformConfig, extensionSettings: StorageSet
 
 async function applyStyles(platform: PlatformConfig): Promise<void> {
   const { toApply } = processSettings(platform, currentSettings);
+  
+  console.log(`🔍 DEBUG: Processing ${toApply.length} settings to apply for ${platform.name}`);
 
   // Initialize application log
   for (const { key } of toApply) {
@@ -67,6 +69,7 @@ async function applyStyles(platform: PlatformConfig): Promise<void> {
   // Apply settings using per-platform per-setting configuration
   // Note: For YouTube, this uses the player API, not DOM elements
   for (const { key, value } of toApply) {
+    console.log(`🔍 DEBUG: Applying setting ${key}: ${value}`);
     const config = platform.settings[key];
     const report = config.applySetting(value);
     
@@ -77,6 +80,8 @@ async function applyStyles(platform: PlatformConfig): Promise<void> {
       applicationLog[key].details = report.message;
     }
   }
+  
+  console.log('✅ DEBUG: All settings processed');
 }
 
 async function initialize(): Promise<void> {
@@ -90,6 +95,7 @@ async function initialize(): Promise<void> {
     });
 
     currentPlatform = detectPlatform();
+    console.log('🔍 DEBUG: Platform detected, getting config...');
     const platform = getPlatformConfig(currentPlatform);
 
     if (!platform) {
@@ -98,12 +104,13 @@ async function initialize(): Promise<void> {
     }
 
     console.log(`Platform detected: ${currentPlatform} (${platform.name})`);
-
+    console.log('🔍 DEBUG: About to load settings...');
+    
     currentSettings = await loadSettings();
-    console.log('Settings loaded:', currentSettings);
-
+    console.log('✅ SUCCESS: Settings loaded:', currentSettings);
+    console.log('🔍 DEBUG: About to apply styles...');
     await applyStyles(platform);
-
+    console.log('✅ SUCCESS: Styles applied');
     console.log('Extension initialized successfully');
 
   } catch (error) {

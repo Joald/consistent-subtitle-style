@@ -98,7 +98,6 @@
 
   // Inject our main scripts in order
   const scripts = [
-    'bridge.js',
     'platforms.js',
     'storage.js',
     'main.js'

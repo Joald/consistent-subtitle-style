@@ -9,13 +9,21 @@ const DEFAULTS: StorageSettings = {
 };
 
 export function loadSettings(): Promise<StorageSettings> {
-  if (!chrome?.storage?.sync) return Promise.resolve(DEFAULTS);
-
+  // Since main script runs in main world, use direct bridge communication
+  console.log('🔍 DEBUG: Using direct bridge communication for storage');
+  
   return new Promise((resolve) => {
-    chrome.storage.sync.get(null, (result: Record<string, unknown>) => {
-      if (chrome.runtime.lastError) {
-        resolve(DEFAULTS);
-      } else {
+    const requestId = Date.now();
+    
+    // Listen for response
+    const messageHandler = (event: MessageEvent) => {
+      if (event.source !== window) return;
+      if (event.data.type === 'subtitleStylerResponse' && event.data.requestId === requestId) {
+        window.removeEventListener('message', messageHandler);
+        
+        console.log('🔍 DEBUG: Got bridge response:', event.data.data);
+        const result = event.data.data as Record<string, unknown>;
+        
         const settings: StorageSettings = { ...DEFAULTS };
 
         const charEdgeStyle = result['characterEdgeStyle'];
@@ -35,9 +43,19 @@ export function loadSettings(): Promise<StorageSettings> {
           settings.windowOpacity = winOpacity as StorageSettings['windowOpacity'];
         }
         
+        console.log('🔍 DEBUG: Final settings after validation:', settings);
         resolve(settings);
       }
-    });
+    };
+    
+    window.addEventListener('message', messageHandler);
+    
+    // Send request
+    window.postMessage({
+      type: 'subtitleStyler',
+      data: { action: 'get' },
+      requestId
+    }, '*');
   });
 }
 
