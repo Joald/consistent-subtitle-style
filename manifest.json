@@ -23,8 +23,7 @@
       ],
       "matches": [
         "*://*.youtube.com/*",
-        "*://*.netflix.com/*",
-        "*://*.disneyplus.com/*"
+        "*://*.nebula.tv/*"
       ],
       "run_at": "document_idle",
       "world": "ISOLATED"
@@ -40,8 +39,7 @@
       ],
       "matches": [
         "*://*.youtube.com/*",
-        "*://*.netflix.com/*",
-        "*://*.disneyplus.com/*"
+        "*://*.nebula.tv/*"
       ]
     }
   ],

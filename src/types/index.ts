@@ -28,7 +28,7 @@ export interface PlatformConfig {
   applyNativeSetting?(setting: keyof StorageSettings, value: string): boolean;
 }
 
-export type Platform = 'youtube' | 'netflix' | 'disney';
+export type Platform = 'youtube' | 'nebula';
 
 export type PlatformRegistry = {
   [platformName: string]: PlatformConfig;

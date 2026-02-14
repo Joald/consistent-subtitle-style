@@ -82,44 +82,21 @@ function applyWindowOpacity(elements: NodeListOf<Element>, value: StorageSetting
 
 export const PLATFORMS: { [platformName: string]: PlatformConfig } = {
   youtube,
-  netflix: {
-    name: 'Netflix',
-    settings: {
-      characterEdgeStyle: {
-        getCurrentValue() { return undefined; },
-        applySetting: (value: StorageSettings['characterEdgeStyle']) => applyCharacterEdgeStyle(document.querySelectorAll('.player-timedtext'), value)
-      },
-      backgroundOpacity: {
-        getCurrentValue() { return undefined; },
-        applySetting: (value: StorageSettings['backgroundOpacity']) => applyBackgroundOpacity(document.querySelectorAll('.player-timedtext'), value)
-      },
-      windowOpacity: {
-        getCurrentValue() { return undefined; },
-        applySetting: (value: StorageSettings['windowOpacity']) => applyWindowOpacity(document.querySelectorAll('.player-timedtext'), value)
-      }
-    },
-    detectNativeCapabilities(): boolean {
-      return false;
-    },
-    getCurrentNativeSettings(): Partial<StorageSettings> | null {
-      return null;
-    }
-  },
 
-  disney: {
-    name: 'Disney+',
+  nebula: {
+    name: 'Nebula',
     settings: {
       characterEdgeStyle: {
         getCurrentValue() { return undefined; },
-        applySetting: (value: StorageSettings['characterEdgeStyle']) => applyCharacterEdgeStyle(document.querySelectorAll('.dss-subtitle-renderer'), value)
+        applySetting: (value: StorageSettings['characterEdgeStyle']) => applyCharacterEdgeStyle(document.querySelectorAll('.vjs-text-track'), value)
       },
       backgroundOpacity: {
         getCurrentValue() { return undefined; },
-        applySetting: (value: StorageSettings['backgroundOpacity']) => applyBackgroundOpacity(document.querySelectorAll('.dss-subtitle-renderer'), value)
+        applySetting: (value: StorageSettings['backgroundOpacity']) => applyBackgroundOpacity(document.querySelectorAll('.vjs-text-track'), value)
       },
       windowOpacity: {
         getCurrentValue() { return undefined; },
-        applySetting: (value: StorageSettings['windowOpacity']) => applyWindowOpacity(document.querySelectorAll('.dss-subtitle-renderer'), value)
+        applySetting: (value: StorageSettings['windowOpacity']) => applyWindowOpacity(document.querySelectorAll('.vjs-text-track'), value)
       }
     },
     detectNativeCapabilities(): boolean {
@@ -131,14 +108,13 @@ export const PLATFORMS: { [platformName: string]: PlatformConfig } = {
   }
 };
 
-export type Platform = 'youtube' | 'netflix' | 'disney';
+export type Platform = 'youtube' | 'nebula';
 
 export function detectPlatform(): Platform | 'unknown' {
   const hostname = window.location.hostname.toLowerCase();
 
   if (hostname.includes('youtube.com')) return 'youtube';
-  if (hostname.includes('netflix.com')) return 'netflix';
-  if (hostname.includes('disneyplus.com')) return 'disney';
+  if (hostname.includes('nebula.tv')) return 'nebula';
 
   return 'unknown';
 }
