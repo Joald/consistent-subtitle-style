@@ -1,4 +1,11 @@
-import type { PlatformConfig, StorageSettings, YouTubeDisplaySettings, CharacterEdgeStyle, SettingApplicationReport, YouTubePlayerElement } from '../types/index.js';
+import type {
+  PlatformConfig,
+  StorageSettings,
+  YouTubeDisplaySettings,
+  CharacterEdgeStyle,
+  SettingApplicationReport,
+  YouTubePlayerElement
+} from '../types/index.js';
 import { debug } from '../debug.js';
 
 const EDGE_STYLE_MAP = {

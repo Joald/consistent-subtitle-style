@@ -1,4 +1,4 @@
-import type { PlatformConfig, StorageSettings, CharacterEdgeStyle, SettingApplicationReport, PlatformSettingConfig } from '../types/index.js';
+import type { PlatformConfig, StorageSettings, SettingApplicationReport } from '../types/index.js';
 import { youtube } from './youtube.js';
 import { debug } from '../debug.js';
 
@@ -13,6 +13,15 @@ function applyCharacterEdgeStyle(elements: NodeListOf<Element>, value: StorageSe
             break;
           case 'none':
             element.style.textShadow = 'none';
+            break;
+          case 'raised':
+            element.style.textShadow = '-1px -1px 1px rgba(255,255,255,0.5), 1px -1px 1px rgba(255,255,255,0.5), -1px 1px 1px rgba(255,255,255,0.5), 1px 1px 1px rgba(255,255,255,0.5)';
+            break;
+          case 'depressed':
+            element.style.textShadow = '1px 1px 1px rgba(0,0,0,0.5)';
+            break;
+          case 'outline':
+            element.style.textShadow = '-1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000, 1px 1px 0 #000';
             break;
           case 'auto':
           default:
