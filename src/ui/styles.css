@@ -124,31 +124,39 @@ button {
 }
 
 .message {
-  padding: 10px;
-  border-radius: 4px;
-  margin-top: 10px;
+  position: fixed;
+  bottom: 16px;
+  left: 50%;
+  transform: translateX(-50%);
+  padding: 10px 20px;
+  border-radius: 6px;
   text-align: center;
   font-size: 13px;
-  display: none;
+  z-index: 1000;
+  opacity: 0;
+  transition: opacity 0.3s, transform 0.3s;
+  pointer-events: none;
+}
+
+.message.show {
+  opacity: 1;
+  transform: translateX(-50%) translateY(0);
 }
 
 .message.success {
   background: #1a3d1a;
   color: #4ade80;
   border: 1px solid #2d5a2d;
-  display: block !important;
 }
 
 .message.error {
   background: #3d1a1a;
   color: #f87171;
   border: 1px solid #5a2d2d;
-  display: block !important;
 }
 
 .message.info {
   background: #1a2a3d;
   color: #60a5fa;
   border: 1px solid #2d3a5a;
-  display: block !important;
 }

@@ -6,7 +6,7 @@ function setCustomSelectValue(container: HTMLElement | null, value: string): voi
   if (!container) return;
   const options = container.querySelectorAll('.select-option');
   const triggerValue = container.querySelector('.select-value');
-  
+
   options.forEach(opt => {
     const el = opt as HTMLElement;
     if (el.dataset['value'] === value) {
@@ -62,12 +62,15 @@ function showMessage(message: string, type: 'info' | 'success' | 'error' = 'info
   const messageEl = document.getElementById('message');
   if (messageEl) {
     messageEl.textContent = message;
-    messageEl.className = `message ${type}`;
+    messageEl.className = `message ${type} show`;
 
     setTimeout(() => {
-      messageEl.textContent = '';
-      messageEl.className = 'message';
-    }, 3000);
+      messageEl.classList.remove('show');
+      setTimeout(() => {
+        messageEl.textContent = '';
+        messageEl.className = 'message';
+      }, 300);
+    }, 2500);
   }
 }
 
@@ -76,7 +79,7 @@ async function handleSave(): Promise<void> {
     const settings = collectSettings();
     debug.log(`Saving settings: characterEdge=${settings.characterEdgeStyle}, bgOpacity=${settings.backgroundOpacity}, winOpacity=${settings.windowOpacity}`);
     await saveSettings(settings);
-    showMessage('Settings saved and applied', 'success');
+    showMessage('Saved!', 'success');
   } catch (error) {
     console.error('Failed to save settings:', error);
     showMessage('Failed to save settings', 'error');
@@ -90,52 +93,52 @@ async function handleReset(): Promise<void> {
     windowOpacity: 'auto'
   });
   await handleSave();
-  showMessage('Settings reset to defaults', 'success');
+  showMessage('Saved', 'success');
 }
 
 
 function setupCustomSelects(): void {
   const selects = document.querySelectorAll('.custom-select');
-  
+
   selects.forEach(select => {
     const container = select as HTMLElement;
     const trigger = container.querySelector('.select-trigger');
     const options = container.querySelectorAll('.select-option');
-    
+
     trigger?.addEventListener('click', (e) => {
       e.stopPropagation();
       const isOpen = container.classList.contains('open');
-      
+
       document.querySelectorAll('.custom-select.open').forEach(open => {
         open.classList.remove('open');
       });
-      
+
       if (!isOpen) {
         container.classList.add('open');
       }
     });
-    
+
     options.forEach(option => {
       const el = option as HTMLElement;
       el.addEventListener('click', async () => {
         const value = el.dataset['value'];
         const text = el.textContent;
-        
+
         container.querySelectorAll('.select-option').forEach(opt => {
           opt.classList.remove('selected');
         });
         el.classList.add('selected');
-        
+
         const valueEl = container.querySelector('.select-value');
         if (valueEl) valueEl.textContent = text;
-        
+
         container.classList.remove('open');
-        
+
         await handleSave();
       });
     });
   });
-  
+
   document.addEventListener('click', () => {
     document.querySelectorAll('.custom-select.open').forEach(open => {
       open.classList.remove('open');
