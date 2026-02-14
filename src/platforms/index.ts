@@ -9,7 +9,7 @@ function applyCharacterEdgeStyle(elements: NodeListOf<Element>, value: StorageSe
       if (element instanceof HTMLElement) {
         switch (value) {
           case 'dropshadow':
-            element.style.textShadow = '2px 2px 4px rgba(0,0,0,0.8)';
+            element.style.textShadow = '2px 2px 4px rgba(0,0,0,0.95)';
             break;
           case 'none':
             element.style.textShadow = 'none';
@@ -82,21 +82,23 @@ function applyWindowOpacity(elements: NodeListOf<Element>, value: StorageSetting
 
 export const PLATFORMS: { [platformName: string]: PlatformConfig } = {
   youtube,
-
   nebula: {
     name: 'Nebula',
+    css: {
+      subtitleContainerSelector: '#video-player [data-subtitles-container]'
+    },
     settings: {
       characterEdgeStyle: {
         getCurrentValue() { return undefined; },
-        applySetting: (value: StorageSettings['characterEdgeStyle']) => applyCharacterEdgeStyle(document.querySelectorAll('.vjs-text-track'), value)
+        applySetting: (value: StorageSettings['characterEdgeStyle']) => applyCharacterEdgeStyle(document.querySelectorAll('#video-player [data-subtitles-container] > div > div > div'), value)
       },
       backgroundOpacity: {
         getCurrentValue() { return undefined; },
-        applySetting: (value: StorageSettings['backgroundOpacity']) => applyBackgroundOpacity(document.querySelectorAll('.vjs-text-track'), value)
+        applySetting: (value: StorageSettings['backgroundOpacity']) => applyBackgroundOpacity(document.querySelectorAll('#video-player [data-subtitles-container] > div > div > div'), value)
       },
       windowOpacity: {
         getCurrentValue() { return undefined; },
-        applySetting: (value: StorageSettings['windowOpacity']) => applyWindowOpacity(document.querySelectorAll('.vjs-text-track'), value)
+        applySetting: (value: StorageSettings['windowOpacity']) => applyWindowOpacity(document.querySelectorAll('#video-player [data-subtitles-container] > div > div > div'), value)
       }
     },
     detectNativeCapabilities(): boolean {

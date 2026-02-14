@@ -14,10 +14,10 @@ src/
 │   ├── index.ts     # Platform registry, detection, and CSS helpers
 │   └── youtube.ts   # YouTube-specific per-setting configuration
 ├── storage.ts       # Type-safe Chrome storage with StorageSettings interface
-├── ui/
-│   ├── popup.ts     # Popup interface with form management & presets
-│   ├── index.html   # Popup HTML structure
-│   └── styles.css   # Popup styling
+├── ui/              # interface for changing the settings
+│   ├── popup.ts
+│   ├── index.html
+│   └── styles.css
 ├── types/index.ts   # TypeScript type definitions including PlatformSettingConfig
 ├── bridge.ts        # IIFE: Polyfills chrome.storage APIs in page context via postMessage
 ├── injection.ts     # IIFE: Entry point - injects bridge, then loads main scripts sequentially
@@ -26,10 +26,10 @@ dist/                # Build output (load this folder in Chrome)
 
 ## Core Features
 - **Per-Platform Per-Setting Strategy**: Each setting on each platform chooses optimal method (native vs CSS)
+- **usesCssStyling Flag**: Platform config flag to enable CSS-based styling (requires MutationObserver)
 - **Type Safety**: Full TypeScript with strict interfaces
-- **Auto Observer**: Watches for new subtitle elements
+- **Auto Observer**: Watches for new subtitle elements (only when usesCssStyling is true)
 - **Persistent Settings**: Chrome storage with validation
-- **4 Presets**: High Contrast, Cinema, Minimal, Accessibility
 
 ## Development Commands
 
@@ -84,13 +84,21 @@ subtitleStylerDebug()  # Console: shows typed state and stats
 In `src/platforms/index.ts`, add to PLATFORMS:
 ```typescript
 newplatform: {
-  selector: '.subtitle-selector',
   name: 'New Platform',
-  settings: { /* setting configs */ },
+  usesCssStyling: true, // Set to true if platform requires CSS-based styling ( MutationObserver)
+  settings: {
+    characterEdgeStyle: {
+      getCurrentValue() { return undefined; },
+      applySetting: (value) => applyCharacterEdgeStyle(document.querySelectorAll('.subtitle-selector'), value)
+    },
+    // ... other settings
+  },
   detectNativeCapabilities: () => false,
   getCurrentNativeSettings: () => null
 }
 ```
+
+**Note:** Set `usesCssStyling: true` for platforms that need CSS manipulation (requires MutationObserver to watch for dynamic elements). Use native APIs when available (like YouTube) - no observer needed.
 
 #### Testing New Features
 1. Run `npm run typecheck` to verify type safety
@@ -116,4 +124,4 @@ newplatform: {
 - **Memory Safety**: Proper null/undefined handling
 
 **CRITICAL: Always run `npm run build` AND `npm run typecheck` after every edit.**
-**At the end of each major change, use skill-creator skill to update this AGENTS.md with ACTUALLY NECESSARY info**
+**CRITICAL: At the end of each major change, update this AGENTS.md with ACTUALLY NECESSARY info**

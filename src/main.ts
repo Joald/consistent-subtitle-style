@@ -71,6 +71,17 @@ async function applyStyles(platform: PlatformConfig): Promise<void> {
   }
 }
 
+function startSubtitleObserver(platform: PlatformConfig): void {
+  const selector = platform.css?.subtitleContainerSelector;
+  if (!selector) return;
+
+  const container = document.querySelector(selector);
+  if (container) {
+    const observer = new MutationObserver(() => applyStyles(platform));
+    observer.observe(container, { childList: true, subtree: true, attributes: true });
+  }
+}
+
 async function initialize(): Promise<void> {
   try {
     currentPlatform = detectPlatform();
@@ -85,11 +96,16 @@ async function initialize(): Promise<void> {
     settings = new Settings(currentSettings);
 
     await applyStyles(platform);
+
+    if (platform.css) {
+      startSubtitleObserver(platform);
+    }
+
     debug.log(
       `Extension initialized - Platform: ${currentPlatform}, settings: ${Object
         .entries(currentSettings)
         .filter(([_, v]) => v !== 'auto')
-        .map(([k, _]) => k)
+        .map(([k, v]) => `${k}=${v}`)
         .join(', ')
       }`
     );

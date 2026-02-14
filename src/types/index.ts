@@ -18,11 +18,16 @@ export interface PlatformSettingConfig {
   applySetting(value: StorageSettings[keyof StorageSettings]): SettingApplicationReport;
 }
 
+export interface CssConfig {
+  subtitleContainerSelector: string;
+}
+
 export interface PlatformConfig {
   name: string;
   settings: {
     [K in keyof StorageSettings]: PlatformSettingConfig;
   };
+  css?: CssConfig;
   detectNativeCapabilities?(): boolean;
   getCurrentNativeSettings?(): Partial<StorageSettings> | null;
   applyNativeSetting?(setting: keyof StorageSettings, value: string): boolean;
