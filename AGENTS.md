@@ -116,7 +116,7 @@ npm run typecheck
 - **TypeScript**: Use strict mode and proper type annotations
 - **ES6+ Features**: Modern JavaScript with type safety
 - **Error Handling**: Typed Chrome API calls with proper error boundaries
-- **Console Logging**: Include typed debug information
+- **Console Logging**: Use `debug.log()` instead of `console.log()` for all logging. The `debug.log()` function only outputs when DEBUG mode is enabled. Note: IIFE scripts (bridge.ts, injection.ts) cannot import debug and should keep `console.log()` for critical initialization messages.
 - **Interface Design**: Define clear interfaces for all major data structures
 
 #### Adding New Platform Support

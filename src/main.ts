@@ -1,30 +1,31 @@
-import { loadSettings, saveSettings } from './storage.js';
-import { detectPlatform, getPlatformConfig, PLATFORMS } from './platforms/index.js';
+import { loadSettings, Settings } from './storage.js';
+import { detectPlatform, getPlatformConfig } from './platforms/index.js';
 import { debug } from './debug.js';
-import type { StorageSettings, PlatformConfig, ApplicationLog, ProcessedSettings, StyleElement, StorageKey, CharacterEdgeStyle, DebugWindow, StorageChanges, ValidCharacterEdgeStyles, ValidOpacityValues, Platform } from './types/index.js';
+import type { StorageSettings, PlatformConfig, ApplicationLog, Platform, ExtendedWindow } from './types/index.js';
+
+type DebugWindow = typeof window & { subtitleStylerDebug?: Function };
 
 let currentSettings: StorageSettings = {
   characterEdgeStyle: 'auto',
   backgroundOpacity: 'auto',
   windowOpacity: 'auto'
 };
+let settings = new Settings(currentSettings);
 let currentPlatform: Platform | 'unknown';
 let applicationLog: ApplicationLog = {};
 
-console.log('Subtitle styler content script loaded');
-
-  (window as DebugWindow).subtitleStylerDebug = () => {
-    return {
-      platform: currentPlatform,
-      settings: currentSettings,
-      log: applicationLog,
-      config: currentPlatform !== 'unknown' ? getPlatformConfig(currentPlatform) : null,
-      status: 'loading',
-      chromeAPIs: !!(chrome && chrome.storage && chrome.runtime),
-      playerElement: !!document.querySelector('#movie_player'),
-      storageBridge: !!(window as any).subtitleStylerBridge
-    };
+(window as DebugWindow).subtitleStylerDebug = () => {
+  return {
+    platform: currentPlatform,
+    settings: currentSettings,
+    log: applicationLog,
+    config: currentPlatform !== 'unknown' ? getPlatformConfig(currentPlatform) : null,
+    status: 'loading',
+    chromeAPIs: !!(chrome && chrome.storage && chrome.runtime),
+    playerElement: !!document.querySelector('#movie_player'),
+    storageBridge: !!(window as ExtendedWindow).subtitleStylerBridge
   };
+};
 
 function processSettings(platform: PlatformConfig, extensionSettings: StorageSettings): {
   toApply: Array<{ key: keyof StorageSettings; value: StorageSettings[keyof StorageSettings] }>
@@ -44,59 +45,35 @@ function processSettings(platform: PlatformConfig, extensionSettings: StorageSet
       continue; // No change needed
     }
 
-    toApply.push({
-      key,
-      value
-    });
+    toApply.push({ key, value });
   }
 
   return { toApply };
 }
 
-
-
 async function applyStyles(platform: PlatformConfig): Promise<void> {
   const { toApply } = processSettings(platform, currentSettings);
-  
-    debug.log(`🔍 DEBUG: Processing ${toApply.length} settings to apply for ${platform.name}`);
 
-  // Initialize application log
   for (const { key } of toApply) {
     applicationLog[key] = {
       success: false
     };
   }
 
-  // Apply settings using per-platform per-setting configuration
-  // Note: For YouTube, this uses the player API, not DOM elements
   for (const { key, value } of toApply) {
-    debug.log(`🔍 DEBUG: Applying setting ${key}: ${value}`);
     const config = platform.settings[key];
     const report = config.applySetting(value);
-    
-    console.log(`Applied setting ${key}: ${value} - ${report.message}`);
 
     if (applicationLog[key]) {
       applicationLog[key].success = report.success;
       applicationLog[key].details = report.message;
     }
   }
-  
-  debug.log('✅ DEBUG: All settings processed');
 }
 
 async function initialize(): Promise<void> {
   try {
-    debug.log('Initializing subtitle extension...');
-    debug.log('Chrome APIs available:', {
-      chrome: !!chrome,
-      storage: !!(chrome?.storage),
-      runtime: !!(chrome?.runtime),
-      sync: !!(chrome?.storage?.sync)
-    });
-
     currentPlatform = detectPlatform();
-    debug.log('🔍 DEBUG: Platform detected, getting config...');
     const platform = getPlatformConfig(currentPlatform);
 
     if (!platform) {
@@ -104,23 +81,18 @@ async function initialize(): Promise<void> {
       return;
     }
 
-    debug.log(`Platform detected: ${currentPlatform} (${platform.name})`);
-    debug.log('🔍 DEBUG: About to load settings...');
     currentSettings = await loadSettings();
-    debug.log('✅ SUCCESS: Settings loaded:', currentSettings);
-    debug.log('🔍 DEBUG: About to apply styles...');
+    settings = new Settings(currentSettings);
+
     await applyStyles(platform);
-    debug.log('✅ SUCCESS: Styles applied');
-    console.log('Extension initialized successfully');
-    
-    // Set up storage change listener
-    if ((window as any).subtitleStylerBridge) {
-      debug.log('🔍 DEBUG: Setting up storage change listener via bridge...');
-      (window as any).subtitleStylerBridge.onChanged(() => {
-        debug.log('🔍 DEBUG: Storage change listener callback called');
-      });
-    }
-    
+    debug.log(
+      `Extension initialized - Platform: ${currentPlatform}, settings: ${Object
+        .entries(currentSettings)
+        .filter(([_, v]) => v !== 'auto')
+        .map(([k, _]) => k)
+        .join(', ')
+      }`
+    );
   } catch (error) {
     console.error('Failed to initialize extension:', error);
 
@@ -136,24 +108,11 @@ async function initialize(): Promise<void> {
   }
 }
 
-(window as DebugWindow).subtitleStylerDebug = () => {
-  return {
-    platform: currentPlatform,
-    settings: currentSettings,
-    log: applicationLog,
-    config: currentPlatform !== 'unknown' ? getPlatformConfig(currentPlatform) : null
-  };
-}
-
-// Listen for storage changes forwarded from bridge
 window.addEventListener('message', (event) => {
   if (event.source !== window) return;
-  
-  console.log('🔍 MAIN WORLD: Received message:', event.data.type, event.data);
-  
+
   if (event.data.type === 'subtitleStylerChanged') {
     const changes = event.data.data;
-    debug.log('Storage changed:', changes);
 
     const settingKeys = Object.keys(changes) as Array<keyof StorageSettings>;
     settingKeys.forEach(key => {
@@ -161,29 +120,18 @@ window.addEventListener('message', (event) => {
         const change = changes[key];
         if (change && change.newValue !== undefined) {
           const newValue = change.newValue as string;
-          if (key === 'characterEdgeStyle') {
-            const validValues: readonly CharacterEdgeStyle[] = ['auto', 'dropshadow', 'none', 'raised', 'depressed', 'outline'];
-            if (validValues.includes(newValue as CharacterEdgeStyle)) {
-              currentSettings[key] = newValue as CharacterEdgeStyle;
-            }
-          } else if ((key === 'backgroundOpacity' || key === 'windowOpacity')) {
-            const validValues: readonly StorageSettings['backgroundOpacity'][] = ['auto', '0', '25', '50', '75', '100'];
-            if (validValues.includes(newValue as StorageSettings['backgroundOpacity'])) {
-              currentSettings[key] = newValue as StorageSettings['backgroundOpacity'];
-            }
+          if (settings.set(key, newValue)) {
+            currentSettings = settings.toObject();
           }
         }
       }
     });
 
-    debug.log('Updated settings:', currentSettings);
-
     if (currentPlatform !== 'unknown') {
       const platform = getPlatformConfig(currentPlatform);
       if (platform) {
-        debug.log('🔍 DEBUG: About to apply styles from storage change...');
         applyStyles(platform).catch(error => {
-          console.error('Failed to apply updated styles:', error);
+          console.error(`Failed to apply updated styles on ${platform.name}:`, error);
         });
       }
     }

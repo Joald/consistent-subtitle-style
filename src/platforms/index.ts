@@ -1,9 +1,9 @@
 import type { PlatformConfig, StorageSettings, CharacterEdgeStyle, SettingApplicationReport, PlatformSettingConfig } from '../types/index.js';
 import { youtube } from './youtube.js';
+import { debug } from '../debug.js';
 
-// CSS application helpers
+
 function applyCharacterEdgeStyle(elements: NodeListOf<Element>, value: StorageSettings['characterEdgeStyle']): SettingApplicationReport {
-  console.log('🔍 CSS FALLBACK: applyCharacterEdgeStyle called with value:', value);
   try {
     elements.forEach(element => {
       if (element instanceof HTMLElement) {
@@ -20,6 +20,7 @@ function applyCharacterEdgeStyle(elements: NodeListOf<Element>, value: StorageSe
         }
       }
     });
+    debug.log(`Character edge style applied: ${value} to ${elements.length} elements`);
     return { success: true, message: `Applied character edge style: ${value}` };
   } catch (e) {
     return { success: false, message: `Failed to apply character edge style: ${e}` };
@@ -27,16 +28,19 @@ function applyCharacterEdgeStyle(elements: NodeListOf<Element>, value: StorageSe
 }
 
 function applyBackgroundOpacity(elements: NodeListOf<Element>, value: StorageSettings['backgroundOpacity']): SettingApplicationReport {
-  console.log('🔍 CSS FALLBACK: applyBackgroundOpacity called with value:', value);
+  const opacity = value === 'auto' ? '' : value === '0' ? '0' : (parseInt(value) / 100).toString();
+
   try {
-    const opacity = value === 'auto' ? '' : value === '0' ? '0' : (parseInt(value) / 100).toString();
     elements.forEach(element => {
       if (element instanceof HTMLElement) {
         if (opacity) {
           element.style.backgroundColor = `rgba(0, 0, 0, ${opacity})`;
+        } else {
+          element.style.backgroundColor = '';
         }
       }
     });
+    debug.log(`Background opacity applied: ${value} (${opacity}) to ${elements.length} elements`);
     return { success: true, message: `Applied background opacity: ${value}` };
   } catch (e) {
     return { success: false, message: `Failed to apply background opacity: ${e}` };
@@ -44,30 +48,32 @@ function applyBackgroundOpacity(elements: NodeListOf<Element>, value: StorageSet
 }
 
 function applyWindowOpacity(elements: NodeListOf<Element>, value: StorageSettings['windowOpacity']): SettingApplicationReport {
-  console.log('🔍 CSS FALLBACK: applyWindowOpacity called with value:', value);
+  const opacity = value === 'auto' ? '' : value === '0' ? '0' : (parseInt(value) / 100).toString();
+
   try {
-    const opacity = value === 'auto' ? '' : value === '0' ? '0' : (parseInt(value) / 100).toString();
     elements.forEach(element => {
       if (element instanceof HTMLElement) {
-        if (opacity) {
-          const parent = element.parentElement;
-          if (parent) {
+        const parent = element.parentElement;
+        if (parent) {
+          if (opacity) {
             parent.style.backgroundColor = `rgba(0, 0, 0, ${opacity})`;
+          } else {
+            parent.style.backgroundColor = '';
           }
         }
       }
     });
+    debug.log(`Window opacity applied: ${value} (${opacity}) to ${elements.length} subtitle elements`);
     return { success: true, message: `Applied window opacity: ${value}` };
   } catch (e) {
     return { success: false, message: `Failed to apply window opacity: ${e}` };
   }
 }
 
-// Platform registry with CSS fallback configurations
+
 export const PLATFORMS: { [platformName: string]: PlatformConfig } = {
   youtube,
   netflix: {
-    selector: '.player-timedtext',
     name: 'Netflix',
     settings: {
       characterEdgeStyle: {
@@ -92,7 +98,6 @@ export const PLATFORMS: { [platformName: string]: PlatformConfig } = {
   },
 
   disney: {
-    selector: '.dss-subtitle-renderer',
     name: 'Disney+',
     settings: {
       characterEdgeStyle: {

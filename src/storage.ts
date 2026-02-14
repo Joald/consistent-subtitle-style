@@ -1,7 +1,54 @@
-import type { StorageSettings, ValidCharacterEdgeStyles, ValidOpacityValues, ValidationValuesMap } from './types/index.js';
-import { debug } from './debug.js';
+import type { StorageSettings } from './types/index.js';
 
-type CharacterEdgeStyle = StorageSettings['characterEdgeStyle'];
+const VALID_SETTINGS: Record<keyof StorageSettings, readonly string[]> = {
+  characterEdgeStyle: ['auto', 'dropshadow', 'none', 'raised', 'depressed', 'outline'] as const,
+  backgroundOpacity: ['auto', '0', '25', '50', '75', '100'] as const,
+  windowOpacity: ['auto', '0', '25', '50', '75', '100'] as const
+};
+
+export function isValidValue<K extends keyof StorageSettings>(key: K, value: string): value is StorageSettings[K] {
+  return VALID_SETTINGS[key].includes(value);
+}
+
+interface StorageSettingsData extends StorageSettings { }
+
+export class Settings {
+  private settings: StorageSettingsData;
+
+  constructor(initialSettings: StorageSettings) {
+    this.settings = { ...initialSettings };
+  }
+
+  set<K extends keyof StorageSettings>(key: K, value: string): boolean {
+    if (isValidValue(key, value)) {
+      this.settings[key] = value;
+      return true;
+    }
+    return false;
+  }
+
+  get<K extends keyof StorageSettings>(key: K): StorageSettings[K] {
+    return this.settings[key];
+  }
+
+  toObject(): StorageSettings {
+    return { ...this.settings };
+  }
+
+  merge(partialSettings: Record<string, unknown>): StorageSettings {
+    for (const [key, value] of Object.entries(partialSettings)) {
+      const settingKey = key as keyof StorageSettings;
+      if (typeof value === 'string' && isValidValue(settingKey, value)) {
+        this.set(settingKey, value);
+      }
+    }
+    return this.toObject();
+  }
+
+  updateFromStorageResult(result: Record<string, unknown>): void {
+    this.merge(result);
+  }
+}
 
 const DEFAULTS: StorageSettings = {
   characterEdgeStyle: 'auto',
@@ -9,49 +56,27 @@ const DEFAULTS: StorageSettings = {
   windowOpacity: 'auto'
 };
 
-export function loadSettings(): Promise<StorageSettings> {
-  // Since main script runs in main world, use direct bridge communication
-  debug.log('🔍 DEBUG: Using direct bridge communication for storage');
-  
+export async function loadSettings(): Promise<StorageSettings> {
+  if (chrome?.storage?.sync) {
+    const result = await chrome.storage.sync.get(null);
+    const settings = new Settings(DEFAULTS);
+    settings.updateFromStorageResult(result);
+    return settings.toObject();
+  }
+
   return new Promise((resolve) => {
     const requestId = Date.now();
-    
-    // Listen for response
     const messageHandler = (event: MessageEvent) => {
-      if (event.source !== window) return;
       if (event.data.type === 'subtitleStylerResponse' && event.data.requestId === requestId) {
         window.removeEventListener('message', messageHandler);
-        
-        debug.log('🔍 DEBUG: Got bridge response:', event.data.data);
-        const result = event.data.data as Record<string, unknown>;
-        
-        const settings: StorageSettings = { ...DEFAULTS };
-
-        const charEdgeStyle = result['characterEdgeStyle'];
-        const bgOpacity = result['backgroundOpacity'];
-        const winOpacity = result['windowOpacity'];
-        
-        const validEdgeStyles = ['auto', 'dropshadow', 'none', 'raised', 'depressed', 'outline'] as const;
-        const validOpacities = ['auto', '0', '25', '50', '75', '100'] as const;
-        
-        if (typeof charEdgeStyle === 'string' && validEdgeStyles.includes(charEdgeStyle as CharacterEdgeStyle)) {
-          settings.characterEdgeStyle = charEdgeStyle as CharacterEdgeStyle;
-        }
-        if (typeof bgOpacity === 'string' && validOpacities.includes(bgOpacity as StorageSettings['backgroundOpacity'])) {
-          settings.backgroundOpacity = bgOpacity as StorageSettings['backgroundOpacity'];
-        }
-        if (typeof winOpacity === 'string' && validOpacities.includes(winOpacity as StorageSettings['windowOpacity'])) {
-          settings.windowOpacity = winOpacity as StorageSettings['windowOpacity'];
-        }
-        
-        debug.log('🔍 DEBUG: Final settings after validation:', settings);
-        resolve(settings);
+        const settings = new Settings(DEFAULTS);
+        const result = event.data.data;
+        settings.updateFromStorageResult(result);
+        resolve(settings.toObject());
       }
     };
-    
+
     window.addEventListener('message', messageHandler);
-    
-    // Send request
     window.postMessage({
       type: 'subtitleStyler',
       data: { action: 'get' },
@@ -60,49 +85,9 @@ export function loadSettings(): Promise<StorageSettings> {
   });
 }
 
-export function saveSettings(settings: Partial<StorageSettings>): Promise<void> {
+export const saveSettings = (settings: Partial<StorageSettings>): Promise<void> => {
   if (!chrome?.storage?.sync) return Promise.resolve();
 
-  return new Promise<void>((resolve, reject) => {
-    chrome.storage.sync.set(settings, () => {
-      if (chrome.runtime.lastError) {
-        reject(chrome.runtime.lastError);
-      } else {
-        resolve();
-      }
-    });
-  });
-}
+  return chrome.storage.sync.set(settings);
+};
 
-export async function updateSettings(newSettings: Partial<StorageSettings>): Promise<StorageSettings> {
-  await saveSettings(newSettings);
-  return await loadSettings();
-}
-
-export function validateSettings(settings: Partial<StorageSettings>): { isValid: boolean; errors: string[] } {
-  const validValues: ValidationValuesMap = {
-    characterEdgeStyle: ['auto', 'dropshadow', 'none', 'raised', 'depressed', 'outline'],
-    backgroundOpacity: ['auto', '0', '25', '50', '75', '100'],
-    windowOpacity: ['auto', '0', '25', '50', '75', '100']
-  };
-
-  const errors: string[] = [];
-
-  const settingKeys = Object.keys(settings) as Array<keyof StorageSettings>;
-  settingKeys.forEach(key => {
-    const value = settings[key];
-
-    if (value && validValues[key] && !validValues[key].includes(value)) {
-      errors.push(`Invalid ${key}`);
-    }
-  });
-
-  return {
-    isValid: errors.length === 0,
-    errors
-  };
-}
-
-export function resetSettings(): Promise<void> {
-  return saveSettings(DEFAULTS);
-}

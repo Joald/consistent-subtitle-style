@@ -1,4 +1,4 @@
-// Chrome Extension API types that aren't covered by @types/chrome
+
 export type CharacterEdgeStyle = 'auto' | 'dropshadow' | 'none' | 'raised' | 'depressed' | 'outline';
 
 export interface StorageSettings {
@@ -7,7 +7,7 @@ export interface StorageSettings {
   windowOpacity: 'auto' | '0' | '25' | '50' | '75' | '100';
 }
 
-// Per-setting configuration for each platform
+
 export interface SettingApplicationReport {
   success: boolean;
   message: string;
@@ -19,7 +19,6 @@ export interface PlatformSettingConfig {
 }
 
 export interface PlatformConfig {
-  selector: string;
   name: string;
   settings: {
     [K in keyof StorageSettings]: PlatformSettingConfig;
@@ -42,21 +41,7 @@ export interface ApplicationLog {
   };
 }
 
-export interface ProcessedSettings {
-  native: {
-    [K in keyof StorageSettings]?: StorageSettings[K];
-  };
-  css: {
-    [K in keyof StorageSettings]?: StorageSettings[K];
-  };
-}
-
 export type StorageKey = keyof StorageSettings;
-
-export interface StyleElement extends HTMLElement {
-  style: CSSStyleDeclaration;
-  dataset: DOMStringMap;
-}
 
 export interface YouTubeDisplaySettings {
   background?: string;
@@ -78,9 +63,21 @@ export interface YouTubePlayer {
 }
 
 export type YouTubePlayerElement = HTMLElement & YouTubePlayer;
-
-export type DebugWindow = typeof window & { subtitleStylerDebug?: Function };
 export type StorageChanges = { [key: string]: chrome.storage.StorageChange };
-export type ValidCharacterEdgeStyles = readonly CharacterEdgeStyle[];
-export type ValidOpacityValues = readonly StorageSettings['backgroundOpacity'][];
-export type ValidationValuesMap = Record<keyof StorageSettings, string[]>;
+
+export interface ChromeStorageBridge {
+  get(): Promise<Record<string, unknown>>;
+  set(settings: Partial<StorageSettings>): Promise<void>;
+  onChanged: {
+    addListener(callback: (changes: Record<string, unknown>) => void): void;
+  };
+}
+
+export interface SubtitleStylerBridge {
+  storage: ChromeStorageBridge;
+}
+
+export interface ExtendedWindow extends Window {
+  subtitleStylerBridge?: SubtitleStylerBridge;
+}
+

@@ -7,56 +7,29 @@ const EDGE_STYLE_MAP = {
   depressed: 2,
   outline: 3,
   dropshadow: 4,
-};
+} as const;
 
-const REVERSE_EDGE_STYLE_MAP: Record<number, CharacterEdgeStyle> = {
-  0: 'none',
-  1: 'raised',
-  2: 'depressed',
-  3: 'outline',
-  4: 'dropshadow'
-};
+const REVERSE_EDGE_STYLE_MAP: Record<number, CharacterEdgeStyle> = Object.fromEntries(
+  Object.entries(EDGE_STYLE_MAP).map(([key, value]) => [value, key as keyof typeof EDGE_STYLE_MAP])
+);
 
 function getYouTubePlayer(): YouTubePlayerElement | null {
-  debug.log('🔍 DEBUG: Looking for YouTube player...');
-  const moviePlayer = document.querySelector('#movie_player') as any;
-  
-  debug.log('🔍 DEBUG: #movie_player element found:', !!moviePlayer);
-  debug.log('🔍 DEBUG: Element tag:', moviePlayer?.tagName);
-  debug.log('🔍 DEBUG: Element classes:', moviePlayer?.className);
-  
-  if (moviePlayer) {
-    debug.log('🔍 DEBUG: Checking for getSubtitlesUserSettings method...');
-    debug.log('🔍 DEBUG: getSubtitlesUserSettings type:', typeof moviePlayer.getSubtitlesUserSettings);
-    
-    debug.log('🔍 DEBUG: Checking for updateSubtitlesUserSettings method...');
-    debug.log('🔍 DEBUG: updateSubtitlesUserSettings type:', typeof moviePlayer.updateSubtitlesUserSettings);
-    
-    if (typeof moviePlayer.getSubtitlesUserSettings === 'function' && typeof moviePlayer.updateSubtitlesUserSettings === 'function') {
-      debug.log('✅ SUCCESS: Found YouTube player with subtitle methods!');
-      
-      // Test if methods actually work
-      try {
-        const testSettings = moviePlayer.getSubtitlesUserSettings();
-        debug.log('🔍 DEBUG: Test getSubtitlesUserSettings() returned:', testSettings);
-        debug.log('✅ SUCCESS: YouTube API methods are functional!');
-        return moviePlayer as YouTubePlayerElement;
-      } catch (e) {
-        debug.log('❌ ERROR: YouTube API methods exist but failed when called:', e);
-        return moviePlayer as YouTubePlayerElement;
-      }
-    }
-  }
-  
-  debug.log('❌ FAILED: No YouTube player with subtitle methods found');
-  debug.log('🔍 DEBUG: Player element properties:', moviePlayer ? Object.getOwnPropertyNames(moviePlayer) : 'null');
-  debug.log('🔍 DEBUG: Player prototype:', moviePlayer ? Object.getPrototypeOf(moviePlayer) : 'null');
-  
-  return null;
-}
+  const moviePlayer = document.querySelector('#movie_player') as (YouTubePlayerElement | null);
 
-function logError(setting: string, operation: string, error: unknown): void {
-  console.error(`YouTube ${setting} ${operation} failed:`, error);
+  if (!moviePlayer) {
+    debug.error('No HTML element with #movie_player found! cannot proceed');
+    return null;
+  }
+
+  if (
+    typeof moviePlayer.getSubtitlesUserSettings !== 'function'
+    || typeof moviePlayer.updateSubtitlesUserSettings !== 'function'
+  ) {
+    debug.error('Expected subtitle player API methods not found.');
+    return null;
+  }
+
+  return moviePlayer;
 }
 
 function getCurrentYouTubeSettings(): YouTubeDisplaySettings | null {
@@ -70,9 +43,11 @@ function getCurrentYouTubeSettings(): YouTubeDisplaySettings | null {
     }
 
     const displaySettings: YouTubeDisplaySettings = player.getSubtitlesUserSettings();
-    return displaySettings && typeof displaySettings === 'object' ? displaySettings : null;
+    const isValid = displaySettings && typeof displaySettings === 'object';
+
+    return isValid ? displaySettings : null;
   } catch (error) {
-    logError('general', 'get settings', error);
+    console.error('YouTube get settings failed:', error);
     return null;
   }
 }
@@ -81,23 +56,23 @@ function applyYouTubeSetting(updateSettings: Partial<YouTubeDisplaySettings>): S
   try {
     const player = getYouTubePlayer();
     if (!player) {
-      return { success: false, message: 'YouTube player not available' };
+      return { success: false, message: 'YouTube player not available for applying settings' };
     }
-    
+
     if (!player.updateSubtitlesUserSettings) {
-      return { success: false, message: 'YouTube player missing subtitle methods' };
+      return { success: false, message: 'YouTube player missing updateSubtitlesUserSettings method' };
     }
 
     player.updateSubtitlesUserSettings(updateSettings);
+    debug.log(`YouTube settings applied: ${Object.keys(updateSettings).map(k => `${k}=${updateSettings[k as keyof YouTubeDisplaySettings]}`).join(', ')}`);
     return { success: true, message: 'Applied YouTube setting successfully' };
   } catch (error) {
-    logError('general', 'apply setting', error);
+    console.error('YouTube apply setting failed:', error);
     return { success: false, message: `Failed to apply YouTube setting: ${error}` };
   }
 }
 
 export const youtube: PlatformConfig = {
-  selector: '.ytp-caption-segment',
   name: 'YouTube',
   settings: {
     characterEdgeStyle: {
