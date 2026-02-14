@@ -80,3 +80,4 @@ extensions/
 !package-lock.json
 
 .opencode/
+.claude/
