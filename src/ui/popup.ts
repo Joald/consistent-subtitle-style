@@ -2,34 +2,48 @@ import type { StorageSettings } from '../types/index.js';
 import { loadSettings, saveSettings, Settings } from '../storage.js';
 import { debug } from '../debug.js';
 
-type CharacterEdgeStyle = StorageSettings['characterEdgeStyle'];
-
-function populateForm(settings: StorageSettings): void {
-  const characterEdgeStyle = document.getElementById('character-edge-style');
-  const backgroundOpacity = document.getElementById('background-opacity');
-  const windowOpacity = document.getElementById('window-opacity');
-
-  if (characterEdgeStyle instanceof HTMLSelectElement) {
-    characterEdgeStyle.value = settings.characterEdgeStyle || 'auto';
-  }
-  if (backgroundOpacity instanceof HTMLSelectElement) {
-    backgroundOpacity.value = settings.backgroundOpacity || 'auto';
-  }
-  if (windowOpacity instanceof HTMLSelectElement) {
-    windowOpacity.value = settings.windowOpacity || 'auto';
-  }
+function setCustomSelectValue(container: HTMLElement | null, value: string): void {
+  if (!container) return;
+  const options = container.querySelectorAll('.select-option');
+  const triggerValue = container.querySelector('.select-value');
+  
+  options.forEach(opt => {
+    const el = opt as HTMLElement;
+    if (el.dataset['value'] === value) {
+      el.classList.add('selected');
+      if (triggerValue) {
+        triggerValue.textContent = el.textContent;
+      }
+    } else {
+      el.classList.remove('selected');
+    }
+  });
 }
 
+function populateForm(settings: StorageSettings): void {
+  const characterEdgeStyle = document.querySelector('[data-id="character-edge-style"]');
+  const backgroundOpacity = document.querySelector('[data-id="background-opacity"]');
+  const windowOpacity = document.querySelector('[data-id="window-opacity"]');
 
+  setCustomSelectValue(characterEdgeStyle as HTMLElement, settings.characterEdgeStyle || 'auto');
+  setCustomSelectValue(backgroundOpacity as HTMLElement, settings.backgroundOpacity || 'auto');
+  setCustomSelectValue(windowOpacity as HTMLElement, settings.windowOpacity || 'auto');
+}
+
+function getCustomSelectValue(container: HTMLElement | null): string {
+  if (!container) return 'auto';
+  const selected = container.querySelector('.select-option.selected');
+  return selected ? (selected as HTMLElement).dataset['value'] || 'auto' : 'auto';
+}
 
 function collectSettings(): Partial<StorageSettings> {
-  const characterEdgeStyleEl = document.getElementById('character-edge-style');
-  const backgroundOpacityEl = document.getElementById('background-opacity');
-  const windowOpacityEl = document.getElementById('window-opacity');
+  const characterEdgeStyleEl = document.querySelector('[data-id="character-edge-style"]');
+  const backgroundOpacityEl = document.querySelector('[data-id="background-opacity"]');
+  const windowOpacityEl = document.querySelector('[data-id="window-opacity"]');
 
-  const characterEdgeValue = characterEdgeStyleEl instanceof HTMLSelectElement ? characterEdgeStyleEl.value : 'auto';
-  const backgroundOpacityValue = backgroundOpacityEl instanceof HTMLSelectElement ? backgroundOpacityEl.value : 'auto';
-  const windowOpacityValue = windowOpacityEl instanceof HTMLSelectElement ? windowOpacityEl.value : 'auto';
+  const characterEdgeValue = getCustomSelectValue(characterEdgeStyleEl as HTMLElement);
+  const backgroundOpacityValue = getCustomSelectValue(backgroundOpacityEl as HTMLElement);
+  const windowOpacityValue = getCustomSelectValue(windowOpacityEl as HTMLElement);
 
   const tempSettings = new Settings({
     characterEdgeStyle: 'auto',
@@ -111,35 +125,73 @@ async function applyPreset(presetName: string): Promise<void> {
   }
 }
 
+function setupCustomSelects(): void {
+  const selects = document.querySelectorAll('.custom-select');
+  
+  selects.forEach(select => {
+    const container = select as HTMLElement;
+    const trigger = container.querySelector('.select-trigger');
+    const options = container.querySelectorAll('.select-option');
+    
+    trigger?.addEventListener('click', (e) => {
+      e.stopPropagation();
+      const isOpen = container.classList.contains('open');
+      
+      document.querySelectorAll('.custom-select.open').forEach(open => {
+        open.classList.remove('open');
+      });
+      
+      if (!isOpen) {
+        container.classList.add('open');
+      }
+    });
+    
+    options.forEach(option => {
+      const el = option as HTMLElement;
+      el.addEventListener('click', async () => {
+        const value = el.dataset['value'];
+        const text = el.textContent;
+        
+        container.querySelectorAll('.select-option').forEach(opt => {
+          opt.classList.remove('selected');
+        });
+        el.classList.add('selected');
+        
+        const valueEl = container.querySelector('.select-value');
+        if (valueEl) valueEl.textContent = text;
+        
+        container.classList.remove('open');
+        
+        await handleSave();
+        
+        if (container.dataset['id'] === 'preset-select' && value) {
+          await applyPreset(value);
+        }
+      });
+    });
+  });
+  
+  document.addEventListener('click', () => {
+    document.querySelectorAll('.custom-select.open').forEach(open => {
+      open.classList.remove('open');
+    });
+  });
+}
+
 async function initializePopup(): Promise<void> {
   try {
     const settings = await loadSettings();
     populateForm(settings);
 
-    const resetBtn = document.getElementById('reset-btn');
-    const presetSelect = document.getElementById('preset-select');
+    setupCustomSelects();
 
+    const resetBtn = document.getElementById('reset-btn');
     if (resetBtn) {
       resetBtn.addEventListener('click', async (e) => {
         e.preventDefault();
         await handleReset();
       });
     }
-
-    if (presetSelect) {
-      presetSelect.addEventListener('change', async (e) => {
-        const target = e.target;
-        if (!(target instanceof HTMLSelectElement)) return;
-        await applyPreset(target.value);
-      });
-    }
-
-    const inputs = document.querySelectorAll('input, select');
-    inputs.forEach(input => {
-      input.addEventListener('change', async () => {
-        await handleSave();
-      });
-    });
 
   } catch (error) {
     console.error('Failed to initialize popup:', error);
@@ -148,4 +200,3 @@ async function initializePopup(): Promise<void> {
 }
 
 document.addEventListener('DOMContentLoaded', () => { initializePopup(); });
-

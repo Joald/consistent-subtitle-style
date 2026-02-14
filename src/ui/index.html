@@ -8,51 +8,73 @@
 </head>
 <body>
   <div class="container">
-    <h1>Subtitle Styles</h1>
-    
     <form id="settings-form">
       <div class="form-group">
-        <label for="character-edge-style">Character Edge Style</label>
-        <select id="character-edge-style">
-          <option value="auto">Auto (Default)</option>
-          <option value="dropshadow">Drop Shadow</option>
-          <option value="none">None</option>
-        </select>
+        <div class="custom-select" data-id="character-edge-style">
+          <div class="select-trigger">
+            <span class="select-name">Character Edge Style</span>
+            <span class="select-value">Auto (Default)</span>
+            <span class="select-arrow">▼</span>
+          </div>
+          <div class="select-options">
+            <div class="select-option" data-value="auto">Auto (Default)</div>
+            <div class="select-option" data-value="dropshadow">Drop Shadow</div>
+            <div class="select-option" data-value="none">None</div>
+          </div>
+        </div>
       </div>
       
       <div class="form-group">
-        <label for="background-opacity">Background Opacity</label>
-        <select id="background-opacity">
-          <option value="auto">Auto (Default)</option>
-          <option value="0">0%</option>
-          <option value="25">25%</option>
-          <option value="50">50%</option>
-          <option value="75">75%</option>
-          <option value="100">100%</option>
-        </select>
+        <div class="custom-select" data-id="background-opacity">
+          <div class="select-trigger">
+            <span class="select-name">Background Opacity</span>
+            <span class="select-value">Auto (Default)</span>
+            <span class="select-arrow">▼</span>
+          </div>
+          <div class="select-options">
+            <div class="select-option" data-value="auto">Auto (Default)</div>
+            <div class="select-option" data-value="0">0%</div>
+            <div class="select-option" data-value="25">25%</div>
+            <div class="select-option" data-value="50">50%</div>
+            <div class="select-option" data-value="75">75%</div>
+            <div class="select-option" data-value="100">100%</div>
+          </div>
+        </div>
       </div>
       
       <div class="form-group">
-        <label for="window-opacity">Window Opacity</label>
-        <select id="window-opacity">
-          <option value="auto">Auto (Default)</option>
-          <option value="0">0%</option>
-          <option value="25">25%</option>
-          <option value="50">50%</option>
-          <option value="75">75%</option>
-          <option value="100">100%</option>
-        </select>
+        <div class="custom-select" data-id="window-opacity">
+          <div class="select-trigger">
+            <span class="select-name">Window Opacity</span>
+            <span class="select-value">Auto (Default)</span>
+            <span class="select-arrow">▼</span>
+          </div>
+          <div class="select-options">
+            <div class="select-option" data-value="auto">Auto (Default)</div>
+            <div class="select-option" data-value="0">0%</div>
+            <div class="select-option" data-value="25">25%</div>
+            <div class="select-option" data-value="50">50%</div>
+            <div class="select-option" data-value="75">75%</div>
+            <div class="select-option" data-value="100">100%</div>
+          </div>
+        </div>
       </div>
 
       <div class="form-group">
-        <label for="preset-select">Presets</label>
-        <select id="preset-select">
-          <option value="">Select Preset</option>
-          <option value="highContrast">High Contrast</option>
-          <option value="cinema">Cinema</option>
-          <option value="minimal">Minimal</option>
-          <option value="accessibility">Accessibility</option>
-        </select>
+        <div class="custom-select" data-id="preset-select">
+          <div class="select-trigger">
+            <span class="select-name">Presets</span>
+            <span class="select-value">Select Preset</span>
+            <span class="select-arrow">▼</span>
+          </div>
+          <div class="select-options">
+            <div class="select-option" data-value="">Select Preset</div>
+            <div class="select-option" data-value="highContrast">High Contrast</div>
+            <div class="select-option" data-value="cinema">Cinema</div>
+            <div class="select-option" data-value="minimal">Minimal</div>
+            <div class="select-option" data-value="accessibility">Accessibility</div>
+          </div>
+        </div>
       </div>
       
       <div id="message" class="message"></div>
