@@ -93,37 +93,6 @@ async function handleReset(): Promise<void> {
   showMessage('Settings reset to defaults', 'success');
 }
 
-async function applyPreset(presetName: string): Promise<void> {
-  const presets: Record<string, StorageSettings> = {
-    highContrast: {
-      characterEdgeStyle: 'dropshadow',
-      backgroundOpacity: '100',
-      windowOpacity: '100'
-    },
-    cinema: {
-      characterEdgeStyle: 'dropshadow',
-      backgroundOpacity: '75',
-      windowOpacity: '50'
-    },
-    minimal: {
-      characterEdgeStyle: 'none',
-      backgroundOpacity: '0',
-      windowOpacity: '0'
-    },
-    accessibility: {
-      characterEdgeStyle: 'dropshadow',
-      backgroundOpacity: '100',
-      windowOpacity: '100'
-    }
-  };
-
-  const preset = presets[presetName];
-  if (preset) {
-    populateForm(preset);
-    await handleSave();
-    showMessage(`Applied ${presetName} preset`, 'success');
-  }
-}
 
 function setupCustomSelects(): void {
   const selects = document.querySelectorAll('.custom-select');
@@ -163,10 +132,6 @@ function setupCustomSelects(): void {
         container.classList.remove('open');
         
         await handleSave();
-        
-        if (container.dataset['id'] === 'preset-select' && value) {
-          await applyPreset(value);
-        }
       });
     });
   });
