@@ -1,4 +1,4 @@
-# Universal Subtitle Style Extension - AGENTS.md
+# Consistent Subtitle Style - AGENTS.md
 
 Chrome extension that provides persistent subtitle styling across streaming platforms 
 

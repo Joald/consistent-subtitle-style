@@ -1,4 +1,4 @@
-# Universal Subtitle Style Extension
+# Consistent Subtitle Style
 
 ## Overview
 
