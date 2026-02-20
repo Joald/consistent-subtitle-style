@@ -20,11 +20,16 @@ export interface PlatformSettingConfig {
 
 export interface CssConfig {
   subtitleContainerSelector: string;
+  selectors: {
+    subtitle: string;
+    background: string;
+    window: string;
+  };
 }
 
 export interface PlatformConfig {
   name: string;
-  settings: {
+  nativeSettings?: {
     [K in keyof StorageSettings]: PlatformSettingConfig;
   };
   css?: CssConfig;

@@ -1,7 +1,15 @@
 import { loadSettings, Settings } from './storage.js';
 import { detectPlatform, getPlatformConfig } from './platforms/index.js';
 import { debug } from './debug.js';
-import type { StorageSettings, PlatformConfig, ApplicationLog, Platform, ExtendedWindow } from './types/index.js';
+import { CSS_SETTING_MAPPINGS, applyCssSetting } from './css-mappings.js';
+import type {
+  StorageSettings,
+  PlatformConfig,
+  ApplicationLog,
+  Platform,
+  ExtendedWindow,
+  SettingApplicationReport
+} from './types/index.js';
 
 type DebugWindow = typeof window & { subtitleStylerDebug?: Function };
 
@@ -28,9 +36,9 @@ let applicationLog: ApplicationLog = {};
 };
 
 function processSettings(platform: PlatformConfig, extensionSettings: StorageSettings): {
-  toApply: Array<{ key: keyof StorageSettings; value: StorageSettings[keyof StorageSettings] }>
+  toApply: Array<{ key: keyof StorageSettings; value: StorageSettings[keyof StorageSettings]; type: 'native' | 'css' }>
 } {
-  const toApply: Array<{ key: keyof StorageSettings; value: StorageSettings[keyof StorageSettings] }> = [];
+  const toApply: Array<{ key: keyof StorageSettings; value: StorageSettings[keyof StorageSettings]; type: 'native' | 'css' }> = [];
 
   for (const [settingKey, settingValue] of Object.entries(extensionSettings)) {
     const key = settingKey as keyof StorageSettings;
@@ -38,14 +46,20 @@ function processSettings(platform: PlatformConfig, extensionSettings: StorageSet
 
     if (value === 'auto') continue;
 
-    const config = platform.settings[key];
-    const currentValue = config.getCurrentValue();
+    if (platform.nativeSettings?.[key]) {
+      const config = platform.nativeSettings[key];
+      const currentValue = config.getCurrentValue();
 
-    if (currentValue !== undefined && currentValue === value) {
-      continue; // No change needed
+      if (currentValue !== undefined && currentValue === value) {
+        continue;
+      }
+
+      toApply.push({ key, value, type: 'native' });
     }
 
-    toApply.push({ key, value });
+    if (platform.css?.selectors) {
+      toApply.push({ key, value, type: 'css' });
+    }
   }
 
   return { toApply };
@@ -60,9 +74,20 @@ async function applyStyles(platform: PlatformConfig): Promise<void> {
     };
   }
 
-  for (const { key, value } of toApply) {
-    const config = platform.settings[key];
-    const report = config.applySetting(value);
+  for (const { key, value, type } of toApply) {
+    let report: SettingApplicationReport;
+
+    if (type === 'native' && platform.nativeSettings?.[key]) {
+      const config = platform.nativeSettings[key];
+      report = config.applySetting(value);
+    } else if (type === 'css' && platform.css?.selectors) {
+      const mapping = CSS_SETTING_MAPPINGS[key];
+      const selector = platform.css.selectors[mapping.appliesTo];
+      const elements = document.querySelectorAll(selector);
+      report = applyCssSetting(elements, mapping, value as string);
+    } else {
+      continue;
+    }
 
     if (applicationLog[key]) {
       applicationLog[key].success = report.success;
@@ -72,13 +97,33 @@ async function applyStyles(platform: PlatformConfig): Promise<void> {
 }
 
 function startSubtitleObserver(platform: PlatformConfig): void {
-  const selector = platform.css?.subtitleContainerSelector;
-  if (!selector) return;
+  if (!platform.css) return;
 
-  const container = document.querySelector(selector);
-  if (container) {
-    const observer = new MutationObserver(() => applyStyles(platform));
-    observer.observe(container, { childList: true, subtree: true, attributes: true });
+  const containerSelector = platform.css.subtitleContainerSelector;
+  if (!containerSelector) return;
+
+  function setupObserver(): void {
+    const container = document.querySelector(containerSelector);
+    if (container) {
+      const observer = new MutationObserver(() => applyStyles(platform));
+      observer.observe(container, { childList: true, subtree: true, attributes: true });
+    }
+  }
+
+  const playerSelector = '#video-player';
+  const playerElement = document.querySelector(playerSelector);
+
+  if (playerElement) {
+    setupObserver();
+  } else {
+    const playerObserver = new MutationObserver(() => {
+      const player = document.querySelector(playerSelector);
+      if (player) {
+        playerObserver.disconnect();
+        setupObserver();
+      }
+    });
+    playerObserver.observe(document.body, { childList: true, subtree: true });
   }
 }
 

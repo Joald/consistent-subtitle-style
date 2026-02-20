@@ -81,7 +81,7 @@ function applyYouTubeSetting(updateSettings: Partial<YouTubeDisplaySettings>): S
 
 export const youtube: PlatformConfig = {
   name: 'YouTube',
-  settings: {
+  nativeSettings: {
     characterEdgeStyle: {
       getCurrentValue(): CharacterEdgeStyle | undefined {
         const displaySettings = getCurrentYouTubeSettings();
