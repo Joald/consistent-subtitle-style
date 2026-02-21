@@ -1,16 +1,15 @@
 {
   "name": "Consistent Subtitle Style",
-  "description": "Configure persistent subtitle styles across all streaming services",
+  "description": "Configure persistent subtitle styles across streaming services",
   "version": "1.0",
   "manifest_version": 3,
   "action": {
     "default_popup": "index.html",
     "default_title": "Subtitle Styles",
     "default_icon": {
-      "16": "images/icon-16.png",
-      "32": "images/icon-32.png",
-      "48": "images/icon-48.png",
-      "128": "images/icon-128.png"
+      "16": "images/logo-16.png",
+      "48": "images/logo-48.png",
+      "128": "images/logo-128.png"
     }
   },
   "permissions": [
@@ -25,15 +24,14 @@
         "*://*.youtube.com/*",
         "*://*.nebula.tv/*"
       ],
-      "run_at": "document_idle",
-      "world": "ISOLATED"
+      "run_at": "document_idle"
     }
   ],
   "web_accessible_resources": [
     {
       "resources": [
         "platforms.js",
-        "storage.js", 
+        "storage.js",
         "main.js",
         "bridge.js"
       ],
@@ -44,9 +42,8 @@
     }
   ],
   "icons": {
-    "16": "images/icon-16.png",
-    "32": "images/icon-32.png",
-    "48": "images/icon-48.png",
-    "128": "images/icon-128.png"
+    "16": "images/logo-16.png",
+    "48": "images/logo-48.png",
+    "128": "images/logo-128.png"
   }
 }

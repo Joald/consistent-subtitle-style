@@ -82,6 +82,9 @@ async function build() {
     // Copy static files with unique version to force new extension ID
     await copyStaticFiles();
 
+    // Generate PNGs from HTML
+    await generatePngs();
+
     console.log('Build completed successfully!');
     
     if (isWatch) {
@@ -101,7 +104,10 @@ async function build() {
         plugins: [{
           name: 'copy-on-rebuild',
           setup(build) {
-            build.onEnd(() => copyStaticFiles());
+            build.onEnd(async () => {
+              await copyStaticFiles();
+              await generatePngs();
+            });
           }
         }]
       });
@@ -145,6 +151,47 @@ async function copyStaticFiles() {
 
   } catch (error) {
     console.warn('Some static files could not be copied:', error.message);
+  }
+}
+
+// Generate PNGs from HTML using Puppeteer
+async function generatePngs() {
+  const fs = await import('fs/promises');
+  const puppeteer = await import('puppeteer');
+  
+  const sizes = [
+    { html: 'logo-16.html', png: 'logo-16.png', width: 16, height: 16 },
+    { html: 'logo-48.html', png: 'logo-48.png', width: 48, height: 48 },
+    { html: 'logo-128.html', png: 'logo-128.png', width: 128, height: 128 },
+  ];
+
+  const browser = await puppeteer.launch({
+    headless: true,
+    args: ['--no-sandbox', '--disable-setuid-sandbox']
+  });
+
+  try {
+    for (const size of sizes) {
+      const htmlPath = path.resolve('images', size.html);
+      if (!existsSync(htmlPath)) {
+        console.warn(`Skipping ${size.html} - not found`);
+        continue;
+      }
+
+      const htmlContent = readFileSync(htmlPath, 'utf8');
+      const page = await browser.newPage();
+      
+      await page.setContent(htmlContent, { waitUntil: 'networkidle0' });
+      await page.setViewport({ width: size.width, height: size.height, deviceScaleFactor: 1 });
+      
+      const outputPath = path.resolve('dist/images', size.png);
+      await page.screenshot({ path: outputPath, omitBackground: false });
+      
+      await page.close();
+      console.log(`Generated ${size.png}`);
+    }
+  } finally {
+    await browser.close();
   }
 }
 

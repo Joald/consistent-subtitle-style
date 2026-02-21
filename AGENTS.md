@@ -71,6 +71,28 @@ npm run test:watch  # Run tests in watch mode
 subtitleStylerDebug()  # Console: shows typed state and stats
 ```
 
+### Logo Icons
+Extension icons are generated from HTML files using Puppeteer during build.
+
+**Source files:** `images/logo-16.html`, `images/logo-48.html`, `images/logo-128.html`
+
+**Generated files:** `dist/images/logo-16.png`, `dist/images/logo-48.png`, `dist/images/logo-128.png`
+
+**Sizes:**
+- **16x16**: Three letters "C", "S", "S" arranged diagonally (bottom-left to top-right), each with different text-shadow styles
+- **48x48**: Same diagonal layout as 16x16, scaled up
+- **128x128**: Full text "Consistent Subtitle Style" with three lines, each styled differently
+
+**Text-shadow styles used (from extension's characterEdgeStyle options):**
+- **Raised**: White shadow on all corners (used on first word/letter)
+- **Outline**: Black outline around text (used on second word/letter)
+- **Drop shadow**: Dark shadow offset (used on third word/letter)
+
+**To modify icons:**
+1. Edit the corresponding HTML file in `images/`
+2. Run `npm run build` - Puppeteer will regenerate PNGs automatically
+3. PNGs are generated fresh each build (not committed to repo)
+
 ## Agent Development Guidelines
 
 ### When Working With This TypeScript Codebase
