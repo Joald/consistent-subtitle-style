@@ -1,20 +1,8 @@
-import { describe, it, expect, beforeEach } from 'vitest';
-import { applyCssSetting, CSS_SETTING_MAPPINGS } from '../src/css-mappings.js';
+import { describe, it, expect } from 'vitest';
+import { generateCssRule, CSS_SETTING_MAPPINGS } from '../src/css-mappings.js';
 import type { StorageSettings } from '../src/types/index.js';
 
 describe('css-mappings', () => {
-  let container: HTMLDivElement;
-  let subtitle: HTMLSpanElement;
-
-  beforeEach(() => {
-    container = document.createElement('div');
-    container.className = 'subtitle-container';
-    subtitle = document.createElement('span');
-    subtitle.className = 'subtitle-text';
-    container.appendChild(subtitle);
-    document.body.appendChild(container);
-  });
-
   describe('CSS_SETTING_MAPPINGS', () => {
     it('has mapping for characterEdgeStyle', () => {
       const mapping = CSS_SETTING_MAPPINGS.characterEdgeStyle;
@@ -47,160 +35,59 @@ describe('css-mappings', () => {
     });
   });
 
-  describe('applyCssSetting', () => {
-    it('applies textShadow for characterEdgeStyle', () => {
+  describe('generateCssRule', () => {
+    it('applies textShadow for characterEdgeStyle dropshadow', () => {
       const mapping = CSS_SETTING_MAPPINGS.characterEdgeStyle;
-      const result = applyCssSetting(
-        document.querySelectorAll('.subtitle-text'),
-        mapping,
-        'dropshadow'
-      );
-
-      expect(result.success).toBe(true);
-      expect(subtitle.style.textShadow).toBe('2px 2px 4px rgba(0,0,0,0.95)');
+      const result = generateCssRule(mapping, 'dropshadow');
+      expect(result).toBe('text-shadow: 2px 2px 4px rgba(0,0,0,0.95) !important;');
     });
 
     it('applies raised style', () => {
       const mapping = CSS_SETTING_MAPPINGS.characterEdgeStyle;
-      const result = applyCssSetting(
-        document.querySelectorAll('.subtitle-text'),
-        mapping,
-        'raised'
-      );
-
-      expect(result.success).toBe(true);
-      expect(subtitle.style.textShadow).toBe('-1px -1px 1px rgba(255,255,255,0.5), 1px -1px 1px rgba(255,255,255,0.5), -1px 1px 1px rgba(255,255,255,0.5), 1px 1px 1px rgba(255,255,255,0.5)');
+      const result = generateCssRule(mapping, 'raised');
+      expect(result).toBe('text-shadow: -1px -1px 1px rgba(255,255,255,0.5), 1px -1px 1px rgba(255,255,255,0.5), -1px 1px 1px rgba(255,255,255,0.5), 1px 1px 1px rgba(255,255,255,0.5) !important;');
     });
 
     it('applies outline style', () => {
       const mapping = CSS_SETTING_MAPPINGS.characterEdgeStyle;
-      const result = applyCssSetting(
-        document.querySelectorAll('.subtitle-text'),
-        mapping,
-        'outline'
-      );
-
-      expect(result.success).toBe(true);
-      expect(subtitle.style.textShadow).toBe('-1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000, 1px 1px 0 #000');
+      const result = generateCssRule(mapping, 'outline');
+      expect(result).toBe('text-shadow: -1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000, 1px 1px 0 #000 !important;');
     });
 
     it('applies none style', () => {
       const mapping = CSS_SETTING_MAPPINGS.characterEdgeStyle;
-      applyCssSetting(
-        document.querySelectorAll('.subtitle-text'),
-        mapping,
-        'dropshadow'
-      );
-      expect(subtitle.style.textShadow).not.toBe('');
-
-      applyCssSetting(
-        document.querySelectorAll('.subtitle-text'),
-        mapping,
-        'none'
-      );
-      expect(subtitle.style.textShadow).toBe('none');
+      const result = generateCssRule(mapping, 'none');
+      expect(result).toBe('text-shadow: none !important;');
     });
 
-    it('clears style for auto value', () => {
+    it('returns null for auto value', () => {
       const mapping = CSS_SETTING_MAPPINGS.characterEdgeStyle;
-      applyCssSetting(
-        document.querySelectorAll('.subtitle-text'),
-        mapping,
-        'dropshadow'
-      );
-      expect(subtitle.style.textShadow).not.toBe('');
-
-      applyCssSetting(
-        document.querySelectorAll('.subtitle-text'),
-        mapping,
-        'auto'
-      );
-      expect(subtitle.style.textShadow).toBe('');
+      const result = generateCssRule(mapping, 'auto');
+      expect(result).toBeNull();
     });
 
     it('converts opacity percentage to rgba', () => {
       const mapping = CSS_SETTING_MAPPINGS.backgroundOpacity;
-      const result = applyCssSetting(
-        document.querySelectorAll('.subtitle-text'),
-        mapping,
-        '50'
-      );
-
-      expect(result.success).toBe(true);
-      expect(subtitle.style.backgroundColor).toBe('rgba(0, 0, 0, 0.5)');
+      const result = generateCssRule(mapping, '50');
+      expect(result).toBe('background-color: rgba(0, 0, 0, 0.5) !important;');
     });
 
     it('handles 0 opacity', () => {
       const mapping = CSS_SETTING_MAPPINGS.backgroundOpacity;
-      applyCssSetting(
-        document.querySelectorAll('.subtitle-text'),
-        mapping,
-        '0'
-      );
-      expect(subtitle.style.backgroundColor).toBe('rgba(0, 0, 0, 0)');
+      const result = generateCssRule(mapping, '0');
+      expect(result).toBe('background-color: rgba(0, 0, 0, 0) !important;');
     });
 
     it('handles 100 opacity', () => {
       const mapping = CSS_SETTING_MAPPINGS.backgroundOpacity;
-      applyCssSetting(
-        document.querySelectorAll('.subtitle-text'),
-        mapping,
-        '100'
-      );
-      expect(subtitle.style.backgroundColor).toMatch(/rgba?\(0,\s*0,\s*0(,\s*1)?\)/);
+      const result = generateCssRule(mapping, '100');
+      expect(result).toMatch(/background-color:\s*rgba?\(0,\s*0,\s*0(,\s*1)?\)\s*!important;/);
     });
 
-    it('clears opacity for auto value', () => {
+    it('returns null for auto opacity value', () => {
       const mapping = CSS_SETTING_MAPPINGS.backgroundOpacity;
-      applyCssSetting(
-        document.querySelectorAll('.subtitle-text'),
-        mapping,
-        '50'
-      );
-      expect(subtitle.style.backgroundColor).not.toBe('');
-
-      applyCssSetting(
-        document.querySelectorAll('.subtitle-text'),
-        mapping,
-        'auto'
-      );
-      expect(subtitle.style.backgroundColor).toBe('');
-    });
-
-    it('applies window style to parent element', () => {
-      const mapping = CSS_SETTING_MAPPINGS.windowOpacity;
-      applyCssSetting(
-        document.querySelectorAll('.subtitle-text'),
-        mapping,
-        '75'
-      );
-
-      expect(container.style.backgroundColor).toBe('rgba(0, 0, 0, 0.75)');
-      expect(subtitle.style.backgroundColor).toBe('');
-    });
-
-    it('returns success message with property and value', () => {
-      const mapping = CSS_SETTING_MAPPINGS.characterEdgeStyle;
-      const result = applyCssSetting(
-        document.querySelectorAll('.subtitle-text'),
-        mapping,
-        'dropshadow'
-      );
-
-      expect(result.message).toContain('textShadow');
-      expect(result.message).toContain('2px 2px 4px rgba(0,0,0,0.95)');
-    });
-
-    it('handles empty NodeList gracefully', () => {
-      const mapping = CSS_SETTING_MAPPINGS.characterEdgeStyle;
-      const result = applyCssSetting(
-        document.querySelectorAll('.nonexistent'),
-        mapping,
-        'dropshadow'
-      );
-
-      expect(result.success).toBe(true);
-      expect(result.message).toContain('Applied');
+      const result = generateCssRule(mapping, 'auto');
+      expect(result).toBeNull();
     });
   });
 });

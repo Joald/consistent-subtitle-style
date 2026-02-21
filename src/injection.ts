@@ -1,24 +1,32 @@
 (function () {
   'use strict';
 
+  interface SubtitleStylerMessage {
+    type: string;
+    data?: any;
+    requestId?: number;
+    settings?: any;
+    action?: string;
+  }
+
   const bridge = {
     storage: {
       get: () => {
-        return new Promise((resolve) => {
+        return new Promise<Record<string, unknown>>((resolve) => {
           chrome.storage.sync.get(['characterEdgeStyle', 'backgroundOpacity', 'windowOpacity'], (result) => {
             resolve(result);
           });
         });
       },
-      set: (settings: any) => {
+      set: (settings: Record<string, unknown>) => {
         return new Promise<void>((resolve) => {
           chrome.storage.sync.set(settings, () => {
             resolve();
           });
         });
       },
-      onChanged: (callback: (changes: any) => void) => {
-        chrome.storage.onChanged.addListener((changes: any, namespace: string) => {
+      onChanged: (callback: (changes: Record<string, chrome.storage.StorageChange>) => void) => {
+        chrome.storage.onChanged.addListener((changes: Record<string, chrome.storage.StorageChange>, namespace: string) => {
           if (namespace === 'sync') {
             callback(changes);
           }
@@ -27,7 +35,7 @@
     }
   };
 
-  chrome.storage.onChanged.addListener((changes, namespace) => {
+  chrome.storage.onChanged.addListener((changes: { [key: string]: chrome.storage.StorageChange }, namespace: string) => {
     if (namespace === 'sync') {
       window.postMessage({
         type: 'subtitleStylerChanged',
@@ -36,13 +44,13 @@
     }
   });
 
-  window.addEventListener('message', (event) => {
-    if (event.source !== window) return;
+  window.addEventListener('message', (event: MessageEvent<SubtitleStylerMessage>) => {
+    if (event.source !== window || !event.data) return;
 
     const { type, data, requestId } = event.data;
 
-    if (type === 'subtitleStyler') {
-      if (data.action === 'get') {
+    if (type === 'subtitleStyler' && data) {
+      if (data.action === 'get' && requestId !== undefined) {
         bridge.storage.get().then(result => {
           window.postMessage({
             type: 'subtitleStylerResponse',
@@ -50,7 +58,7 @@
             data: result
           }, '*');
         });
-      } else if (data.action === 'set') {
+      } else if (data.action === 'set' && data.settings && requestId !== undefined) {
         bridge.storage.set(data.settings).then(() => {
           window.postMessage({
             type: 'subtitleStylerResponse',
@@ -62,8 +70,8 @@
     }
   });
 
-  chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
-    if (message.type === 'subtitleStylerPopupUpdate') {
+  chrome.runtime.onMessage.addListener((message: SubtitleStylerMessage, sender: chrome.runtime.MessageSender, sendResponse: (response?: any) => void) => {
+    if (message.type === 'subtitleStylerPopupUpdate' && message.settings) {
       window.postMessage({
         type: 'subtitleStylerChanged',
         data: Object.keys(message.settings).reduce((acc, key) => {
@@ -74,6 +82,7 @@
     }
 
     sendResponse({ success: true });
+    return true; // Keep the message channel open for the asynchronous response if needed elsewhere later.
   });
 
   function injectScript(scriptUrl: string, callback?: () => void): void {
@@ -82,6 +91,11 @@
     script.onload = function () {
       script.remove();
       if (callback) callback();
+    };
+    script.onerror = function (error: string | Event) {
+      console.error(`SubtitleStyler: Failed to inject script ${scriptUrl}`, error);
+      script.remove();
+      if (callback) callback(); // Proceed so it doesn't block the rest of the chain
     };
     (document.head || document.documentElement).appendChild(script);
   }

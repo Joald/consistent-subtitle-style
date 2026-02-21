@@ -12,19 +12,21 @@ declare const DEBUG: boolean;
 
   extendedWindow.chrome.storage.sync = {
     get: () => {
-      return new Promise<any>((resolve) => {
+      return new Promise<Record<string, unknown>>((resolve) => {
         const id = ++requestId;
-        const timeout = setTimeout(() => {
-          resolve({});
-        }, 5000); // Timeout after 5 seconds
 
-        const handleMessage = (event: any) => {
-          if (event.data.type === 'subtitleStylerResponse' && event.data.requestId === id) {
+        const handleMessage = (event: MessageEvent) => {
+          if (event.data?.type === 'subtitleStylerResponse' && event.data?.requestId === id) {
             clearTimeout(timeout);
             window.removeEventListener('message', handleMessage);
-            resolve(event.data.data);
+            resolve(event.data.data as Record<string, unknown>);
           }
         };
+
+        const timeout = setTimeout(() => {
+          window.removeEventListener('message', handleMessage);
+          resolve({});
+        }, 5000); // Timeout after 5 seconds
 
         window.addEventListener('message', handleMessage);
         window.postMessage({
@@ -35,16 +37,22 @@ declare const DEBUG: boolean;
       });
     },
 
-    set: (settings: any) => {
+    set: (settings: Record<string, unknown>) => {
       return new Promise<void>((resolve) => {
         const id = ++requestId;
 
-        const handleMessage = (event: any) => {
-          if (event.data.type === 'subtitleStylerResponse' && event.data.requestId === id) {
+        const handleMessage = (event: MessageEvent) => {
+          if (event.data?.type === 'subtitleStylerResponse' && event.data?.requestId === id) {
+            clearTimeout(timeout);
             window.removeEventListener('message', handleMessage);
             resolve();
           }
         };
+
+        const timeout = setTimeout(() => {
+          window.removeEventListener('message', handleMessage);
+          resolve();
+        }, 5000);
 
         window.addEventListener('message', handleMessage);
         window.postMessage({
@@ -59,9 +67,9 @@ declare const DEBUG: boolean;
   extendedWindow.chrome.storage.onChanged = {
     addListener: (callback: (changes: Record<string, unknown>) => void) => {
       const id = ++requestId;
-      const handleMessage = (event: any) => {
-        if (event.data.type === 'subtitleStylerChanged') {
-          callback(event.data.data);
+      const handleMessage = (event: MessageEvent) => {
+        if (event.data?.type === 'subtitleStylerChanged') {
+          callback(event.data.data as Record<string, unknown>);
         }
       };
 

@@ -36,38 +36,37 @@ export const CSS_SETTING_MAPPINGS: {
   }
 };
 
-export function applyCssSetting(
-  elements: NodeListOf<Element>,
+function getCssProperty(jsProperty: string): string {
+  switch (jsProperty) {
+    case 'textShadow':
+      return 'text-shadow';
+    case 'backgroundColor':
+      return 'background-color';
+    default:
+      throw new Error(`Unexpected CSS property mapping requested: ${jsProperty}`);
+  }
+}
+
+export function generateCssRule(
   mapping: CssSettingMapping,
   value: string
-): SettingApplicationReport {
+): string | null {
   try {
     const cssValue = mapping.valueMap?.[value] ?? (mapping.isOpacity ? opacityToRgba(value) : value);
-
-    elements.forEach(element => {
-      const target = mapping.appliesTo === 'window' ? element.parentElement : element;
-      if (target instanceof HTMLElement) {
-        if (cssValue === '' || cssValue === undefined) {
-          target.style[mapping.property as any] = '';
-        } else {
-          target.style[mapping.property as any] = cssValue;
-        }
-      }
-    });
-
-    return { success: true, message: `Applied ${mapping.property}: ${cssValue}` };
+    if (cssValue === '' || cssValue === undefined) {
+      return null;
+    }
+    const cssProperty = getCssProperty(mapping.property);
+    // Use !important to override inline styles or high-specificity rules from the site
+    return `${cssProperty}: ${cssValue} !important;`;
   } catch (e) {
-    return { success: false, message: `Failed to apply ${mapping.property}: ${e}` };
+    console.error(`Failed to generate CSS rule for ${mapping.property}:`, e);
+    return null;
   }
 }
 
 function opacityToRgba(value: string): string {
   if (value === 'auto') return '';
-  const opacity = parseInt(value) / 100;
+  const opacity = parseInt(value, 10) / 100;
   return `rgba(0, 0, 0, ${opacity})`;
-}
-
-interface SettingApplicationReport {
-  success: boolean;
-  message: string;
 }

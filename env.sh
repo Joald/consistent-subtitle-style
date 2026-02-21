@@ -5,4 +5,7 @@ alias m='git add . && git commit -m'
 alias s='git st'
 alias b='npm run build'
 alias t='npm run typecheck'
-alias fsl='git tree'
+alias g='git tree'
+alias fsl='sl'
+
+

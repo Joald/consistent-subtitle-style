@@ -8,16 +8,22 @@ function setCustomSelectValue(container: HTMLElement | null, value: string): voi
   const triggerValue = container.querySelector('.select-value');
 
   options.forEach(opt => {
-    const el = opt as HTMLElement;
-    if (el.dataset['value'] === value) {
-      el.classList.add('selected');
+    if (!(opt instanceof HTMLElement)) return;
+    if (opt.dataset['value'] === value) {
+      opt.classList.add('selected');
       if (triggerValue) {
-        triggerValue.textContent = el.textContent;
+        triggerValue.textContent = opt.textContent;
       }
     } else {
-      el.classList.remove('selected');
+      opt.classList.remove('selected');
     }
   });
+}
+
+function getCustomSelectValue(container: HTMLElement | null): string {
+  if (!container) return 'auto';
+  const selected = container.querySelector('.select-option.selected');
+  return selected instanceof HTMLElement ? selected.dataset['value'] || 'auto' : 'auto';
 }
 
 function populateForm(settings: StorageSettings): void {
@@ -25,15 +31,9 @@ function populateForm(settings: StorageSettings): void {
   const backgroundOpacity = document.querySelector('[data-id="background-opacity"]');
   const windowOpacity = document.querySelector('[data-id="window-opacity"]');
 
-  setCustomSelectValue(characterEdgeStyle as HTMLElement, settings.characterEdgeStyle || 'auto');
-  setCustomSelectValue(backgroundOpacity as HTMLElement, settings.backgroundOpacity || 'auto');
-  setCustomSelectValue(windowOpacity as HTMLElement, settings.windowOpacity || 'auto');
-}
-
-function getCustomSelectValue(container: HTMLElement | null): string {
-  if (!container) return 'auto';
-  const selected = container.querySelector('.select-option.selected');
-  return selected ? (selected as HTMLElement).dataset['value'] || 'auto' : 'auto';
+  if (characterEdgeStyle instanceof HTMLElement) setCustomSelectValue(characterEdgeStyle, settings.characterEdgeStyle || 'auto');
+  if (backgroundOpacity instanceof HTMLElement) setCustomSelectValue(backgroundOpacity, settings.backgroundOpacity || 'auto');
+  if (windowOpacity instanceof HTMLElement) setCustomSelectValue(windowOpacity, settings.windowOpacity || 'auto');
 }
 
 function collectSettings(): Partial<StorageSettings> {
@@ -41,9 +41,9 @@ function collectSettings(): Partial<StorageSettings> {
   const backgroundOpacityEl = document.querySelector('[data-id="background-opacity"]');
   const windowOpacityEl = document.querySelector('[data-id="window-opacity"]');
 
-  const characterEdgeValue = getCustomSelectValue(characterEdgeStyleEl as HTMLElement);
-  const backgroundOpacityValue = getCustomSelectValue(backgroundOpacityEl as HTMLElement);
-  const windowOpacityValue = getCustomSelectValue(windowOpacityEl as HTMLElement);
+  const characterEdgeValue = characterEdgeStyleEl instanceof HTMLElement ? getCustomSelectValue(characterEdgeStyleEl) : 'auto';
+  const backgroundOpacityValue = backgroundOpacityEl instanceof HTMLElement ? getCustomSelectValue(backgroundOpacityEl) : 'auto';
+  const windowOpacityValue = windowOpacityEl instanceof HTMLElement ? getCustomSelectValue(windowOpacityEl) : 'auto';
 
   const tempSettings = new Settings({
     characterEdgeStyle: 'auto',
@@ -51,9 +51,9 @@ function collectSettings(): Partial<StorageSettings> {
     windowOpacity: 'auto'
   });
 
-  tempSettings.set('characterEdgeStyle', characterEdgeValue);
-  tempSettings.set('backgroundOpacity', backgroundOpacityValue);
-  tempSettings.set('windowOpacity', windowOpacityValue);
+  if (typeof characterEdgeValue === 'string') tempSettings.set('characterEdgeStyle', characterEdgeValue);
+  if (typeof backgroundOpacityValue === 'string') tempSettings.set('backgroundOpacity', backgroundOpacityValue);
+  if (typeof windowOpacityValue === 'string') tempSettings.set('windowOpacity', windowOpacityValue);
 
   return tempSettings.toObject();
 }
@@ -96,12 +96,12 @@ async function handleReset(): Promise<void> {
   showMessage('Saved', 'success');
 }
 
-
 function setupCustomSelects(): void {
   const selects = document.querySelectorAll('.custom-select');
 
   selects.forEach(select => {
-    const container = select as HTMLElement;
+    if (!(select instanceof HTMLElement)) return;
+    const container = select;
     const trigger = container.querySelector('.select-trigger');
     const options = container.querySelectorAll('.select-option');
 
@@ -119,7 +119,8 @@ function setupCustomSelects(): void {
     });
 
     options.forEach(option => {
-      const el = option as HTMLElement;
+      if (!(option instanceof HTMLElement)) return;
+      const el = option;
       el.addEventListener('click', async () => {
         const value = el.dataset['value'];
         const text = el.textContent;

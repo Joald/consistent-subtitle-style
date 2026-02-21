@@ -1,7 +1,7 @@
 import { loadSettings, Settings } from './storage.js';
 import { detectPlatform, getPlatformConfig } from './platforms/index.js';
 import { debug } from './debug.js';
-import { CSS_SETTING_MAPPINGS, applyCssSetting } from './css-mappings.js';
+import { CSS_SETTING_MAPPINGS, generateCssRule } from './css-mappings.js';
 import type {
   StorageSettings,
   PlatformConfig,
@@ -13,194 +13,189 @@ import type {
 
 type DebugWindow = typeof window & { subtitleStylerDebug?: Function };
 
-let currentSettings: StorageSettings = {
-  characterEdgeStyle: 'auto',
-  backgroundOpacity: 'auto',
-  windowOpacity: 'auto'
-};
-let settings = new Settings(currentSettings);
-let currentPlatform: Platform | 'unknown';
-let applicationLog: ApplicationLog = {};
-
-(window as DebugWindow).subtitleStylerDebug = () => {
-  return {
-    platform: currentPlatform,
-    settings: currentSettings,
-    log: applicationLog,
-    config: currentPlatform !== 'unknown' ? getPlatformConfig(currentPlatform) : null,
-    status: 'loading',
-    chromeAPIs: !!(chrome && chrome.storage && chrome.runtime),
-    playerElement: !!document.querySelector('#movie_player'),
-    storageBridge: !!(window as ExtendedWindow).subtitleStylerBridge
+class SubtitleStylerApp {
+  private currentSettings: StorageSettings = {
+    characterEdgeStyle: 'auto',
+    backgroundOpacity: 'auto',
+    windowOpacity: 'auto'
   };
-};
+  private settings = new Settings(this.currentSettings);
+  private currentPlatform: Platform | 'unknown' = 'unknown';
+  private platformConfig: PlatformConfig | null = null;
+  private applicationLog: ApplicationLog = {};
+  private styleElement: HTMLStyleElement | null = null;
 
-function processSettings(platform: PlatformConfig, extensionSettings: StorageSettings): {
-  toApply: Array<{ key: keyof StorageSettings; value: StorageSettings[keyof StorageSettings]; type: 'native' | 'css' }>
-} {
-  const toApply: Array<{ key: keyof StorageSettings; value: StorageSettings[keyof StorageSettings]; type: 'native' | 'css' }> = [];
-
-  for (const [settingKey, settingValue] of Object.entries(extensionSettings)) {
-    const key = settingKey as keyof StorageSettings;
-    const value = settingValue as StorageSettings[keyof StorageSettings];
-
-    if (value === 'auto') continue;
-
-    if (platform.nativeSettings?.[key]) {
-      const config = platform.nativeSettings[key];
-      const currentValue = config.getCurrentValue();
-
-      if (currentValue !== undefined && currentValue === value) {
-        continue;
-      }
-
-      toApply.push({ key, value, type: 'native' });
-    }
-
-    if (platform.css?.selectors) {
-      toApply.push({ key, value, type: 'css' });
-    }
+  constructor() {
+    this.setupDebug();
+    this.setupMessageListener();
   }
 
-  return { toApply };
-}
-
-async function applyStyles(platform: PlatformConfig): Promise<void> {
-  const { toApply } = processSettings(platform, currentSettings);
-
-  for (const { key } of toApply) {
-    applicationLog[key] = {
-      success: false
-    };
-  }
-
-  for (const { key, value, type } of toApply) {
-    let report: SettingApplicationReport;
-
-    if (type === 'native' && platform.nativeSettings?.[key]) {
-      const config = platform.nativeSettings[key];
-      report = config.applySetting(value);
-    } else if (type === 'css' && platform.css?.selectors) {
-      const mapping = CSS_SETTING_MAPPINGS[key];
-      const selector = platform.css.selectors[mapping.appliesTo];
-      const elements = document.querySelectorAll(selector);
-      report = applyCssSetting(elements, mapping, value as string);
-    } else {
-      continue;
-    }
-
-    if (applicationLog[key]) {
-      applicationLog[key].success = report.success;
-      applicationLog[key].details = report.message;
-    }
-  }
-}
-
-function startSubtitleObserver(platform: PlatformConfig): void {
-  if (!platform.css) return;
-
-  const containerSelector = platform.css.subtitleContainerSelector;
-  if (!containerSelector) return;
-
-  function setupObserver(): void {
-    const container = document.querySelector(containerSelector);
-    if (container) {
-      const observer = new MutationObserver(() => applyStyles(platform));
-      observer.observe(container, { childList: true, subtree: true, attributes: true });
-    }
-  }
-
-  const playerSelector = '#video-player';
-  const playerElement = document.querySelector(playerSelector);
-
-  if (playerElement) {
-    setupObserver();
-  } else {
-    const playerObserver = new MutationObserver(() => {
-      const player = document.querySelector(playerSelector);
-      if (player) {
-        playerObserver.disconnect();
-        setupObserver();
-      }
-    });
-    playerObserver.observe(document.body, { childList: true, subtree: true });
-  }
-}
-
-async function initialize(): Promise<void> {
-  try {
-    currentPlatform = detectPlatform();
-    const platform = getPlatformConfig(currentPlatform);
-
-    if (!platform) {
-      console.error(`No configuration found for platform: ${currentPlatform}`);
-      return;
-    }
-
-    currentSettings = await loadSettings();
-    settings = new Settings(currentSettings);
-
-    await applyStyles(platform);
-
-    if (platform.css) {
-      startSubtitleObserver(platform);
-    }
-
-    debug.log(
-      `Extension initialized - Platform: ${currentPlatform}, settings: ${Object
-        .entries(currentSettings)
-        .filter(([_, v]) => v !== 'auto')
-        .map(([k, v]) => `${k}=${v}`)
-        .join(', ')
-      }`
-    );
-  } catch (error) {
-    console.error('Failed to initialize extension:', error);
-
+  private setupDebug() {
     (window as DebugWindow).subtitleStylerDebug = () => {
       return {
-        error: error instanceof Error ? error.message : String(error),
-        platform: currentPlatform,
-        settings: currentSettings,
-        log: applicationLog,
-        config: currentPlatform !== 'unknown' ? getPlatformConfig(currentPlatform) : null
+        platform: this.currentPlatform,
+        settings: this.currentSettings,
+        log: this.applicationLog,
+        config: this.platformConfig,
+        status: 'loading',
+        chromeAPIs: !!(chrome && chrome.storage && chrome.runtime),
+        playerElement: !!document.querySelector('#movie_player'),
+        storageBridge: !!(window as ExtendedWindow).subtitleStylerBridge
       };
     };
   }
-}
 
-window.addEventListener('message', (event) => {
-  if (event.source !== window) return;
+  private processSettings(platform: PlatformConfig, extensionSettings: StorageSettings) {
+    const toApply: Array<{ key: keyof StorageSettings; value: StorageSettings[keyof StorageSettings]; type: 'native' | 'css' }> = [];
 
-  if (event.data.type === 'subtitleStylerChanged') {
-    const changes = event.data.data;
+    for (const [settingKey, settingValue] of Object.entries(extensionSettings)) {
+      const key = settingKey as keyof StorageSettings;
+      const value = settingValue as StorageSettings[keyof StorageSettings];
 
-    const settingKeys = Object.keys(changes) as Array<keyof StorageSettings>;
-    settingKeys.forEach(key => {
-      if (key in currentSettings) {
-        const change = changes[key];
-        if (change && change.newValue !== undefined) {
-          const newValue = change.newValue as string;
-          if (settings.set(key, newValue)) {
-            currentSettings = settings.toObject();
+      if (value === 'auto') continue;
+
+      if (platform.nativeSettings?.[key]) {
+        const config = platform.nativeSettings[key];
+        const currentValue = config.getCurrentValue();
+
+        if (currentValue !== undefined && currentValue === value) {
+          continue;
+        }
+
+        toApply.push({ key, value, type: 'native' });
+      }
+
+      if (platform.css?.selectors) {
+        toApply.push({ key, value, type: 'css' });
+      }
+    }
+
+    return toApply;
+  }
+
+  private async applyStyles() {
+    if (!this.platformConfig) return;
+
+    const toApply = this.processSettings(this.platformConfig, this.currentSettings);
+
+    for (const { key } of toApply) {
+      this.applicationLog[key] = { success: false };
+    }
+
+    const cssRules: string[] = [];
+
+    for (const { key, value, type } of toApply) {
+      let report: SettingApplicationReport = { success: false, message: 'Unknown error' };
+
+      if (type === 'native' && this.platformConfig.nativeSettings?.[key]) {
+        const config = this.platformConfig.nativeSettings[key];
+        report = config.applySetting(value);
+      } else if (type === 'css' && this.platformConfig.css?.selectors) {
+        const mapping = CSS_SETTING_MAPPINGS[key];
+        const selector = this.platformConfig.css.selectors[mapping.appliesTo];
+        const ruleValue = generateCssRule(mapping, value as string);
+
+        if (ruleValue) {
+          cssRules.push(`${selector} { ${ruleValue} }`);
+          report = { success: true, message: `Generated CSS for ${key} (${mapping.property})` };
+        } else {
+          report = { success: true, message: `Skipped CSS for ${key} (auto check passed)` };
+        }
+      } else {
+        continue;
+      }
+
+      if (this.applicationLog[key]) {
+        this.applicationLog[key].success = report.success;
+        this.applicationLog[key].details = report.message;
+      }
+    }
+
+    this.injectCssRules(cssRules);
+  }
+
+  private injectCssRules(rules: string[]) {
+    if (!this.styleElement) {
+      this.styleElement = document.createElement('style');
+      this.styleElement.id = 'subtitle-styler-dynamic-styles';
+      document.head.appendChild(this.styleElement);
+    }
+    this.styleElement.textContent = rules.join('\n');
+  }
+
+  public async initialize() {
+    try {
+      this.currentPlatform = detectPlatform();
+      this.platformConfig = getPlatformConfig(this.currentPlatform);
+
+      if (!this.platformConfig) {
+        console.error(`No configuration found for platform: ${this.currentPlatform}`);
+        return;
+      }
+
+      this.currentSettings = await loadSettings();
+      this.settings = new Settings(this.currentSettings);
+
+      await this.applyStyles();
+
+      debug.log(
+        `Extension initialized - Platform: ${this.currentPlatform}, settings: ${Object
+          .entries(this.currentSettings)
+          .filter(([_, v]) => v !== 'auto')
+          .map(([k, v]) => `${k}=${v}`)
+          .join(', ')
+        }`
+      );
+    } catch (error) {
+      console.error('Failed to initialize extension:', error);
+
+      (window as DebugWindow).subtitleStylerDebug = () => {
+        return {
+          error: error instanceof Error ? error.message : String(error),
+          platform: this.currentPlatform,
+          settings: this.currentSettings,
+          log: this.applicationLog,
+          config: this.platformConfig
+        };
+      };
+    }
+  }
+
+  private setupMessageListener() {
+    window.addEventListener('message', (event) => {
+      if (event.source !== window) return;
+
+      if (event.data.type === 'subtitleStylerChanged') {
+        const changes = event.data.data;
+
+        const settingKeys = Object.keys(changes) as Array<keyof StorageSettings>;
+        settingKeys.forEach(key => {
+          if (key in this.currentSettings) {
+            // Depending on how bridge sends it, it might be { newValue: "dropshadow" } 
+            const change = changes[key];
+            if (change && change.newValue !== undefined) {
+              const newValue = change.newValue as string;
+              if (this.settings.set(key, newValue)) {
+                this.currentSettings = this.settings.toObject();
+              }
+            }
           }
+        });
+
+        if (this.platformConfig) {
+          this.applyStyles().catch(error => {
+            console.error(`Failed to apply updated styles on ${this.platformConfig?.name}:`, error);
+          });
         }
       }
     });
-
-    if (currentPlatform !== 'unknown') {
-      const platform = getPlatformConfig(currentPlatform);
-      if (platform) {
-        applyStyles(platform).catch(error => {
-          console.error(`Failed to apply updated styles on ${platform.name}:`, error);
-        });
-      }
-    }
   }
-});
+}
+
+const app = new SubtitleStylerApp();
 
 if (document.readyState === 'loading') {
-  document.addEventListener('DOMContentLoaded', initialize);
+  document.addEventListener('DOMContentLoaded', () => app.initialize());
 } else {
-  initialize();
+  app.initialize();
 }
