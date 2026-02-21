@@ -66,6 +66,8 @@ npm run watch
 ### Testing & Debugging
 ```bash
 npm run typecheck
+npm test         # Run unit tests
+npm run test:watch  # Run tests in watch mode
 subtitleStylerDebug()  # Console: shows typed state and stats
 ```
 
@@ -102,11 +104,12 @@ newplatform: {
 
 #### Testing New Features
 1. Run `npm run typecheck` to verify type safety
-2. Run `npm run build` to ensure compilation works
-3. Load dist/ folder in Chrome developer mode
-4. Test on target streaming platforms
-5. Use `subtitleStylerDebug()` for typed state verification
-6. Check console for typed debug information
+2. Run `npm test` to run unit tests
+3. Run `npm run build` to ensure compilation works
+4. Load dist/ folder in Chrome developer mode
+5. Test on target streaming platforms
+6. Use `subtitleStylerDebug()` for typed state verification
+7. Check console for typed debug information
 
 #### Type Safety Checklist
 - All functions have proper return type annotations

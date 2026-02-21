@@ -11,7 +11,9 @@
     "watch": "npm run build -- --watch",
     "clean": "rimraf dist",
     "typecheck": "tsc --noEmit",
-    "dev": "npm run watch"
+    "dev": "npm run watch",
+    "test": "vitest run",
+    "test:watch": "vitest"
   },
   "keywords": [
     "chrome-extension",
@@ -27,11 +29,14 @@
   "license": "MIT",
   "devDependencies": {
     "@types/chrome": "^0.1.36",
+    "@types/jsdom": "^27.0.0",
     "@types/node": "^25.1.0",
     "cross-env": "^7.0.3",
     "esbuild": "^0.27.2",
+    "jsdom": "^22.1.0",
     "rimraf": "^6.1.2",
-    "typescript": "^5.9.3"
+    "typescript": "^5.9.3",
+    "vitest": "^4.0.18"
   },
   "engines": {
     "node": ">=16.0.0"
