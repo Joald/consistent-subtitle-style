@@ -1,3 +1,7 @@
+<p align="center">
+  <img src="images/logo-128.png" alt="Consistent Subtitle Style Logo" width="128">
+</p>
+
 # Consistent Subtitle Style
 
 ## Overview
