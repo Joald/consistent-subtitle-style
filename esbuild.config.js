@@ -160,6 +160,7 @@ async function generatePngs() {
     { html: 'logo-16.html', png: 'logo-16.png', width: 16, height: 16 },
     { html: 'logo-48.html', png: 'logo-48.png', width: 48, height: 48 },
     { html: 'logo-128.html', png: 'logo-128.png', width: 128, height: 128 },
+    { html: 'logo-512.html', png: 'logo-512.png', width: 512, height: 512 },
   ];
 
   const browser = await puppeteer.launch({
@@ -183,6 +184,11 @@ async function generatePngs() {
 
       const outputPath = path.resolve('dist/images', size.png);
       await page.screenshot({ path: outputPath, omitBackground: false });
+
+      // If it's the 512px logo, also copy it to the source images folder for README usage
+      if (size.width === 512) {
+        await fs.copyFile(outputPath, path.resolve('images', size.png));
+      }
 
       await page.close();
       console.log(`Generated ${size.png}`);

@@ -78,15 +78,16 @@ subtitleStylerDebug()  # Console: shows typed state and stats
 
 Extension icons are generated from HTML files using Puppeteer during build.
 
-**Source files:** `images/logo-16.html`, `images/logo-48.html`, `images/logo-128.html`
+**Source files:** `images/logo-16.html`, `images/logo-48.html`, `images/logo-128.html`, `images/logo-512.html`
 
-**Generated files:** `dist/images/logo-16.png`, `dist/images/logo-48.png`, `dist/images/logo-128.png`
+**Generated files:** `dist/images/logo-16.png`, `dist/images/logo-48.png`, `dist/images/logo-128.png`, `dist/images/logo-512.png`
 
 **Sizes:**
 
 - **16x16**: Three letters "C", "S", "S" arranged in a staggered layout (C mid-left, S center-low, S top-right), each with different text-shadow styles
 - **48x48**: Same staggered layout as 16x16, scaled up
 - **128x128**: Full text "Consistent Subtitle Style" with three lines, each styled differently
+- **512x512**: Same as 128x128, used for README header
 
 **Text-shadow styles used (from extension's characterEdgeStyle options):**
 
