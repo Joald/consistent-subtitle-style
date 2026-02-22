@@ -84,8 +84,8 @@ Extension icons are generated from HTML files using Puppeteer during build.
 
 **Sizes:**
 
-- **16x16**: Three letters "C", "S", "S" arranged diagonally (bottom-left to top-right), each with different text-shadow styles
-- **48x48**: Same diagonal layout as 16x16, scaled up
+- **16x16**: Three letters "C", "S", "S" arranged in a staggered layout (C mid-left, S center-low, S top-right), each with different text-shadow styles
+- **48x48**: Same staggered layout as 16x16, scaled up
 - **128x128**: Full text "Consistent Subtitle Style" with three lines, each styled differently
 
 **Text-shadow styles used (from extension's characterEdgeStyle options):**
