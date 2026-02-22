@@ -134,7 +134,9 @@ button {
   font-size: 13px;
   z-index: 1000;
   opacity: 0;
-  transition: opacity 0.3s, transform 0.3s;
+  transition:
+    opacity 0.3s,
+    transform 0.3s;
   pointer-events: none;
 }
 

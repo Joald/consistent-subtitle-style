@@ -46,7 +46,7 @@ describe('storage', () => {
       settings = new Settings({
         characterEdgeStyle: 'auto',
         backgroundOpacity: 'auto',
-        windowOpacity: 'auto'
+        windowOpacity: 'auto',
       });
     });
 
@@ -83,7 +83,7 @@ describe('storage', () => {
         expect(obj).toEqual({
           characterEdgeStyle: 'auto',
           backgroundOpacity: 'auto',
-          windowOpacity: 'auto'
+          windowOpacity: 'auto',
         });
         expect(obj).not.toBe(settings);
       });
@@ -93,7 +93,7 @@ describe('storage', () => {
       it('merges valid values from partial object', () => {
         const result = settings.merge({
           characterEdgeStyle: 'dropshadow',
-          backgroundOpacity: '50'
+          backgroundOpacity: '50',
         });
         expect(result.characterEdgeStyle).toBe('dropshadow');
         expect(result.backgroundOpacity).toBe('50');
@@ -103,7 +103,7 @@ describe('storage', () => {
       it('ignores invalid values', () => {
         const result = settings.merge({
           characterEdgeStyle: 'invalid',
-          backgroundOpacity: '50'
+          backgroundOpacity: '50',
         });
         expect(result.characterEdgeStyle).toBe('auto');
         expect(result.backgroundOpacity).toBe('50');
@@ -112,7 +112,7 @@ describe('storage', () => {
       it('ignores non-string values', () => {
         const result = settings.merge({
           characterEdgeStyle: 123,
-          backgroundOpacity: null
+          backgroundOpacity: null,
         } as unknown as Record<string, unknown>);
         expect(result.characterEdgeStyle).toBe('auto');
         expect(result.backgroundOpacity).toBe('auto');
@@ -123,7 +123,7 @@ describe('storage', () => {
       it('updates settings from storage result', () => {
         settings.updateFromStorageResult({
           characterEdgeStyle: 'outline',
-          windowOpacity: '100'
+          windowOpacity: '100',
         });
         expect(settings.get('characterEdgeStyle')).toBe('outline');
         expect(settings.get('windowOpacity')).toBe('100');

@@ -1,0 +1,129 @@
+
+> consistent-subtitle-style@1.0.0 lint
+> eslint .
+
+[0m
+[4mC:\Users\joald\chrome_exts\playground\src\bridge.ts[24m
+   [2m1:15[22m  [31merror[39m  'DEBUG' is defined but never used                                                                               [2m@typescript-eslint/no-unused-vars[22m
+   [2m3:2[22m   [31merror[39m  Missing return type on function                                                                                 [2m@typescript-eslint/explicit-function-return-type[22m
+  [2m12:3[22m   [31merror[39m  Prefer using nullish coalescing operator (`??=`) instead of an assignment expression, as it is simpler to read  [2m@typescript-eslint/prefer-nullish-coalescing[22m
+  [2m13:3[22m   [31merror[39m  Prefer using nullish coalescing operator (`??=`) instead of an assignment expression, as it is simpler to read  [2m@typescript-eslint/prefer-nullish-coalescing[22m
+  [2m16:5[22m   [31merror[39m  Missing return type on function                                                                                 [2m@typescript-eslint/explicit-function-return-type[22m
+  [2m20:53[22m  [31merror[39m  Missing return type on function                                                                                 [2m@typescript-eslint/explicit-function-return-type[22m
+  [2m21:27[22m  [31merror[39m  Unsafe member access .type on an `any` value                                                                    [2m@typescript-eslint/no-unsafe-member-access[22m
+  [2m21:76[22m  [31merror[39m  Unsafe member access .requestId on an `any` value                                                               [2m@typescript-eslint/no-unsafe-member-access[22m
+  [2m24:32[22m  [31merror[39m  Unsafe member access .data on an `any` value                                                                    [2m@typescript-eslint/no-unsafe-member-access[22m
+  [2m45:5[22m   [31merror[39m  Missing return type on function                                                                                 [2m@typescript-eslint/explicit-function-return-type[22m
+  [2m49:53[22m  [31merror[39m  Missing return type on function                                                                                 [2m@typescript-eslint/explicit-function-return-type[22m
+  [2m50:27[22m  [31merror[39m  Unsafe member access .type on an `any` value                                                                    [2m@typescript-eslint/no-unsafe-member-access[22m
+  [2m50:76[22m  [31merror[39m  Unsafe member access .requestId on an `any` value                                                               [2m@typescript-eslint/no-unsafe-member-access[22m
+  [2m76:5[22m   [31merror[39m  Missing return type on function                                                                                 [2m@typescript-eslint/explicit-function-return-type[22m
+  [2m78:51[22m  [31merror[39m  Missing return type on function                                                                                 [2m@typescript-eslint/explicit-function-return-type[22m
+  [2m79:25[22m  [31merror[39m  Unsafe member access .type on an `any` value                                                                    [2m@typescript-eslint/no-unsafe-member-access[22m
+  [2m80:31[22m  [31merror[39m  Unsafe member access .data on an `any` value                                                                    [2m@typescript-eslint/no-unsafe-member-access[22m
+
+[4mC:\Users\joald\chrome_exts\playground\src\css-mappings.ts[24m
+  [2m55:28[22m  [31merror[39m  Unnecessary conditional, the types have no overlap    [2m@typescript-eslint/no-unnecessary-condition[22m
+  [2m70:27[22m  [31merror[39m  Invalid type "number" of template literal expression  [2m@typescript-eslint/restrict-template-expressions[22m
+
+[4mC:\Users\joald\chrome_exts\playground\src\debug.ts[24m
+   [2m4:3[22m  [31merror[39m  Missing return type on function  [2m@typescript-eslint/explicit-function-return-type[22m
+   [2m7:3[22m  [31merror[39m  Missing return type on function  [2m@typescript-eslint/explicit-function-return-type[22m
+  [2m10:3[22m  [31merror[39m  Missing return type on function  [2m@typescript-eslint/explicit-function-return-type[22m
+
+[4mC:\Users\joald\chrome_exts\playground\src\injection.ts[24m
+    [2m1:2[22m   [31merror[39m  Missing return type on function                                                                                                                                     [2m@typescript-eslint/explicit-function-return-type[22m
+    [2m6:12[22m  [31merror[39m  Unexpected any. Specify a different type                                                                                                                            [2m@typescript-eslint/no-explicit-any[22m
+    [2m8:16[22m  [31merror[39m  Unexpected any. Specify a different type                                                                                                                            [2m@typescript-eslint/no-explicit-any[22m
+   [2m14:7[22m   [31merror[39m  Missing return type on function                                                                                                                                     [2m@typescript-eslint/explicit-function-return-type[22m
+   [2m24:7[22m   [31merror[39m  Missing return type on function                                                                                                                                     [2m@typescript-eslint/explicit-function-return-type[22m
+   [2m31:7[22m   [31merror[39m  Missing return type on function                                                                                                                                     [2m@typescript-eslint/explicit-function-return-type[22m
+   [2m58:36[22m  [31merror[39m  Unnecessary conditional, value is always falsy                                                                                                                      [2m@typescript-eslint/no-unnecessary-condition[22m
+   [2m60:19[22m  [31merror[39m  Unsafe object destructuring of a property with an `any` value                                                                                                       [2m@typescript-eslint/no-unsafe-assignment[22m
+   [2m63:16[22m  [31merror[39m  Unsafe member access .action on an `any` value                                                                                                                      [2m@typescript-eslint/no-unsafe-member-access[22m
+   [2m64:9[22m   [31merror[39m  Promises must be awaited, end with a call to .catch, end with a call to .then with a rejection handler or be explicitly marked as ignored with the `void` operator  [2m@typescript-eslint/no-floating-promises[22m
+   [2m74:23[22m  [31merror[39m  Unsafe member access .action on an `any` value                                                                                                                      [2m@typescript-eslint/no-unsafe-member-access[22m
+   [2m74:48[22m  [31merror[39m  Unsafe member access .settings on an `any` value                                                                                                                    [2m@typescript-eslint/no-unsafe-member-access[22m
+   [2m75:9[22m   [31merror[39m  Promises must be awaited, end with a call to .catch, end with a call to .then with a rejection handler or be explicitly marked as ignored with the `void` operator  [2m@typescript-eslint/no-floating-promises[22m
+   [2m75:28[22m  [31merror[39m  Unsafe argument of type `any` assigned to a parameter of type `Record<string, unknown>`                                                                             [2m@typescript-eslint/no-unsafe-argument[22m
+   [2m75:33[22m  [31merror[39m  Unsafe member access .settings on an `any` value                                                                                                                    [2m@typescript-eslint/no-unsafe-member-access[22m
+   [2m93:33[22m  [31merror[39m  Unexpected any. Specify a different type                                                                                                                            [2m@typescript-eslint/no-explicit-any[22m
+   [2m99:31[22m  [31merror[39m  Unsafe argument of type `any` assigned to a parameter of type `{}`                                                                                                  [2m@typescript-eslint/no-unsafe-argument[22m
+  [2m101:57[22m  [31merror[39m  Unsafe member access [key] on an `any` value                                                                                                                        [2m@typescript-eslint/no-unsafe-member-access[22m
+  [2m119:21[22m  [31merror[39m  Missing return type on function                                                                                                                                     [2m@typescript-eslint/explicit-function-return-type[22m
+  [2m123:22[22m  [31merror[39m  Missing return type on function                                                                                                                                     [2m@typescript-eslint/explicit-function-return-type[22m
+  [2m128:6[22m   [31merror[39m  Unnecessary conditional, value is always truthy                                                                                                                     [2m@typescript-eslint/no-unnecessary-condition[22m
+  [2m137:3[22m   [31merror[39m  Missing return type on function                                                                                                                                     [2m@typescript-eslint/explicit-function-return-type[22m
+
+[4mC:\Users\joald\chrome_exts\playground\src\main.ts[24m
+   [2m14:60[22m  [31merror[39m  The `Function` type accepts any function-like value.
+Prefer explicitly defining any function parameters and return type                                             [2m@typescript-eslint/no-unsafe-function-type[22m
+   [2m33:3[22m   [31merror[39m  Missing return type on function                                                                                                                                     [2m@typescript-eslint/explicit-function-return-type[22m
+   [2m34:54[22m  [31merror[39m  Missing return type on function                                                                                                                                     [2m@typescript-eslint/explicit-function-return-type[22m
+   [2m41:24[22m  [31merror[39m  Prefer using an optional chain expression instead, as it's more concise and easier to read                                                                          [2m@typescript-eslint/prefer-optional-chain[22m
+   [2m41:24[22m  [31merror[39m  Unnecessary conditional, value is always truthy                                                                                                                     [2m@typescript-eslint/no-unnecessary-condition[22m
+   [2m41:34[22m  [31merror[39m  Unnecessary conditional, value is always truthy                                                                                                                     [2m@typescript-eslint/no-unnecessary-condition[22m
+   [2m48:3[22m   [31merror[39m  Missing return type on function                                                                                                                                     [2m@typescript-eslint/explicit-function-return-type[22m
+   [2m80:3[22m   [31merror[39m  Async method 'applyStyles' has no 'await' expression                                                                                                                [2m@typescript-eslint/require-await[22m
+   [2m80:3[22m   [31merror[39m  Missing return type on function                                                                                                                                     [2m@typescript-eslint/explicit-function-return-type[22m
+   [2m92:11[22m  [31merror[39m  This assigned value is not used in subsequent statements                                                                                                            [2mno-useless-assignment[22m
+  [2m121:3[22m   [31merror[39m  Missing return type on function                                                                                                                                     [2m@typescript-eslint/explicit-function-return-type[22m
+  [2m130:3[22m   [31merror[39m  Missing return type on function                                                                                                                                     [2m@typescript-eslint/explicit-function-return-type[22m
+  [2m149:21[22m  [31merror[39m  '_' is defined but never used                                                                                                                                       [2m@typescript-eslint/no-unused-vars[22m
+  [2m150:36[22m  [31merror[39m  Invalid type "any" of template literal expression                                                                                                                   [2m@typescript-eslint/restrict-template-expressions[22m
+  [2m156:56[22m  [31merror[39m  Missing return type on function                                                                                                                                     [2m@typescript-eslint/explicit-function-return-type[22m
+  [2m168:3[22m   [31merror[39m  Missing return type on function                                                                                                                                     [2m@typescript-eslint/explicit-function-return-type[22m
+  [2m172:22[22m  [31merror[39m  Unsafe member access .type on an `any` value                                                                                                                        [2m@typescript-eslint/no-unsafe-member-access[22m
+  [2m173:15[22m  [31merror[39m  Unsafe assignment of an `any` value                                                                                                                                 [2m@typescript-eslint/no-unsafe-assignment[22m
+  [2m173:36[22m  [31merror[39m  Unsafe member access .data on an `any` value                                                                                                                        [2m@typescript-eslint/no-unsafe-member-access[22m
+  [2m175:41[22m  [31merror[39m  Unsafe argument of type `any` assigned to a parameter of type `{}`                                                                                                  [2m@typescript-eslint/no-unsafe-argument[22m
+  [2m179:19[22m  [31merror[39m  Unsafe assignment of an `any` value                                                                                                                                 [2m@typescript-eslint/no-unsafe-assignment[22m
+  [2m179:36[22m  [31merror[39m  Unsafe member access [key] on an `any` value                                                                                                                        [2m@typescript-eslint/no-unsafe-member-access[22m
+  [2m180:25[22m  [31merror[39m  Unsafe member access .newValue on an `any` value                                                                                                                    [2m@typescript-eslint/no-unsafe-member-access[22m
+  [2m181:39[22m  [31merror[39m  Unsafe member access .newValue on an `any` value                                                                                                                    [2m@typescript-eslint/no-unsafe-member-access[22m
+  [2m190:37[22m  [31merror[39m  Prefer the safe `: unknown` for a `catch` callback variable                                                                                                         [2m@typescript-eslint/use-unknown-in-catch-callback-variable[22m
+  [2m191:64[22m  [31merror[39m  Invalid type "string | undefined" of template literal expression                                                                                                    [2m@typescript-eslint/restrict-template-expressions[22m
+  [2m202:49[22m  [31merror[39m  Promise returned in function argument where a void return was expected                                                                                              [2m@typescript-eslint/no-misused-promises[22m
+  [2m204:3[22m   [31merror[39m  Promises must be awaited, end with a call to .catch, end with a call to .then with a rejection handler or be explicitly marked as ignored with the `void` operator  [2m@typescript-eslint/no-floating-promises[22m
+
+[4mC:\Users\joald\chrome_exts\playground\src\platforms\youtube.ts[24m
+   [2m48:9[22m   [31merror[39m  Unnecessary conditional, value is always falsy                                                      [2m@typescript-eslint/no-unnecessary-condition[22m
+   [2m53:21[22m  [31merror[39m  Unnecessary conditional, value is always truthy                                                     [2m@typescript-eslint/no-unnecessary-condition[22m
+   [2m71:9[22m   [31merror[39m  Unnecessary conditional, value is always falsy                                                      [2m@typescript-eslint/no-unnecessary-condition[22m
+   [2m81:29[22m  [31merror[39m  Invalid type "unknown" of template literal expression                                               [2m@typescript-eslint/restrict-template-expressions[22m
+   [2m87:75[22m  [31merror[39m  Invalid type "unknown" of template literal expression                                               [2m@typescript-eslint/restrict-template-expressions[22m
+  [2m104:31[22m  [31merror[39m  Unnecessary conditional, expected left-hand side of `??` operator to be possibly null or undefined  [2m@typescript-eslint/no-unnecessary-condition[22m
+  [2m112:21[22m  [31merror[39m  Invalid type "number" of template literal expression                                                [2m@typescript-eslint/restrict-template-expressions[22m
+  [2m125:21[22m  [31merror[39m  Invalid type "number" of template literal expression                                                [2m@typescript-eslint/restrict-template-expressions[22m
+
+[4mC:\Users\joald\chrome_exts\playground\src\storage.ts[24m
+  [2m16:11[22m  [31merror[39m  An interface declaring no members is equivalent to its supertype                         [2m@typescript-eslint/no-empty-object-type[22m
+  [2m25:7[22m   [31merror[39m  Type parameter K is used only once in the function signature                             [2m@typescript-eslint/no-unnecessary-type-parameters[22m
+  [2m63:7[22m   [31merror[39m  Unnecessary conditional, value is always truthy                                          [2m@typescript-eslint/no-unnecessary-condition[22m
+  [2m63:13[22m  [31merror[39m  Unnecessary optional chain on a non-nullish value                                        [2m@typescript-eslint/no-unnecessary-condition[22m
+  [2m63:22[22m  [31merror[39m  Unnecessary optional chain on a non-nullish value                                        [2m@typescript-eslint/no-unnecessary-condition[22m
+  [2m72:50[22m  [31merror[39m  Missing return type on function                                                          [2m@typescript-eslint/explicit-function-return-type[22m
+  [2m73:22[22m  [31merror[39m  Unsafe member access .type on an `any` value                                             [2m@typescript-eslint/no-unsafe-member-access[22m
+  [2m73:70[22m  [31merror[39m  Unsafe member access .requestId on an `any` value                                        [2m@typescript-eslint/no-unsafe-member-access[22m
+  [2m76:15[22m  [31merror[39m  Unsafe assignment of an `any` value                                                      [2m@typescript-eslint/no-unsafe-assignment[22m
+  [2m76:35[22m  [31merror[39m  Unsafe member access .data on an `any` value                                             [2m@typescript-eslint/no-unsafe-member-access[22m
+  [2m77:42[22m  [31merror[39m  Unsafe argument of type `any` assigned to a parameter of type `Record<string, unknown>`  [2m@typescript-eslint/no-unsafe-argument[22m
+  [2m95:7[22m   [31merror[39m  Unnecessary conditional, value is always falsy                                           [2m@typescript-eslint/no-unnecessary-condition[22m
+  [2m95:14[22m  [31merror[39m  Unnecessary optional chain on a non-nullish value                                        [2m@typescript-eslint/no-unnecessary-condition[22m
+  [2m95:23[22m  [31merror[39m  Unnecessary optional chain on a non-nullish value                                        [2m@typescript-eslint/no-unnecessary-condition[22m
+
+[4mC:\Users\joald\chrome_exts\playground\src\ui\popup.ts[24m
+   [2m26:70[22m   [31merror[39m  Prefer using nullish coalescing operator (`??`) instead of a logical or (`||`), as it is a safer operator                                                           [2m@typescript-eslint/prefer-nullish-coalescing[22m
+   [2m35:46[22m   [31merror[39m  Unnecessary conditional, value is always truthy                                                                                                                     [2m@typescript-eslint/no-unnecessary-condition[22m
+   [2m37:45[22m   [31merror[39m  Unnecessary conditional, value is always truthy                                                                                                                     [2m@typescript-eslint/no-unnecessary-condition[22m
+   [2m39:41[22m   [31merror[39m  Unnecessary conditional, value is always truthy                                                                                                                     [2m@typescript-eslint/no-unnecessary-condition[22m
+   [2m91:41[22m   [31merror[39m  Invalid type "CharacterEdgeStyle | undefined" of template literal expression                                                                                        [2m@typescript-eslint/restrict-template-expressions[22m
+   [2m91:83[22m   [31merror[39m  Invalid type ""auto" | "0" | "25" | "50" | "75" | "100" | undefined" of template literal expression                                                                 [2m@typescript-eslint/restrict-template-expressions[22m
+   [2m91:125[22m  [31merror[39m  Invalid type ""auto" | "0" | "25" | "50" | "75" | "100" | undefined" of template literal expression                                                                 [2m@typescript-eslint/restrict-template-expressions[22m
+  [2m136:36[22m   [31merror[39m  Promise returned in function argument where a void return was expected                                                                                              [2m@typescript-eslint/no-misused-promises[22m
+  [2m137:15[22m   [31merror[39m  'value' is assigned a value but never used                                                                                                                          [2m@typescript-eslint/no-unused-vars[22m
+  [2m171:42[22m   [31merror[39m  Promise returned in function argument where a void return was expected                                                                                              [2m@typescript-eslint/no-misused-promises[22m
+  [2m183:3[22m    [31merror[39m  Promises must be awaited, end with a call to .catch, end with a call to .then with a rejection handler or be explicitly marked as ignored with the `void` operator  [2m@typescript-eslint/no-floating-promises[22m
+
+[31m[1m✖ 105 problems (105 errors, 0 warnings)[22m[39m
+[0m

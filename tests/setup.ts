@@ -5,8 +5,8 @@ beforeEach(() => {
     storage: {
       sync: {
         get: vi.fn(),
-        set: vi.fn()
-      }
-    }
+        set: vi.fn(),
+      },
+    },
   });
 });

@@ -7,6 +7,7 @@ This Chrome extension provides persistent subtitle styling across streaming plat
 ## Quick Start
 
 ### Installation
+
 1. Build the extension:
    ```bash
    npm install
@@ -20,17 +21,19 @@ This Chrome extension provides persistent subtitle styling across streaming plat
    - Select the `dist/` folder (not the source directory)
 
 ### Usage
+
 1. Navigate to any supported streaming service
 2. Click the extension icon to open settings
 3. Customize your subtitle styles
 4. Styles persist across all videos and platforms
 
 ### Quick Test
+
 Navigate to any streaming video with subtitles enabled and verify your custom styles are applied automatically.
 
 ## Supported Platforms
 
 | Platform | Status | Support Type |
-|----------|--------|--------------|
-| YouTube | ✅ | Native API |
-| Nebula | ✅ | CSS Only |
+| -------- | ------ | ------------ |
+| YouTube  | ✅     | Native API   |
+| Nebula   | ✅     | CSS Only     |

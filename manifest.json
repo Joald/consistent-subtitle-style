@@ -12,33 +12,18 @@
       "128": "images/logo-128.png"
     }
   },
-  "permissions": [
-    "storage"
-  ],
+  "permissions": ["storage"],
   "content_scripts": [
     {
-      "js": [
-        "injection.js"
-      ],
-      "matches": [
-        "*://*.youtube.com/*",
-        "*://*.nebula.tv/*"
-      ],
+      "js": ["injection.js"],
+      "matches": ["*://*.youtube.com/*", "*://*.nebula.tv/*"],
       "run_at": "document_idle"
     }
   ],
   "web_accessible_resources": [
     {
-      "resources": [
-        "platforms.js",
-        "storage.js",
-        "main.js",
-        "bridge.js"
-      ],
-      "matches": [
-        "*://*.youtube.com/*",
-        "*://*.nebula.tv/*"
-      ]
+      "resources": ["platforms.js", "storage.js", "main.js", "bridge.js"],
+      "matches": ["*://*.youtube.com/*", "*://*.nebula.tv/*"]
     }
   ],
   "icons": {

@@ -18,22 +18,23 @@ export const CSS_SETTING_MAPPINGS: {
     valueMap: {
       dropshadow: '2px 2px 4px rgba(0,0,0,0.95)',
       none: 'none',
-      raised: '-1px -1px 1px rgba(255,255,255,0.5), 1px -1px 1px rgba(255,255,255,0.5), -1px 1px 1px rgba(255,255,255,0.5), 1px 1px 1px rgba(255,255,255,0.5)',
+      raised:
+        '-1px -1px 1px rgba(255,255,255,0.5), 1px -1px 1px rgba(255,255,255,0.5), -1px 1px 1px rgba(255,255,255,0.5), 1px 1px 1px rgba(255,255,255,0.5)',
       depressed: '1px 1px 1px rgba(0,0,0,0.5)',
       outline: '-1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000, 1px 1px 0 #000',
-      auto: ''
-    }
+      auto: '',
+    },
   },
   backgroundOpacity: {
     property: 'backgroundColor',
     appliesTo: 'background',
-    isOpacity: true
+    isOpacity: true,
   },
   windowOpacity: {
     property: 'backgroundColor',
     appliesTo: 'window',
-    isOpacity: true
-  }
+    isOpacity: true,
+  },
 };
 
 function getCssProperty(jsProperty: string): string {
@@ -47,13 +48,11 @@ function getCssProperty(jsProperty: string): string {
   }
 }
 
-export function generateCssRule(
-  mapping: CssSettingMapping,
-  value: string
-): string | null {
+export function generateCssRule(mapping: CssSettingMapping, value: string): string | null {
   try {
-    const cssValue = mapping.valueMap?.[value] ?? (mapping.isOpacity ? opacityToRgba(value) : value);
-    if (cssValue === '' || cssValue === undefined) {
+    const cssValue =
+      mapping.valueMap?.[value] ?? (mapping.isOpacity ? opacityToRgba(value) : value);
+    if (cssValue === '') {
       return null;
     }
     const cssProperty = getCssProperty(mapping.property);
@@ -68,5 +67,5 @@ export function generateCssRule(
 function opacityToRgba(value: string): string {
   if (value === 'auto') return '';
   const opacity = parseInt(value, 10) / 100;
-  return `rgba(0, 0, 0, ${opacity})`;
+  return `rgba(0, 0, 0, ${opacity.toString()})`;
 }

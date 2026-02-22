@@ -1,0 +1,45 @@
+
+> consistent-subtitle-style@1.0.0 lint
+> eslint .
+
+[0m
+[4mC:\Users\joald\chrome_exts\playground\src\bridge.ts[24m
+  [2m27:25[22m  [31merror[39m  Unnecessary optional chain on a non-nullish value                                                   [2m@typescript-eslint/no-unnecessary-condition[22m
+  [2m27:74[22m  [31merror[39m  Unnecessary optional chain on a non-nullish value                                                   [2m@typescript-eslint/no-unnecessary-condition[22m
+  [2m30:22[22m  [31merror[39m  Unnecessary conditional, expected left-hand side of `??` operator to be possibly null or undefined  [2m@typescript-eslint/no-unnecessary-condition[22m
+  [2m56:25[22m  [31merror[39m  Unnecessary optional chain on a non-nullish value                                                   [2m@typescript-eslint/no-unnecessary-condition[22m
+  [2m56:74[22m  [31merror[39m  Unnecessary optional chain on a non-nullish value                                                   [2m@typescript-eslint/no-unnecessary-condition[22m
+  [2m85:23[22m  [31merror[39m  Unnecessary optional chain on a non-nullish value                                                   [2m@typescript-eslint/no-unnecessary-condition[22m
+  [2m86:21[22m  [31merror[39m  Unnecessary conditional, expected left-hand side of `??` operator to be possibly null or undefined  [2m@typescript-eslint/no-unnecessary-condition[22m
+
+[4mC:\Users\joald\chrome_exts\playground\src\injection.ts[24m
+  [2m34:19[22m  [31merror[39m  Replace `callback:·(changes:·Record<string,·chrome.storage.StorageChange>)·=>·void` with `⏎········callback:·(changes:·Record<string,·chrome.storage.StorageChange>)·=>·void,⏎······`  [2mprettier/prettier[22m
+
+[4mC:\Users\joald\chrome_exts\playground\src\main.ts[24m
+   [2m41:54[22m  [31merror[39m  Unnecessary conditional, value is always truthy                                                         [2m@typescript-eslint/no-unnecessary-condition[22m
+  [2m179:21[22m  [31merror[39m  Unnecessary optional chain on a non-nullish value                                                       [2m@typescript-eslint/no-unnecessary-condition[22m
+  [2m188:39[22m  [31merror[39m  'change.newValue' may use Object's default stringification format ('[object Object]') when stringified  [2m@typescript-eslint/no-base-to-string[22m
+
+[4mC:\Users\joald\chrome_exts\playground\src\platforms\youtube.ts[24m
+   [2m24:23[22m  [31merror[39m  This assertion is unnecessary since it does not change the type of the expression                                          [2m@typescript-eslint/no-unnecessary-type-assertion[22m
+   [2m48:9[22m   [31merror[39m  Unnecessary conditional, value is always falsy                                                                             [2m@typescript-eslint/no-unnecessary-condition[22m
+   [2m55:12[22m  [31merror[39m  Unnecessary conditional, value is always truthy                                                                            [2m@typescript-eslint/no-unnecessary-condition[22m
+   [2m71:9[22m   [31merror[39m  Unnecessary conditional, value is always falsy                                                                             [2m@typescript-eslint/no-unnecessary-condition[22m
+  [2m109:29[22m  [31merror[39m  Replace `displaySettings.backgroundOpacity·*·100` with `⏎············displaySettings.backgroundOpacity·*·100,⏎··········`  [2mprettier/prettier[22m
+  [2m122:29[22m  [31merror[39m  Replace `displaySettings.windowOpacity·*·100` with `⏎············displaySettings.windowOpacity·*·100,⏎··········`          [2mprettier/prettier[22m
+
+[4mC:\Users\joald\chrome_exts\playground\src\storage.ts[24m
+  [2m61:40[22m  [31merror[39m  Unnecessary conditional, value is always truthy                                                     [2m@typescript-eslint/no-unnecessary-condition[22m
+  [2m61:40[22m  [31merror[39m  Prefer using an optional chain expression instead, as it's more concise and easier to read          [2m@typescript-eslint/prefer-optional-chain[22m
+  [2m61:58[22m  [31merror[39m  Unnecessary conditional, value is always truthy                                                     [2m@typescript-eslint/no-unnecessary-condition[22m
+  [2m76:25[22m  [31merror[39m  Unnecessary conditional, expected left-hand side of `??` operator to be possibly null or undefined  [2m@typescript-eslint/no-unnecessary-condition[22m
+  [2m95:40[22m  [31merror[39m  Unnecessary conditional, value is always falsy                                                      [2m@typescript-eslint/no-unnecessary-condition[22m
+  [2m95:40[22m  [31merror[39m  Prefer using an optional chain expression instead, as it's more concise and easier to read          [2m@typescript-eslint/prefer-optional-chain[22m
+  [2m95:59[22m  [31merror[39m  Unnecessary conditional, value is always falsy                                                      [2m@typescript-eslint/no-unnecessary-condition[22m
+
+[4mC:\Users\joald\chrome_exts\playground\src\ui\popup.ts[24m
+  [2m26:44[22m  [31merror[39m  Replace `selected.dataset['value']·??·'auto'` with `(selected.dataset['value']·??·'auto')`  [2mprettier/prettier[22m
+
+[31m[1m✖ 25 problems (25 errors, 0 warnings)[22m[39m
+[31m[1m  6 errors and 0 warnings potentially fixable with the `--fix` option.[22m[39m
+[0m

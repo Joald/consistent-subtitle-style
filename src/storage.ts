@@ -3,31 +3,32 @@ import type { StorageSettings } from './types/index.js';
 const VALID_SETTINGS: Record<keyof StorageSettings, readonly string[]> = {
   characterEdgeStyle: ['auto', 'dropshadow', 'none', 'raised', 'depressed', 'outline'] as const,
   backgroundOpacity: ['auto', '0', '25', '50', '75', '100'] as const,
-  windowOpacity: ['auto', '0', '25', '50', '75', '100'] as const
+  windowOpacity: ['auto', '0', '25', '50', '75', '100'] as const,
 };
 
-export function isValidValue<K extends keyof StorageSettings>(key: K, value: string): value is StorageSettings[K] {
+export function isValidValue<K extends keyof StorageSettings>(
+  key: K,
+  value: string,
+): value is StorageSettings[K] {
   return VALID_SETTINGS[key].includes(value);
 }
 
-interface StorageSettingsData extends StorageSettings { }
-
 export class Settings {
-  private settings: StorageSettingsData;
+  private settings: StorageSettings;
 
   constructor(initialSettings: StorageSettings) {
     this.settings = { ...initialSettings };
   }
 
-  set<K extends keyof StorageSettings>(key: K, value: string): boolean {
+  set(key: keyof StorageSettings, value: string): boolean {
     if (isValidValue(key, value)) {
-      this.settings[key] = value;
+      this.settings[key] = value as never;
       return true;
     }
     return false;
   }
 
-  get<K extends keyof StorageSettings>(key: K): StorageSettings[K] {
+  get(key: keyof StorageSettings): StorageSettings[keyof StorageSettings] {
     return this.settings[key];
   }
 
@@ -53,11 +54,11 @@ export class Settings {
 const DEFAULTS: StorageSettings = {
   characterEdgeStyle: 'auto',
   backgroundOpacity: 'auto',
-  windowOpacity: 'auto'
+  windowOpacity: 'auto',
 };
 
 export async function loadSettings(): Promise<StorageSettings> {
-  if (chrome?.storage?.sync) {
+  if (typeof chrome !== 'undefined') {
     const result = await chrome.storage.sync.get(null);
     const settings = new Settings(DEFAULTS);
     settings.updateFromStorageResult(result);
@@ -66,28 +67,32 @@ export async function loadSettings(): Promise<StorageSettings> {
 
   return new Promise((resolve) => {
     const requestId = Date.now();
-    const messageHandler = (event: MessageEvent) => {
+    const messageHandler = (
+      event: MessageEvent<{ type?: string; requestId?: number; data?: unknown }>,
+    ): void => {
       if (event.data.type === 'subtitleStylerResponse' && event.data.requestId === requestId) {
         window.removeEventListener('message', messageHandler);
         const settings = new Settings(DEFAULTS);
-        const result = event.data.data;
+        const result = (event.data.data ?? {}) as Record<string, unknown>;
         settings.updateFromStorageResult(result);
         resolve(settings.toObject());
       }
     };
 
     window.addEventListener('message', messageHandler);
-    window.postMessage({
-      type: 'subtitleStyler',
-      data: { action: 'get' },
-      requestId
-    }, '*');
+    window.postMessage(
+      {
+        type: 'subtitleStyler',
+        data: { action: 'get' },
+        requestId,
+      },
+      '*',
+    );
   });
 }
 
 export const saveSettings = (settings: Partial<StorageSettings>): Promise<void> => {
-  if (!chrome?.storage?.sync) return Promise.resolve();
+  if (typeof chrome === 'undefined') return Promise.resolve();
 
   return chrome.storage.sync.set(settings);
 };
-

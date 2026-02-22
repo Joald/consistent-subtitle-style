@@ -1,7 +1,7 @@
 import type { PlatformConfig, StorageSettings } from '../types/index.js';
 import { youtube } from './youtube.js';
 
-export const PLATFORMS: { [platformName: string]: PlatformConfig } = {
+export const PLATFORMS: Record<string, PlatformConfig> = {
   youtube,
   nebula: {
     name: 'Nebula',
@@ -10,16 +10,16 @@ export const PLATFORMS: { [platformName: string]: PlatformConfig } = {
       selectors: {
         subtitle: '#video-player [data-subtitles-container] > div > div > div',
         background: '#video-player [data-subtitles-container] > div > div > div',
-        window: '#video-player [data-subtitles-container] > div > div'
-      }
+        window: '#video-player [data-subtitles-container] > div > div',
+      },
     },
     detectNativeCapabilities(): boolean {
       return false;
     },
     getCurrentNativeSettings(): Partial<StorageSettings> | null {
       return null;
-    }
-  }
+    },
+  },
 };
 
 export type Platform = 'youtube' | 'nebula';

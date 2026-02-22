@@ -20,7 +20,7 @@ const baseConfig = {
   sourcemap: !isProduction,
   define: {
     'process.env.NODE_ENV': `"${process.env.NODE_ENV || 'development'}"`,
-    'DEBUG': `${!isProduction}`
+    DEBUG: `${!isProduction}`,
   },
 };
 
@@ -34,37 +34,37 @@ async function build() {
       await esbuild.build({
         ...baseConfig,
         entryPoints: ['src/platforms/index.ts'],
-        outfile: 'dist/platforms.js'
+        outfile: 'dist/platforms.js',
       });
       console.log('Built platforms.js');
-      
+
       await esbuild.build({
         ...baseConfig,
         entryPoints: ['src/storage.ts'],
-        outfile: 'dist/storage.js'
+        outfile: 'dist/storage.js',
       });
       console.log('Built storage.js');
-      
-       await esbuild.build({
-         ...baseConfig,
-         entryPoints: ['src/main.ts'],
-         outfile: 'dist/main.js'
-       });
-       console.log('Built main.js');
-       
-       await esbuild.build({
-         ...baseConfig,
-         entryPoints: ['src/injection.ts'],
-         outfile: 'dist/injection.js'
-       });
-       console.log('Built injection.js');
-       
-       await esbuild.build({
-         ...baseConfig,
-         entryPoints: ['src/bridge.ts'],
-         outfile: 'dist/bridge.js'
-       });
-       console.log('Built bridge.js');
+
+      await esbuild.build({
+        ...baseConfig,
+        entryPoints: ['src/main.ts'],
+        outfile: 'dist/main.js',
+      });
+      console.log('Built main.js');
+
+      await esbuild.build({
+        ...baseConfig,
+        entryPoints: ['src/injection.ts'],
+        outfile: 'dist/injection.js',
+      });
+      console.log('Built injection.js');
+
+      await esbuild.build({
+        ...baseConfig,
+        entryPoints: ['src/bridge.ts'],
+        outfile: 'dist/bridge.js',
+      });
+      console.log('Built bridge.js');
     } catch (buildError) {
       console.error('Content script build failed:', buildError);
       throw buildError;
@@ -74,10 +74,8 @@ async function build() {
     await esbuild.build({
       ...baseConfig,
       entryPoints: ['src/ui/popup.ts'],
-      outfile: 'dist/popup.js'
+      outfile: 'dist/popup.js',
     });
-
-
 
     // Copy static files with unique version to force new extension ID
     await copyStaticFiles();
@@ -86,7 +84,7 @@ async function build() {
     await generatePngs();
 
     console.log('Build completed successfully!');
-    
+
     if (isWatch) {
       console.log('Watching for changes...');
       // Start watch mode separately
@@ -94,24 +92,26 @@ async function build() {
         ...baseConfig,
         entryPoints: [
           'src/platforms/index.ts',
-          'src/storage.ts', 
+          'src/storage.ts',
           'src/main.ts',
           'src/injection.ts',
           'src/bridge.ts',
-          'src/ui/popup.ts'
+          'src/ui/popup.ts',
         ],
         outdir: 'dist',
-        plugins: [{
-          name: 'copy-on-rebuild',
-          setup(build) {
-            build.onEnd(async () => {
-              await copyStaticFiles();
-              await generatePngs();
-            });
-          }
-        }]
+        plugins: [
+          {
+            name: 'copy-on-rebuild',
+            setup(build) {
+              build.onEnd(async () => {
+                await copyStaticFiles();
+                await generatePngs();
+              });
+            },
+          },
+        ],
       });
-      
+
       await ctx.watch();
     }
   } catch (error) {
@@ -123,16 +123,14 @@ async function build() {
 // Copy static files function
 async function copyStaticFiles() {
   const fs = await import('fs/promises');
-  
+
   try {
     // Copy manifest.json (will be updated)
     const manifest = JSON.parse(readFileSync('manifest.json', 'utf8'));
-    
+
     // Keep version stable to preserve extension ID and settings across builds
-    
-    manifest.content_scripts[0].js = [
-      'injection.js'
-    ];
+
+    manifest.content_scripts[0].js = ['injection.js'];
     manifest.action.default_popup = 'index.html';
     writeFileSync('dist/manifest.json', JSON.stringify(manifest, null, 2));
 
@@ -148,7 +146,6 @@ async function copyStaticFiles() {
     if (existsSync('images')) {
       await fs.cp('images', 'dist/images', { recursive: true });
     }
-
   } catch (error) {
     console.warn('Some static files could not be copied:', error.message);
   }
@@ -158,7 +155,7 @@ async function copyStaticFiles() {
 async function generatePngs() {
   const fs = await import('fs/promises');
   const puppeteer = await import('puppeteer');
-  
+
   const sizes = [
     { html: 'logo-16.html', png: 'logo-16.png', width: 16, height: 16 },
     { html: 'logo-48.html', png: 'logo-48.png', width: 48, height: 48 },
@@ -167,7 +164,7 @@ async function generatePngs() {
 
   const browser = await puppeteer.launch({
     headless: true,
-    args: ['--no-sandbox', '--disable-setuid-sandbox']
+    args: ['--no-sandbox', '--disable-setuid-sandbox'],
   });
 
   try {
@@ -180,13 +177,13 @@ async function generatePngs() {
 
       const htmlContent = readFileSync(htmlPath, 'utf8');
       const page = await browser.newPage();
-      
+
       await page.setContent(htmlContent, { waitUntil: 'networkidle0' });
       await page.setViewport({ width: size.width, height: size.height, deviceScaleFactor: 1 });
-      
+
       const outputPath = path.resolve('dist/images', size.png);
       await page.screenshot({ path: outputPath, omitBackground: false });
-      
+
       await page.close();
       console.log(`Generated ${size.png}`);
     }

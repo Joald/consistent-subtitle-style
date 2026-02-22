@@ -12,6 +12,8 @@
     "clean": "rimraf dist",
     "typecheck": "tsc --noEmit",
     "dev": "npm run watch",
+    "lint": "eslint .",
+    "format": "prettier --write .",
     "test": "vitest run",
     "test:watch": "vitest"
   },
@@ -28,21 +30,25 @@
   "author": "Jacek Olczyk",
   "license": "MIT",
   "devDependencies": {
+    "@eslint/js": "^10.0.1",
     "@types/chrome": "^0.1.36",
     "@types/jsdom": "^27.0.0",
     "@types/node": "^25.1.0",
     "cross-env": "^7.0.3",
     "esbuild": "^0.27.2",
+    "eslint": "^10.0.1",
+    "eslint-config-prettier": "^10.1.8",
+    "eslint-plugin-prettier": "^5.5.5",
+    "globals": "^17.3.0",
     "jsdom": "^22.1.0",
+    "prettier": "^3.8.1",
     "puppeteer": "^24.37.5",
     "rimraf": "^6.1.2",
     "typescript": "^5.9.3",
+    "typescript-eslint": "^8.56.0",
     "vitest": "^4.0.18"
   },
   "engines": {
     "node": ">=16.0.0"
-  },
-  "dependencies": {
-    "eslint": "^9.39.2"
   }
 }

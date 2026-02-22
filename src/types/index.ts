@@ -1,12 +1,16 @@
-
-export type CharacterEdgeStyle = 'auto' | 'dropshadow' | 'none' | 'raised' | 'depressed' | 'outline';
+export type CharacterEdgeStyle =
+  | 'auto'
+  | 'dropshadow'
+  | 'none'
+  | 'raised'
+  | 'depressed'
+  | 'outline';
 
 export interface StorageSettings {
   characterEdgeStyle: CharacterEdgeStyle;
   backgroundOpacity: 'auto' | '0' | '25' | '50' | '75' | '100';
   windowOpacity: 'auto' | '0' | '25' | '50' | '75' | '100';
 }
-
 
 export interface SettingApplicationReport {
   success: boolean;
@@ -40,16 +44,15 @@ export interface PlatformConfig {
 
 export type Platform = 'youtube' | 'nebula';
 
-export type PlatformRegistry = {
-  [platformName: string]: PlatformConfig;
-};
+export type PlatformRegistry = Record<string, PlatformConfig>;
 
-export interface ApplicationLog {
-  [setting: string]: {
+export type ApplicationLog = Record<
+  string,
+  {
     success: boolean;
     details?: string;
-  };
-}
+  }
+>;
 
 export type StorageKey = keyof StorageSettings;
 
@@ -73,7 +76,7 @@ export interface YouTubePlayer {
 }
 
 export type YouTubePlayerElement = HTMLElement & YouTubePlayer;
-export type StorageChanges = { [key: string]: chrome.storage.StorageChange };
+export type StorageChanges = Record<string, chrome.storage.StorageChange>;
 
 export interface ChromeStorageBridge {
   get(): Promise<Record<string, unknown>>;
@@ -90,4 +93,3 @@ export interface SubtitleStylerBridge {
 export interface ExtendedWindow extends Window {
   subtitleStylerBridge?: SubtitleStylerBridge;
 }
-

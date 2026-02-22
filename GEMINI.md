@@ -1,6 +1,6 @@
 # Consistent Subtitle Style - AGENTS.md
 
-Chrome extension that provides persistent subtitle styling across streaming platforms 
+Chrome extension that provides persistent subtitle styling across streaming platforms
 
 ## Quick Architecture
 
@@ -25,6 +25,7 @@ dist/                # Build output (load this folder in Chrome)
 ```
 
 ## Core Features
+
 - **Per-Platform Per-Setting Strategy**: Each setting on each platform chooses optimal method (native vs CSS)
 - **Dynamic Style Injection**: CSS styling is now done via an injected `<style>` tag, avoiding performance issues with layout thrashing from MutationObservers.
 - **Type Safety**: Full TypeScript with strict interfaces
@@ -33,6 +34,7 @@ dist/                # Build output (load this folder in Chrome)
 ## Development Commands
 
 ### Build System
+
 ```bash
 # Install dependencies
 npm install
@@ -54,6 +56,7 @@ npm run clean
 ```
 
 ### Loading Extension
+
 ```bash
 npm run build
 # Load in Chrome: Extensions > Load unpacked > select dist/ folder
@@ -63,6 +66,7 @@ npm run watch
 ```
 
 ### Testing & Debugging
+
 ```bash
 npm run typecheck
 npm test         # Run unit tests
@@ -71,6 +75,7 @@ subtitleStylerDebug()  # Console: shows typed state and stats
 ```
 
 ### Logo Icons
+
 Extension icons are generated from HTML files using Puppeteer during build.
 
 **Source files:** `images/logo-16.html`, `images/logo-48.html`, `images/logo-128.html`
@@ -78,16 +83,19 @@ Extension icons are generated from HTML files using Puppeteer during build.
 **Generated files:** `dist/images/logo-16.png`, `dist/images/logo-48.png`, `dist/images/logo-128.png`
 
 **Sizes:**
+
 - **16x16**: Three letters "C", "S", "S" arranged diagonally (bottom-left to top-right), each with different text-shadow styles
 - **48x48**: Same diagonal layout as 16x16, scaled up
 - **128x128**: Full text "Consistent Subtitle Style" with three lines, each styled differently
 
 **Text-shadow styles used (from extension's characterEdgeStyle options):**
+
 - **Raised**: White shadow on all corners (used on first word/letter)
 - **Outline**: Black outline around text (used on second word/letter)
 - **Drop shadow**: Dark shadow offset (used on third word/letter)
 
 **To modify icons:**
+
 1. Edit the corresponding HTML file in `images/`
 2. Run `npm run build` - Puppeteer will regenerate PNGs automatically
 3. PNGs are generated fresh each build (not committed to repo)
@@ -97,6 +105,7 @@ Extension icons are generated from HTML files using Puppeteer during build.
 ### When Working With This TypeScript Codebase
 
 #### Code Quality Standards
+
 - **TypeScript**: Use strict mode and proper type annotations
 - **ES6+ Features**: Modern JavaScript with type safety
 - **Error Handling**: Typed Chrome API calls with proper error boundaries
@@ -104,7 +113,9 @@ Extension icons are generated from HTML files using Puppeteer during build.
 - **Interface Design**: Define clear interfaces for all major data structures
 
 #### Adding New Platform Support
+
 In `src/platforms/index.ts`, add to PLATFORMS:
+
 ```typescript
 newplatform: {
   name: 'New Platform',
@@ -124,6 +135,7 @@ newplatform: {
 **Note:** Provide a `css` configuration for platforms that need CSS manipulation via injected `<style>` tags. Use `nativeSettings` when APIs are available (like YouTube).
 
 #### Testing New Features
+
 1. Run `npm run typecheck` to verify type safety
 2. Run `npm test` to run unit tests
 3. Run `npm run build` to ensure compilation works
@@ -133,6 +145,7 @@ newplatform: {
 7. Check console for typed debug information
 
 #### Type Safety Checklist
+
 - All functions have proper return type annotations
 - Chrome API calls are typed correctly
 - Storage operations use StorageSettings interface
@@ -141,6 +154,7 @@ newplatform: {
 - No `any` types (except where unavoidable)
 
 ### Security & Performance
+
 - **Local Processing**: All logic runs locally
 - **Minimal Permissions**: Type-checked Chrome API usage
 - **Efficient DOM Queries**: Typed DOM operations

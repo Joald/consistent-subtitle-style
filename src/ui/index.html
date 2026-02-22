@@ -1,79 +1,77 @@
-<!DOCTYPE html>
+<!doctype html>
 <html>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Subtitle Styles</title>
+    <link rel="stylesheet" href="styles.css" />
+  </head>
 
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Subtitle Styles</title>
-  <link rel="stylesheet" href="styles.css">
-</head>
-
-<body>
-  <div class="container">
-    <form id="settings-form">
-      <div class="form-group">
-        <div class="custom-select" data-id="character-edge-style">
-          <div class="select-trigger">
-            <span class="select-name">Character Edge Style</span>
-            <span class="select-value">Auto (Default)</span>
-            <span class="select-arrow">▼</span>
-          </div>
-          <div class="select-options">
-            <div class="select-option" data-value="auto">Auto (Default)</div>
-            <div class="select-option" data-value="dropshadow">Drop Shadow</div>
-            <div class="select-option" data-value="raised">Raised</div>
-            <div class="select-option" data-value="depressed">Depressed</div>
-            <div class="select-option" data-value="outline">Outline</div>
-            <div class="select-option" data-value="none">None</div>
-          </div>
-        </div>
-      </div>
-
-      <div class="form-group">
-        <div class="custom-select" data-id="background-opacity">
-          <div class="select-trigger">
-            <span class="select-name">Background Opacity</span>
-            <span class="select-value">Auto (Default)</span>
-            <span class="select-arrow">▼</span>
-          </div>
-          <div class="select-options">
-            <div class="select-option" data-value="auto">Auto (Default)</div>
-            <div class="select-option" data-value="0">0%</div>
-            <div class="select-option" data-value="25">25%</div>
-            <div class="select-option" data-value="50">50%</div>
-            <div class="select-option" data-value="75">75%</div>
-            <div class="select-option" data-value="100">100%</div>
+  <body>
+    <div class="container">
+      <form id="settings-form">
+        <div class="form-group">
+          <div class="custom-select" data-id="character-edge-style">
+            <div class="select-trigger">
+              <span class="select-name">Character Edge Style</span>
+              <span class="select-value">Auto (Default)</span>
+              <span class="select-arrow">▼</span>
+            </div>
+            <div class="select-options">
+              <div class="select-option" data-value="auto">Auto (Default)</div>
+              <div class="select-option" data-value="dropshadow">Drop Shadow</div>
+              <div class="select-option" data-value="raised">Raised</div>
+              <div class="select-option" data-value="depressed">Depressed</div>
+              <div class="select-option" data-value="outline">Outline</div>
+              <div class="select-option" data-value="none">None</div>
+            </div>
           </div>
         </div>
-      </div>
 
-      <div class="form-group">
-        <div class="custom-select" data-id="window-opacity">
-          <div class="select-trigger">
-            <span class="select-name">Window Opacity</span>
-            <span class="select-value">Auto (Default)</span>
-            <span class="select-arrow">▼</span>
-          </div>
-          <div class="select-options">
-            <div class="select-option" data-value="auto">Auto (Default)</div>
-            <div class="select-option" data-value="0">0%</div>
-            <div class="select-option" data-value="25">25%</div>
-            <div class="select-option" data-value="50">50%</div>
-            <div class="select-option" data-value="75">75%</div>
-            <div class="select-option" data-value="100">100%</div>
+        <div class="form-group">
+          <div class="custom-select" data-id="background-opacity">
+            <div class="select-trigger">
+              <span class="select-name">Background Opacity</span>
+              <span class="select-value">Auto (Default)</span>
+              <span class="select-arrow">▼</span>
+            </div>
+            <div class="select-options">
+              <div class="select-option" data-value="auto">Auto (Default)</div>
+              <div class="select-option" data-value="0">0%</div>
+              <div class="select-option" data-value="25">25%</div>
+              <div class="select-option" data-value="50">50%</div>
+              <div class="select-option" data-value="75">75%</div>
+              <div class="select-option" data-value="100">100%</div>
+            </div>
           </div>
         </div>
-      </div>
 
-      <div id="message" class="message"></div>
+        <div class="form-group">
+          <div class="custom-select" data-id="window-opacity">
+            <div class="select-trigger">
+              <span class="select-name">Window Opacity</span>
+              <span class="select-value">Auto (Default)</span>
+              <span class="select-arrow">▼</span>
+            </div>
+            <div class="select-options">
+              <div class="select-option" data-value="auto">Auto (Default)</div>
+              <div class="select-option" data-value="0">0%</div>
+              <div class="select-option" data-value="25">25%</div>
+              <div class="select-option" data-value="50">50%</div>
+              <div class="select-option" data-value="75">75%</div>
+              <div class="select-option" data-value="100">100%</div>
+            </div>
+          </div>
+        </div>
 
-      <div class="button-group">
-        <button type="button" id="reset-btn">Reset</button>
-      </div>
-    </form>
-  </div>
+        <div id="message" class="message"></div>
 
-  <script src="popup.js"></script>
-</body>
+        <div class="button-group">
+          <button type="button" id="reset-btn">Reset</button>
+        </div>
+      </form>
+    </div>
 
+    <script src="popup.js"></script>
+  </body>
 </html>

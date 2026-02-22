@@ -7,7 +7,7 @@ function setCustomSelectValue(container: HTMLElement | null, value: string): voi
   const options = container.querySelectorAll('.select-option');
   const triggerValue = container.querySelector('.select-value');
 
-  options.forEach(opt => {
+  options.forEach((opt) => {
     if (!(opt instanceof HTMLElement)) return;
     if (opt.dataset['value'] === value) {
       opt.classList.add('selected');
@@ -23,7 +23,7 @@ function setCustomSelectValue(container: HTMLElement | null, value: string): voi
 function getCustomSelectValue(container: HTMLElement | null): string {
   if (!container) return 'auto';
   const selected = container.querySelector('.select-option.selected');
-  return selected instanceof HTMLElement ? selected.dataset['value'] || 'auto' : 'auto';
+  return selected instanceof HTMLElement ? (selected.dataset['value'] ?? 'auto') : 'auto';
 }
 
 function populateForm(settings: StorageSettings): void {
@@ -31,9 +31,12 @@ function populateForm(settings: StorageSettings): void {
   const backgroundOpacity = document.querySelector('[data-id="background-opacity"]');
   const windowOpacity = document.querySelector('[data-id="window-opacity"]');
 
-  if (characterEdgeStyle instanceof HTMLElement) setCustomSelectValue(characterEdgeStyle, settings.characterEdgeStyle || 'auto');
-  if (backgroundOpacity instanceof HTMLElement) setCustomSelectValue(backgroundOpacity, settings.backgroundOpacity || 'auto');
-  if (windowOpacity instanceof HTMLElement) setCustomSelectValue(windowOpacity, settings.windowOpacity || 'auto');
+  if (characterEdgeStyle instanceof HTMLElement)
+    setCustomSelectValue(characterEdgeStyle, settings.characterEdgeStyle);
+  if (backgroundOpacity instanceof HTMLElement)
+    setCustomSelectValue(backgroundOpacity, settings.backgroundOpacity);
+  if (windowOpacity instanceof HTMLElement)
+    setCustomSelectValue(windowOpacity, settings.windowOpacity);
 }
 
 function collectSettings(): Partial<StorageSettings> {
@@ -41,18 +44,25 @@ function collectSettings(): Partial<StorageSettings> {
   const backgroundOpacityEl = document.querySelector('[data-id="background-opacity"]');
   const windowOpacityEl = document.querySelector('[data-id="window-opacity"]');
 
-  const characterEdgeValue = characterEdgeStyleEl instanceof HTMLElement ? getCustomSelectValue(characterEdgeStyleEl) : 'auto';
-  const backgroundOpacityValue = backgroundOpacityEl instanceof HTMLElement ? getCustomSelectValue(backgroundOpacityEl) : 'auto';
-  const windowOpacityValue = windowOpacityEl instanceof HTMLElement ? getCustomSelectValue(windowOpacityEl) : 'auto';
+  const characterEdgeValue =
+    characterEdgeStyleEl instanceof HTMLElement
+      ? getCustomSelectValue(characterEdgeStyleEl)
+      : 'auto';
+  const backgroundOpacityValue =
+    backgroundOpacityEl instanceof HTMLElement ? getCustomSelectValue(backgroundOpacityEl) : 'auto';
+  const windowOpacityValue =
+    windowOpacityEl instanceof HTMLElement ? getCustomSelectValue(windowOpacityEl) : 'auto';
 
   const tempSettings = new Settings({
     characterEdgeStyle: 'auto',
     backgroundOpacity: 'auto',
-    windowOpacity: 'auto'
+    windowOpacity: 'auto',
   });
 
-  if (typeof characterEdgeValue === 'string') tempSettings.set('characterEdgeStyle', characterEdgeValue);
-  if (typeof backgroundOpacityValue === 'string') tempSettings.set('backgroundOpacity', backgroundOpacityValue);
+  if (typeof characterEdgeValue === 'string')
+    tempSettings.set('characterEdgeStyle', characterEdgeValue);
+  if (typeof backgroundOpacityValue === 'string')
+    tempSettings.set('backgroundOpacity', backgroundOpacityValue);
   if (typeof windowOpacityValue === 'string') tempSettings.set('windowOpacity', windowOpacityValue);
 
   return tempSettings.toObject();
@@ -77,7 +87,9 @@ function showMessage(message: string, type: 'info' | 'success' | 'error' = 'info
 async function handleSave(): Promise<void> {
   try {
     const settings = collectSettings();
-    debug.log(`Saving settings: characterEdge=${settings.characterEdgeStyle}, bgOpacity=${settings.backgroundOpacity}, winOpacity=${settings.windowOpacity}`);
+    debug.log(
+      `Saving settings: characterEdge=${String(settings.characterEdgeStyle)}, bgOpacity=${String(settings.backgroundOpacity)}, winOpacity=${String(settings.windowOpacity)}`,
+    );
     await saveSettings(settings);
     showMessage('Saved!', 'success');
   } catch (error) {
@@ -90,7 +102,7 @@ async function handleReset(): Promise<void> {
   populateForm({
     characterEdgeStyle: 'auto',
     backgroundOpacity: 'auto',
-    windowOpacity: 'auto'
+    windowOpacity: 'auto',
   });
   await handleSave();
   showMessage('Saved', 'success');
@@ -99,7 +111,7 @@ async function handleReset(): Promise<void> {
 function setupCustomSelects(): void {
   const selects = document.querySelectorAll('.custom-select');
 
-  selects.forEach(select => {
+  selects.forEach((select) => {
     if (!(select instanceof HTMLElement)) return;
     const container = select;
     const trigger = container.querySelector('.select-trigger');
@@ -109,7 +121,7 @@ function setupCustomSelects(): void {
       e.stopPropagation();
       const isOpen = container.classList.contains('open');
 
-      document.querySelectorAll('.custom-select.open').forEach(open => {
+      document.querySelectorAll('.custom-select.open').forEach((open) => {
         open.classList.remove('open');
       });
 
@@ -118,14 +130,13 @@ function setupCustomSelects(): void {
       }
     });
 
-    options.forEach(option => {
+    options.forEach((option) => {
       if (!(option instanceof HTMLElement)) return;
       const el = option;
-      el.addEventListener('click', async () => {
-        const value = el.dataset['value'];
+      el.addEventListener('click', () => {
         const text = el.textContent;
 
-        container.querySelectorAll('.select-option').forEach(opt => {
+        container.querySelectorAll('.select-option').forEach((opt) => {
           opt.classList.remove('selected');
         });
         el.classList.add('selected');
@@ -135,13 +146,13 @@ function setupCustomSelects(): void {
 
         container.classList.remove('open');
 
-        await handleSave();
+        void handleSave();
       });
     });
   });
 
   document.addEventListener('click', () => {
-    document.querySelectorAll('.custom-select.open').forEach(open => {
+    document.querySelectorAll('.custom-select.open').forEach((open) => {
       open.classList.remove('open');
     });
   });
@@ -156,16 +167,17 @@ async function initializePopup(): Promise<void> {
 
     const resetBtn = document.getElementById('reset-btn');
     if (resetBtn) {
-      resetBtn.addEventListener('click', async (e) => {
+      resetBtn.addEventListener('click', (e) => {
         e.preventDefault();
-        await handleReset();
+        void handleReset();
       });
     }
-
   } catch (error) {
     console.error('Failed to initialize popup:', error);
     showMessage('Failed to initialize popup', 'error');
   }
 }
 
-document.addEventListener('DOMContentLoaded', () => { initializePopup(); });
+document.addEventListener('DOMContentLoaded', () => {
+  void initializePopup();
+});
