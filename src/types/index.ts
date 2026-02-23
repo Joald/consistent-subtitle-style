@@ -1,3 +1,5 @@
+export type AppliesTo = 'subtitle' | 'background' | 'window';
+
 export type CharacterEdgeStyle =
   | 'auto'
   | 'dropshadow'
@@ -6,10 +8,40 @@ export type CharacterEdgeStyle =
   | 'depressed'
   | 'outline';
 
+export type OpacityValue = 'auto' | '0' | '25' | '50' | '75' | '100';
+export type ColorValue =
+  | 'auto'
+  | 'white'
+  | 'yellow'
+  | 'green'
+  | 'cyan'
+  | 'blue'
+  | 'magenta'
+  | 'red'
+  | 'black';
+
+export type FontFamilyValue =
+  | 'auto'
+  | 'monospaced-serif'
+  | 'proportional-serif'
+  | 'monospaced-sans-serif'
+  | 'proportional-sans-serif'
+  | 'casual'
+  | 'cursive'
+  | 'small-caps';
+
+export type FontSizeValue = 'auto' | '50%' | '75%' | '100%' | '150%' | '200%' | '300%' | '400%';
+
 export interface StorageSettings {
   characterEdgeStyle: CharacterEdgeStyle;
-  backgroundOpacity: 'auto' | '0' | '25' | '50' | '75' | '100';
-  windowOpacity: 'auto' | '0' | '25' | '50' | '75' | '100';
+  backgroundOpacity: OpacityValue;
+  windowOpacity: OpacityValue;
+  fontColor: ColorValue;
+  fontOpacity: OpacityValue;
+  backgroundColor: ColorValue;
+  windowColor: ColorValue;
+  fontFamily: FontFamilyValue;
+  fontSize: FontSizeValue;
 }
 
 export interface SettingApplicationReport {
@@ -37,6 +69,11 @@ export interface PlatformConfig {
     [K in keyof StorageSettings]: PlatformSettingConfig;
   };
   css?: CssConfig;
+  baselineCss?: {
+    subtitle?: string;
+    background?: string;
+    window?: string;
+  };
   detectNativeCapabilities?(): boolean;
   getCurrentNativeSettings?(): Partial<StorageSettings> | null;
   applyNativeSetting?(setting: keyof StorageSettings, value: string): boolean;

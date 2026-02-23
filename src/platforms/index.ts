@@ -5,6 +5,9 @@ export const PLATFORMS: Record<string, PlatformConfig> = {
   youtube,
   nebula: {
     name: 'Nebula',
+    baselineCss: {
+      subtitle: 'font-weight: bold !important;',
+    },
     css: {
       subtitleContainerSelector: '#video-player [data-subtitles-container]',
       selectors: {

@@ -16,12 +16,51 @@ body {
   padding: 16px;
 }
 
+.preview-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 12px;
+  background: linear-gradient(135deg, #1e3c72 0%, #2a5298 30%, #b21f1f 70%, #f44336 100%);
+  border-radius: 8px;
+  margin-bottom: 20px;
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  border: 1px solid #333;
+  font-size: 36px;
+}
+
+.preview-window {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 8px;
+}
+
+.preview-bg {
+  padding: 2px 4px;
+  display: inline-block;
+}
+
+.preview-text {
+  white-space: nowrap;
+  font-weight: bold;
+  transition: font-size 0.2s ease-out;
+}
+
 #settings-form {
   background: transparent;
 }
 
 .form-group {
   margin-bottom: 12px;
+}
+
+hr {
+  border: 0;
+  border-top: 1px solid #333;
+  margin: 16px 0;
 }
 
 .custom-select {
@@ -46,12 +85,10 @@ body {
 
 .select-name {
   font-weight: 600;
-  flex-shrink: 0;
+  flex: 1;
 }
 
 .select-value {
-  flex: 1;
-  text-align: right;
   margin-right: 8px;
 }
 
@@ -95,6 +132,100 @@ body {
 
 .select-option.selected {
   background: #3a3a3a;
+}
+
+.color-swatch {
+  display: inline-block;
+  width: 14px;
+  height: 14px;
+  border: 1px solid #555;
+  margin-right: 8px;
+  flex-shrink: 0;
+  border-radius: 2px;
+}
+
+.select-trigger .color-swatch {
+  margin-right: 8px;
+  margin-left: 0;
+}
+
+.select-option {
+  display: flex;
+  align-items: center;
+}
+
+.select-option[data-value='white'] .color-swatch {
+  background-color: white;
+}
+
+.select-option[data-value='yellow'] .color-swatch {
+  background-color: yellow;
+}
+
+.select-option[data-value='green'] .color-swatch {
+  background-color: green;
+}
+
+.select-option[data-value='cyan'] .color-swatch {
+  background-color: cyan;
+}
+
+.select-option[data-value='blue'] .color-swatch {
+  background-color: blue;
+}
+
+.select-option[data-value='magenta'] .color-swatch {
+  background-color: magenta;
+}
+
+.select-option[data-value='red'] .color-swatch {
+  background-color: red;
+}
+
+.select-option[data-value='black'] .color-swatch {
+  background-color: black;
+}
+
+.select-option[data-value='auto'] .color-swatch {
+  background: linear-gradient(45deg, transparent 45%, #888 45%, #888 55%, transparent 55%);
+  background-color: #333;
+}
+
+.custom-select[data-selected-value='white'] .select-trigger .color-swatch {
+  background-color: white;
+}
+
+.custom-select[data-selected-value='yellow'] .select-trigger .color-swatch {
+  background-color: yellow;
+}
+
+.custom-select[data-selected-value='green'] .select-trigger .color-swatch {
+  background-color: green;
+}
+
+.custom-select[data-selected-value='cyan'] .select-trigger .color-swatch {
+  background-color: cyan;
+}
+
+.custom-select[data-selected-value='blue'] .select-trigger .color-swatch {
+  background-color: blue;
+}
+
+.custom-select[data-selected-value='magenta'] .select-trigger .color-swatch {
+  background-color: magenta;
+}
+
+.custom-select[data-selected-value='red'] .select-trigger .color-swatch {
+  background-color: red;
+}
+
+.custom-select[data-selected-value='black'] .select-trigger .color-swatch {
+  background-color: black;
+}
+
+.custom-select[data-selected-value='auto'] .select-trigger .color-swatch {
+  background: linear-gradient(45deg, transparent 45%, #888 45%, #888 55%, transparent 55%);
+  background-color: #333;
 }
 
 .button-group {

@@ -1,18 +1,21 @@
 import type { StorageSettings } from '../types/index.js';
-import { loadSettings, saveSettings, Settings } from '../storage.js';
+import { loadSettings, saveSettings } from '../storage.js';
 import { debug } from '../debug.js';
+import { generateCombinedCssRules } from '../css-mappings.js';
 
 function setCustomSelectValue(container: HTMLElement | null, value: string): void {
   if (!container) return;
   const options = container.querySelectorAll('.select-option');
   const triggerValue = container.querySelector('.select-value');
 
+  container.dataset['selectedValue'] = value;
+
   options.forEach((opt) => {
     if (!(opt instanceof HTMLElement)) return;
     if (opt.dataset['value'] === value) {
       opt.classList.add('selected');
       if (triggerValue) {
-        triggerValue.textContent = opt.textContent;
+        triggerValue.textContent = opt.textContent.trim();
       }
     } else {
       opt.classList.remove('selected');
@@ -26,46 +29,78 @@ function getCustomSelectValue(container: HTMLElement | null): string {
   return selected instanceof HTMLElement ? (selected.dataset['value'] ?? 'auto') : 'auto';
 }
 
-function populateForm(settings: StorageSettings): void {
-  const characterEdgeStyle = document.querySelector('[data-id="character-edge-style"]');
-  const backgroundOpacity = document.querySelector('[data-id="background-opacity"]');
-  const windowOpacity = document.querySelector('[data-id="window-opacity"]');
+function updatePreview(): void {
+  const currentSettings = collectSettings();
 
-  if (characterEdgeStyle instanceof HTMLElement)
-    setCustomSelectValue(characterEdgeStyle, settings.characterEdgeStyle);
-  if (backgroundOpacity instanceof HTMLElement)
-    setCustomSelectValue(backgroundOpacity, settings.backgroundOpacity);
-  if (windowOpacity instanceof HTMLElement)
-    setCustomSelectValue(windowOpacity, settings.windowOpacity);
+  const windowEl = document.getElementById('preview-window');
+  const bgEl = document.getElementById('preview-bg');
+  const textEl = document.getElementById('preview-text');
+
+  if (windowEl) {
+    windowEl.style.cssText = generateCombinedCssRules('window', currentSettings).join(' ');
+  }
+
+  if (bgEl) {
+    bgEl.style.cssText = generateCombinedCssRules('background', currentSettings).join(' ');
+  }
+
+  if (textEl) {
+    textEl.style.cssText = generateCombinedCssRules('subtitle', currentSettings).join(' ');
+    // Small Caps requires font-variant, not just a different font-family
+    const fontFamilyEl = document.querySelector('[data-id="font-family"]');
+    const fontFamilyValue =
+      fontFamilyEl instanceof HTMLElement ? fontFamilyEl.dataset['selectedValue'] : 'auto';
+    textEl.style.fontVariant = fontFamilyValue === 'small-caps' ? 'small-caps' : 'normal';
+  }
+}
+
+function populateForm(settings: StorageSettings): void {
+  const ids = [
+    'character-edge-style',
+    'background-opacity',
+    'window-opacity',
+    'font-color',
+    'font-opacity',
+    'background-color',
+    'window-color',
+    'font-family',
+    'font-size',
+  ];
+
+  ids.forEach((id) => {
+    const el = document.querySelector(`[data-id="${id}"]`);
+    const settingKey = id.replace(/-./g, (x) => x[1]?.toUpperCase() ?? '') as keyof StorageSettings;
+    if (el instanceof HTMLElement) {
+      setCustomSelectValue(el, settings[settingKey] as string);
+    }
+  });
+  updatePreview();
 }
 
 function collectSettings(): Partial<StorageSettings> {
-  const characterEdgeStyleEl = document.querySelector('[data-id="character-edge-style"]');
-  const backgroundOpacityEl = document.querySelector('[data-id="background-opacity"]');
-  const windowOpacityEl = document.querySelector('[data-id="window-opacity"]');
+  const ids = [
+    'character-edge-style',
+    'background-opacity',
+    'window-opacity',
+    'font-color',
+    'font-opacity',
+    'background-color',
+    'window-color',
+    'font-family',
+    'font-size',
+  ];
 
-  const characterEdgeValue =
-    characterEdgeStyleEl instanceof HTMLElement
-      ? getCustomSelectValue(characterEdgeStyleEl)
-      : 'auto';
-  const backgroundOpacityValue =
-    backgroundOpacityEl instanceof HTMLElement ? getCustomSelectValue(backgroundOpacityEl) : 'auto';
-  const windowOpacityValue =
-    windowOpacityEl instanceof HTMLElement ? getCustomSelectValue(windowOpacityEl) : 'auto';
+  const partialSettings: Record<string, string> = {};
 
-  const tempSettings = new Settings({
-    characterEdgeStyle: 'auto',
-    backgroundOpacity: 'auto',
-    windowOpacity: 'auto',
+  ids.forEach((id) => {
+    const el = document.querySelector(`[data-id="${id}"]`);
+    if (el instanceof HTMLElement) {
+      const settingKey = id.replace(/-./g, (x) => x[1]?.toUpperCase() ?? '');
+      partialSettings[settingKey] = getCustomSelectValue(el);
+    }
   });
 
-  if (typeof characterEdgeValue === 'string')
-    tempSettings.set('characterEdgeStyle', characterEdgeValue);
-  if (typeof backgroundOpacityValue === 'string')
-    tempSettings.set('backgroundOpacity', backgroundOpacityValue);
-  if (typeof windowOpacityValue === 'string') tempSettings.set('windowOpacity', windowOpacityValue);
-
-  return tempSettings.toObject();
+  return partialSettings as unknown as Partial<StorageSettings>;
 }
 
 function showMessage(message: string, type: 'info' | 'success' | 'error' = 'info'): void {
@@ -87,10 +122,9 @@ function showMessage(message: string, type: 'info' | 'success' | 'error' = 'info
 async function handleSave(): Promise<void> {
   try {
     const settings = collectSettings();
-    debug.log(
-      `Saving settings: characterEdge=${String(settings.characterEdgeStyle)}, bgOpacity=${String(settings.backgroundOpacity)}, winOpacity=${String(settings.windowOpacity)}`,
-    );
+    debug.log(`Saving settings: ${JSON.stringify(settings)}`);
     await saveSettings(settings);
+    updatePreview();
     showMessage('Saved!', 'success');
   } catch (error) {
     console.error('Failed to save settings:', error);
@@ -103,6 +137,12 @@ async function handleReset(): Promise<void> {
     characterEdgeStyle: 'auto',
     backgroundOpacity: 'auto',
     windowOpacity: 'auto',
+    fontColor: 'auto',
+    fontOpacity: 'auto',
+    backgroundColor: 'auto',
+    windowColor: 'auto',
+    fontFamily: 'auto',
+    fontSize: 'auto',
   });
   await handleSave();
   showMessage('Saved', 'success');
@@ -134,18 +174,22 @@ function setupCustomSelects(): void {
       if (!(option instanceof HTMLElement)) return;
       const el = option;
       el.addEventListener('click', () => {
-        const text = el.textContent;
+        const value = el.dataset['value'] ?? 'auto';
+        const text = el.textContent.trim();
 
         container.querySelectorAll('.select-option').forEach((opt) => {
           opt.classList.remove('selected');
         });
         el.classList.add('selected');
 
+        container.dataset['selectedValue'] = value;
+
         const valueEl = container.querySelector('.select-value');
         if (valueEl) valueEl.textContent = text;
 
         container.classList.remove('open');
 
+        updatePreview();
         void handleSave();
       });
     });

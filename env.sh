@@ -7,5 +7,6 @@ alias b='npm run build'
 alias t='npm run typecheck'
 alias g='git tree'
 alias fsl='sl'
-
+alias lt='npm run lint --fix'
+alias ci='npm run ci'
 

@@ -16,12 +16,9 @@
     storage: {
       get: (): Promise<Record<string, unknown>> => {
         return new Promise<Record<string, unknown>>((resolve) => {
-          chrome.storage.sync.get(
-            ['characterEdgeStyle', 'backgroundOpacity', 'windowOpacity'],
-            (result) => {
-              resolve(result);
-            },
-          );
+          chrome.storage.sync.get(null, (result) => {
+            resolve(result);
+          });
         });
       },
       set: (settings: Record<string, unknown>): Promise<void> => {

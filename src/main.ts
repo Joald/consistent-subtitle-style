@@ -1,14 +1,14 @@
 import { loadSettings, Settings } from './storage.js';
 import { detectPlatform, getPlatformConfig } from './platforms/index.js';
 import { debug } from './debug.js';
-import { CSS_SETTING_MAPPINGS, generateCssRule } from './css-mappings.js';
+import { CSS_SETTING_MAPPINGS, generateCombinedCssRules } from './css-mappings.js';
 import type {
   StorageSettings,
   PlatformConfig,
   ApplicationLog,
   Platform,
   ExtendedWindow,
-  SettingApplicationReport,
+  AppliesTo,
 } from './types/index.js';
 
 type DebugWindow = typeof window & { subtitleStylerDebug?: () => Record<string, unknown> };
@@ -18,6 +18,12 @@ class SubtitleStylerApp {
     characterEdgeStyle: 'auto',
     backgroundOpacity: 'auto',
     windowOpacity: 'auto',
+    fontColor: 'auto',
+    fontOpacity: 'auto',
+    backgroundColor: 'auto',
+    windowColor: 'auto',
+    fontFamily: 'auto',
+    fontSize: 'auto',
   };
   private settings = new Settings(this.currentSettings);
   private currentPlatform: Platform | 'unknown' = 'unknown';
@@ -28,6 +34,41 @@ class SubtitleStylerApp {
   constructor() {
     this.setupDebug();
     this.setupMessageListener();
+    this.setupMutationObserver();
+  }
+
+  private setupMutationObserver(): void {
+    let timeout: number | null = null;
+    const observer = new MutationObserver((mutations) => {
+      if (!this.platformConfig?.nativeSettings) return;
+
+      let shouldReapply = false;
+      for (const mutation of mutations) {
+        for (const node of mutation.addedNodes) {
+          if (!(node instanceof HTMLElement)) continue;
+
+          if (
+            node.classList.contains('html5-video-player') ||
+            node.querySelector('.html5-video-player')
+          ) {
+            shouldReapply = true;
+            break;
+          }
+        }
+        if (shouldReapply) break;
+      }
+
+      if (shouldReapply) {
+        if (timeout) window.clearTimeout(timeout);
+        timeout = window.setTimeout(() => {
+          debug.log('New player detected via MutationObserver, re-applying styles');
+          this.applyStyles();
+          timeout = null;
+        }, 500);
+      }
+    });
+
+    observer.observe(document.body, { childList: true, subtree: true });
   }
 
   private setupDebug(): void {
@@ -66,14 +107,19 @@ class SubtitleStylerApp {
       if (value === 'auto') continue;
 
       if (platform.nativeSettings?.[key]) {
-        const config = platform.nativeSettings[key];
-        const currentValue = config.getCurrentValue();
+        const hasNativeCapabilities =
+          platform.detectNativeCapabilities === undefined || platform.detectNativeCapabilities();
 
-        if (currentValue !== undefined && currentValue === value) {
-          continue;
+        if (hasNativeCapabilities) {
+          const config = platform.nativeSettings[key];
+          const currentValue = config.getCurrentValue();
+
+          if (currentValue !== undefined && currentValue === value) {
+            continue;
+          }
+
+          toApply.push({ key, value, type: 'native' });
         }
-
-        toApply.push({ key, value, type: 'native' });
       }
 
       if (platform.css?.selectors) {
@@ -93,7 +139,9 @@ class SubtitleStylerApp {
       this.applicationLog[key] = { success: false };
     }
 
-    const cssRules: string[] = [];
+    const cssByAppliesTo: Partial<
+      Record<AppliesTo, Partial<Record<keyof StorageSettings, string>>>
+    > = {};
 
     for (const { key, value, type } of toApply) {
       if (type === 'native' && this.platformConfig.nativeSettings?.[key]) {
@@ -105,19 +153,44 @@ class SubtitleStylerApp {
         }
       } else if (type === 'css' && this.platformConfig.css?.selectors) {
         const mapping = CSS_SETTING_MAPPINGS[key];
-        const selector = this.platformConfig.css.selectors[mapping.appliesTo];
-        const ruleValue = generateCssRule(mapping, value as string);
-        let report: SettingApplicationReport;
+        const group = mapping.appliesTo;
+        const groupSettings = (cssByAppliesTo[group] ??= {});
+        groupSettings[key] = value as string;
 
-        if (ruleValue) {
-          cssRules.push(`${selector} { ${ruleValue} }`);
-          report = { success: true, message: `Generated CSS for ${key} (${mapping.property})` };
-        } else {
-          report = { success: true, message: `Skipped CSS for ${key} (auto check passed)` };
-        }
         if (this.applicationLog[key]) {
-          this.applicationLog[key].success = report.success;
-          this.applicationLog[key].details = report.message;
+          this.applicationLog[key].success = true;
+          this.applicationLog[key].details = 'CSS rule queued';
+        }
+      }
+    }
+
+    const cssRules: string[] = [];
+
+    if (this.platformConfig.baselineCss && this.platformConfig.css?.selectors) {
+      const { baselineCss } = this.platformConfig;
+      const selectors = this.platformConfig.css.selectors;
+      if (baselineCss.subtitle && selectors.subtitle) {
+        cssRules.push(`${selectors.subtitle} { ${baselineCss.subtitle} }`);
+      }
+      if (baselineCss.background && selectors.background) {
+        cssRules.push(`${selectors.background} { ${baselineCss.background} }`);
+      }
+      if (baselineCss.window && selectors.window) {
+        cssRules.push(`${selectors.window} { ${baselineCss.window} }`);
+      }
+    }
+
+    if (this.platformConfig.css?.selectors) {
+      const selectors = this.platformConfig.css.selectors;
+      for (const group of Object.keys(cssByAppliesTo)) {
+        const appliesTo = group as AppliesTo;
+        const selector = selectors[appliesTo];
+        const settings = cssByAppliesTo[appliesTo];
+        if (settings) {
+          const combinedRules = generateCombinedCssRules(appliesTo, settings);
+          if (combinedRules.length > 0) {
+            cssRules.push(`${selector} { ${combinedRules.join(' ')} }`);
+          }
         }
       }
     }
@@ -140,7 +213,7 @@ class SubtitleStylerApp {
       this.platformConfig = getPlatformConfig(this.currentPlatform);
 
       if (!this.platformConfig) {
-        console.error(`No configuration found for platform: ${this.currentPlatform}`);
+        debug.error(`No configuration found for platform: ${this.currentPlatform}`);
         return;
       }
 
@@ -158,7 +231,7 @@ class SubtitleStylerApp {
           .join(', ')}`,
       );
     } catch (error) {
-      console.error('Failed to initialize extension:', error);
+      debug.error('Failed to initialize extension:', error);
 
       (window as DebugWindow).subtitleStylerDebug = (): Record<string, unknown> => {
         return {
@@ -197,9 +270,17 @@ class SubtitleStylerApp {
           try {
             this.applyStyles();
           } catch (error) {
-            console.error(`Failed to apply updated styles on ${this.platformConfig.name}:`, error);
+            debug.error(`Failed to apply updated styles on ${this.platformConfig.name}:`, error);
           }
         }
+      }
+    });
+
+    // YouTube SPA navigation support
+    window.addEventListener('yt-navigate-finish', () => {
+      if (this.currentPlatform === 'youtube') {
+        debug.log('YouTube navigation detected, re-applying styles');
+        this.applyStyles();
       }
     });
   }

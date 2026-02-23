@@ -9,16 +9,135 @@
 
   <body>
     <div class="container">
+      <div id="preview-container" class="preview-container">
+        <div id="preview-window" class="preview-window">
+          <div id="preview-bg" class="preview-bg">
+            <span id="preview-text" class="preview-text">Lorem ipsum</span>
+          </div>
+        </div>
+      </div>
       <form id="settings-form">
+        <!-- Text Settings -->
+        <div class="form-group">
+          <div class="custom-select" data-id="font-family">
+            <div class="select-trigger">
+              <span class="select-name">Font Family</span>
+              <span class="select-value">Site default</span>
+              <span class="select-arrow">▼</span>
+            </div>
+            <div class="select-options">
+              <div class="select-option" data-value="auto">Site default</div>
+              <div class="select-option" data-value="monospaced-serif">Monospaced Serif</div>
+              <div class="select-option" data-value="proportional-serif">Proportional Serif</div>
+              <div class="select-option" data-value="monospaced-sans-serif">
+                Monospaced Sans-Serif
+              </div>
+              <div class="select-option" data-value="proportional-sans-serif">
+                Proportional Sans-Serif
+              </div>
+              <div class="select-option" data-value="casual">Casual</div>
+              <div class="select-option" data-value="cursive">Cursive</div>
+              <div class="select-option" data-value="small-caps">Small Caps</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <div class="custom-select" data-id="font-size">
+            <div class="select-trigger">
+              <span class="select-name">Font Size</span>
+              <span class="select-value">Site default</span>
+              <span class="select-arrow">▼</span>
+            </div>
+            <div class="select-options">
+              <div class="select-option" data-value="auto">Site default</div>
+              <div class="select-option" data-value="50%">50%</div>
+              <div class="select-option" data-value="75%">75%</div>
+              <div class="select-option" data-value="100%">100%</div>
+              <div class="select-option" data-value="150%">150%</div>
+              <div class="select-option" data-value="200%">200%</div>
+              <div class="select-option" data-value="300%">300%</div>
+              <div class="select-option" data-value="400%">400%</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <div class="custom-select" data-id="font-color">
+            <div class="select-trigger">
+              <span class="select-name">Font Color</span>
+              <span class="color-swatch"></span>
+              <span class="select-value">Site default</span>
+              <span class="select-arrow">▼</span>
+            </div>
+            <div class="select-options">
+              <div class="select-option" data-value="auto">
+                <span class="color-swatch"></span>
+                Site default
+              </div>
+              <div class="select-option" data-value="white">
+                <span class="color-swatch"></span>
+                White
+              </div>
+              <div class="select-option" data-value="yellow">
+                <span class="color-swatch"></span>
+                Yellow
+              </div>
+              <div class="select-option" data-value="green">
+                <span class="color-swatch"></span>
+                Green
+              </div>
+              <div class="select-option" data-value="cyan">
+                <span class="color-swatch"></span>
+                Cyan
+              </div>
+              <div class="select-option" data-value="blue">
+                <span class="color-swatch"></span>
+                Blue
+              </div>
+              <div class="select-option" data-value="magenta">
+                <span class="color-swatch"></span>
+                Magenta
+              </div>
+              <div class="select-option" data-value="red">
+                <span class="color-swatch"></span>
+                Red
+              </div>
+              <div class="select-option" data-value="black">
+                <span class="color-swatch"></span>
+                Black
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <div class="custom-select" data-id="font-opacity">
+            <div class="select-trigger">
+              <span class="select-name">Font Opacity</span>
+              <span class="select-value">Site default</span>
+              <span class="select-arrow">▼</span>
+            </div>
+            <div class="select-options">
+              <div class="select-option" data-value="auto">Site default</div>
+              <div class="select-option" data-value="100">100%</div>
+              <div class="select-option" data-value="75">75%</div>
+              <div class="select-option" data-value="50">50%</div>
+              <div class="select-option" data-value="25">25%</div>
+              <div class="select-option" data-value="0">0%</div>
+            </div>
+          </div>
+        </div>
+
         <div class="form-group">
           <div class="custom-select" data-id="character-edge-style">
             <div class="select-trigger">
               <span class="select-name">Character Edge Style</span>
-              <span class="select-value">Auto (Default)</span>
+              <span class="select-value">Site default</span>
               <span class="select-arrow">▼</span>
             </div>
             <div class="select-options">
-              <div class="select-option" data-value="auto">Auto (Default)</div>
+              <div class="select-option" data-value="auto">Site default</div>
               <div class="select-option" data-value="dropshadow">Drop Shadow</div>
               <div class="select-option" data-value="raised">Raised</div>
               <div class="select-option" data-value="depressed">Depressed</div>
@@ -28,20 +147,124 @@
           </div>
         </div>
 
+        <hr />
+
+        <!-- Background Settings -->
+        <div class="form-group">
+          <div class="custom-select" data-id="background-color">
+            <div class="select-trigger">
+              <span class="select-name">Background Color</span>
+              <span class="color-swatch"></span>
+              <span class="select-value">Site default</span>
+              <span class="select-arrow">▼</span>
+            </div>
+            <div class="select-options">
+              <div class="select-option" data-value="auto">
+                <span class="color-swatch"></span>
+                Site default
+              </div>
+              <div class="select-option" data-value="white">
+                <span class="color-swatch"></span>
+                White
+              </div>
+              <div class="select-option" data-value="yellow">
+                <span class="color-swatch"></span>
+                Yellow
+              </div>
+              <div class="select-option" data-value="green">
+                <span class="color-swatch"></span>
+                Green
+              </div>
+              <div class="select-option" data-value="cyan">
+                <span class="color-swatch"></span>
+                Cyan
+              </div>
+              <div class="select-option" data-value="blue">
+                <span class="color-swatch"></span>
+                Blue
+              </div>
+              <div class="select-option" data-value="magenta">
+                <span class="color-swatch"></span>
+                Magenta
+              </div>
+              <div class="select-option" data-value="red">
+                <span class="color-swatch"></span>
+                Red
+              </div>
+              <div class="select-option" data-value="black">
+                <span class="color-swatch"></span>
+                Black
+              </div>
+            </div>
+          </div>
+        </div>
+
         <div class="form-group">
           <div class="custom-select" data-id="background-opacity">
             <div class="select-trigger">
               <span class="select-name">Background Opacity</span>
-              <span class="select-value">Auto (Default)</span>
+              <span class="select-value">Site default</span>
               <span class="select-arrow">▼</span>
             </div>
             <div class="select-options">
-              <div class="select-option" data-value="auto">Auto (Default)</div>
-              <div class="select-option" data-value="0">0%</div>
-              <div class="select-option" data-value="25">25%</div>
-              <div class="select-option" data-value="50">50%</div>
-              <div class="select-option" data-value="75">75%</div>
+              <div class="select-option" data-value="auto">Site default</div>
               <div class="select-option" data-value="100">100%</div>
+              <div class="select-option" data-value="75">75%</div>
+              <div class="select-option" data-value="50">50%</div>
+              <div class="select-option" data-value="25">25%</div>
+              <div class="select-option" data-value="0">0%</div>
+            </div>
+          </div>
+        </div>
+
+        <hr />
+
+        <!-- Window Settings -->
+        <div class="form-group">
+          <div class="custom-select" data-id="window-color">
+            <div class="select-trigger">
+              <span class="select-name">Window Color</span>
+              <span class="color-swatch"></span>
+              <span class="select-value">Site default</span>
+              <span class="select-arrow">▼</span>
+            </div>
+            <div class="select-options">
+              <div class="select-option" data-value="auto">
+                <span class="color-swatch"></span>
+                Site default
+              </div>
+              <div class="select-option" data-value="white">
+                <span class="color-swatch"></span>
+                White
+              </div>
+              <div class="select-option" data-value="yellow">
+                <span class="color-swatch"></span>
+                Yellow
+              </div>
+              <div class="select-option" data-value="green">
+                <span class="color-swatch"></span>
+                Green
+              </div>
+              <div class="select-option" data-value="cyan">
+                <span class="color-swatch"></span>
+                Cyan
+              </div>
+              <div class="select-option" data-value="blue">
+                <span class="color-swatch"></span>
+                Blue
+              </div>
+              <div class="select-option" data-value="magenta">
+                <span class="color-swatch"></span>
+                Magenta
+              </div>
+              <div class="select-option" data-value="red">
+                <span class="color-swatch"></span>
+                Red
+              </div>
+              <div class="select-option" data-value="black">
+                <span class="color-swatch"></span>
+                Black
+              </div>
             </div>
           </div>
         </div>
@@ -50,16 +273,16 @@
           <div class="custom-select" data-id="window-opacity">
             <div class="select-trigger">
               <span class="select-name">Window Opacity</span>
-              <span class="select-value">Auto (Default)</span>
+              <span class="select-value">Site default</span>
               <span class="select-arrow">▼</span>
             </div>
             <div class="select-options">
-              <div class="select-option" data-value="auto">Auto (Default)</div>
-              <div class="select-option" data-value="0">0%</div>
-              <div class="select-option" data-value="25">25%</div>
-              <div class="select-option" data-value="50">50%</div>
-              <div class="select-option" data-value="75">75%</div>
+              <div class="select-option" data-value="auto">Site default</div>
               <div class="select-option" data-value="100">100%</div>
+              <div class="select-option" data-value="75">75%</div>
+              <div class="select-option" data-value="50">50%</div>
+              <div class="select-option" data-value="25">25%</div>
+              <div class="select-option" data-value="0">0%</div>
             </div>
           </div>
         </div>

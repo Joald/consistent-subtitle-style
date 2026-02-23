@@ -27,6 +27,8 @@ dist/                # Build output (load this folder in Chrome)
 ## Core Features
 
 - **Per-Platform Per-Setting Strategy**: Each setting on each platform chooses optimal method (native vs CSS)
+- **Comprehensive Styling**: Supports font family, size, color, opacity, edge style, background/window color and opacity.
+- **YouTube Native Integration**: Uses YouTube's internal player API for seamless, non-intrusive styling.
 - **Dynamic Style Injection**: CSS styling is now done via an injected `<style>` tag, avoiding performance issues with layout thrashing from MutationObservers.
 - **Type Safety**: Full TypeScript with strict interfaces
 - **Persistent Settings**: Chrome storage with validation
@@ -159,8 +161,10 @@ newplatform: {
 - **Local Processing**: All logic runs locally
 - **Minimal Permissions**: Type-checked Chrome API usage
 - **Efficient DOM Queries**: Typed DOM operations
-- **Graceful Degradation**: Typed fallback mechanisms
+- **Graceful Degradation**: Typed fallback mechanisms, including `detectNativeCapabilities` (preferably URL-based) to skip native settings when the platform features are not expected on the current page.
+- **Dynamic Player Sensing**: Uses a MutationObserver to detect when player elements (like YouTube's mini-players or previews) are added to the DOM, ensuring styles are applied even without a page navigation.
+- **SPA Support**: Listens for platform-specific events (like YouTube's `yt-navigate-finish`) to re-apply styles during SPA navigation.
 - **Memory Safety**: Proper null/undefined handling
 
-**CRITICAL: Always run `npm run build` AND `npm run typecheck` after every edit.**
+**CRITICAL: Always run `npm run ci` after every edit.**
 **CRITICAL: At the end of each major change, update this AGENTS.md with ACTUALLY NECESSARY info**

@@ -15,7 +15,8 @@
     "lint": "eslint .",
     "format": "prettier --write .",
     "test": "vitest run",
-    "test:watch": "vitest"
+    "test:watch": "vitest",
+    "ci": "npm run format && npm run lint && npm run typecheck && npm run test && npm run build:prod"
   },
   "keywords": [
     "chrome-extension",

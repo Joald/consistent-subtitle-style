@@ -47,6 +47,12 @@ describe('storage', () => {
         characterEdgeStyle: 'auto',
         backgroundOpacity: 'auto',
         windowOpacity: 'auto',
+        fontColor: 'auto',
+        fontOpacity: 'auto',
+        backgroundColor: 'auto',
+        windowColor: 'auto',
+        fontFamily: 'auto',
+        fontSize: 'auto',
       });
     });
 
@@ -64,8 +70,10 @@ describe('storage', () => {
       it('updates different setting types', () => {
         expect(settings.set('backgroundOpacity', '50')).toBe(true);
         expect(settings.set('windowOpacity', '75')).toBe(true);
+        expect(settings.set('fontColor', 'yellow')).toBe(true);
         expect(settings.get('backgroundOpacity')).toBe('50');
         expect(settings.get('windowOpacity')).toBe('75');
+        expect(settings.get('fontColor')).toBe('yellow');
       });
     });
 
@@ -84,6 +92,12 @@ describe('storage', () => {
           characterEdgeStyle: 'auto',
           backgroundOpacity: 'auto',
           windowOpacity: 'auto',
+          fontColor: 'auto',
+          fontOpacity: 'auto',
+          backgroundColor: 'auto',
+          windowColor: 'auto',
+          fontFamily: 'auto',
+          fontSize: 'auto',
         });
         expect(obj).not.toBe(settings);
       });
