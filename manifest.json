@@ -5,7 +5,7 @@
   "manifest_version": 3,
   "action": {
     "default_popup": "index.html",
-    "default_title": "Subtitle Styles",
+    "default_title": "Consistent Subtitle Style",
     "default_icon": {
       "16": "images/logo-16.png",
       "48": "images/logo-48.png",
