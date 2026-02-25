@@ -141,10 +141,9 @@ export const youtube: PlatformConfig = {
       getCurrentValue(): StorageSettings['backgroundOpacity'] | undefined {
         const displaySettings = getCurrentYouTubeSettings();
         if (displaySettings?.backgroundOpacity !== undefined) {
-          return (Math.round(displaySettings.backgroundOpacity * 100) / 100)
-            .toString()
-            .replace('0.', '')
-            .replace('1', '100') as StorageSettings['backgroundOpacity'];
+          return Math.round(
+            displaySettings.backgroundOpacity * 100,
+          ).toString() as StorageSettings['backgroundOpacity'];
         }
         return 'auto';
       },
@@ -158,10 +157,9 @@ export const youtube: PlatformConfig = {
       getCurrentValue(): StorageSettings['windowOpacity'] | undefined {
         const displaySettings = getCurrentYouTubeSettings();
         if (displaySettings?.windowOpacity !== undefined) {
-          return (Math.round(displaySettings.windowOpacity * 100) / 100)
-            .toString()
-            .replace('0.', '')
-            .replace('1', '100') as StorageSettings['windowOpacity'];
+          return Math.round(
+            displaySettings.windowOpacity * 100,
+          ).toString() as StorageSettings['windowOpacity'];
         }
         return 'auto';
       },
@@ -190,10 +188,9 @@ export const youtube: PlatformConfig = {
       getCurrentValue(): StorageSettings['fontOpacity'] | undefined {
         const displaySettings = getCurrentYouTubeSettings();
         if (displaySettings?.textOpacity !== undefined) {
-          return (Math.round(displaySettings.textOpacity * 100) / 100)
-            .toString()
-            .replace('0.', '')
-            .replace('1', '100') as StorageSettings['fontOpacity'];
+          return Math.round(
+            displaySettings.textOpacity * 100,
+          ).toString() as StorageSettings['fontOpacity'];
         }
         return 'auto';
       },
