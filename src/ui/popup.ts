@@ -73,7 +73,33 @@ function populateForm(settings: StorageSettings): void {
       setCustomSelectValue(el, settings[settingKey] as string);
     }
   });
+  updateOpacityStates();
   updatePreview();
+}
+
+function updateOpacityStates(): void {
+  const COLOR_OPACITY_PAIRS = [
+    { colorId: 'font-color', opacityId: 'font-opacity' },
+    { colorId: 'background-color', opacityId: 'background-opacity' },
+    { colorId: 'window-color', opacityId: 'window-opacity' },
+  ];
+
+  COLOR_OPACITY_PAIRS.forEach(({ colorId, opacityId }) => {
+    const colorEl = document.querySelector(`[data-id="${colorId}"]`);
+    const opacityEl = document.querySelector(`[data-id="${opacityId}"]`);
+    const helpEl = document.getElementById(`${opacityId}-help`);
+
+    if (colorEl instanceof HTMLElement && opacityEl instanceof HTMLElement) {
+      const colorValue = colorEl.dataset['selectedValue'] ?? 'auto';
+      const opacityValue = opacityEl.dataset['selectedValue'] ?? 'auto';
+
+      if (colorValue === 'auto' && opacityValue !== 'auto') {
+        helpEl?.classList.remove('hidden');
+      } else {
+        helpEl?.classList.add('hidden');
+      }
+    }
+  });
 }
 
 function collectSettings(): Partial<StorageSettings> {
@@ -176,6 +202,7 @@ function setupCustomSelects(): void {
         container.classList.remove('open');
 
         updatePreview();
+        updateOpacityStates();
         void handleSave();
       });
     });

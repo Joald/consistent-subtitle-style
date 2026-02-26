@@ -293,3 +293,79 @@ button {
   color: #60a5fa;
   border: 1px solid #2d3a5a;
 }
+
+.help-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 14px;
+  height: 14px;
+  background: #f59e0b; /* Amber/Warning color */
+  color: #000;
+  border-radius: 50%;
+  font-size: 10px;
+  font-weight: bold;
+  cursor: help;
+  margin-left: 6px;
+  position: relative;
+  vertical-align: middle;
+  transition: opacity 0.2s;
+}
+
+.help-icon.hidden {
+  display: none;
+}
+
+.help-icon:hover {
+  background: #fbbf24;
+}
+
+.help-icon .tooltip {
+  visibility: hidden;
+  width: 180px;
+  background-color: #333;
+  color: #fff;
+  text-align: center;
+  border-radius: 6px;
+  padding: 8px;
+  position: absolute;
+  z-index: 101;
+  bottom: 150%;
+  left: 50%;
+  margin-left: -90px;
+  opacity: 0;
+  transition: opacity 0.3s;
+  font-weight: normal;
+  font-size: 12px;
+  line-height: 1.4;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
+  border: 1px solid #444;
+  pointer-events: none;
+}
+
+.help-icon .tooltip::after {
+  content: '';
+  position: absolute;
+  top: 100%;
+  left: 50%;
+  margin-left: -5px;
+  border-width: 5px;
+  border-style: solid;
+  border-color: #333 transparent transparent transparent;
+}
+
+.help-icon:hover .tooltip {
+  visibility: visible;
+  opacity: 1;
+}
+
+/* Position tooltip differently if it's too high */
+.form-group:first-child .help-icon .tooltip {
+  bottom: auto;
+  top: 150%;
+}
+.form-group:first-child .help-icon .tooltip::after {
+  top: auto;
+  bottom: 100%;
+  border-color: transparent transparent #333 transparent;
+}
