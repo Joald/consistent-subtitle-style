@@ -160,15 +160,19 @@ export function generateCombinedCssRules(
     const colorValue = (pair.colorKey ? settings[pair.colorKey] : undefined) ?? 'auto';
     const opacityValue = (pair.opacityKey ? settings[pair.opacityKey] : undefined) ?? 'auto';
 
-    if ((colorValue !== 'auto' || opacityValue !== 'auto') && pair.colorKey) {
+    // Mark both as handled regardless — we deal with the pair together here
+    if (pair.colorKey) handledKeys.add(pair.colorKey);
+    if (pair.opacityKey) handledKeys.add(pair.opacityKey);
+
+    // Only emit a color rule when we have enough information to do so
+    if (colorValue !== 'auto' && pair.colorKey) {
       const mapping = CSS_SETTING_MAPPINGS[pair.colorKey];
       const cssProperty = getCssProperty(mapping.property);
+      const color = mapping.valueMap?.[colorValue] ?? colorValue;
 
       let finalValue: string;
-      const color = (colorValue !== 'auto' ? mapping.valueMap?.[colorValue] : undefined) ?? 'black';
-      const opacity = opacityValue !== 'auto' ? parseInt(opacityValue) / 100 : 1;
-
       if (opacityValue !== 'auto') {
+        const opacity = parseInt(opacityValue) / 100;
         const percentage = Math.round((1 - opacity) * 100);
         finalValue = `color-mix(in srgb, ${color}, transparent ${percentage.toString()}%)`;
       } else {
@@ -176,13 +180,9 @@ export function generateCombinedCssRules(
       }
 
       rules.push(`${cssProperty}: ${finalValue} !important;`);
-      handledKeys.add(pair.colorKey);
-      if (pair.opacityKey) handledKeys.add(pair.opacityKey);
-    } else if (colorValue === 'auto' && opacityValue === 'auto') {
-      // mark as handled to avoid generateCssRule trying to process them individually
-      if (pair.colorKey) handledKeys.add(pair.colorKey);
-      if (pair.opacityKey) handledKeys.add(pair.opacityKey);
     }
+    // If colorValue === 'auto' (site default), we intentionally emit no color rule
+    // so the site's own default color is preserved, even if opacity is set.
   }
 
   // Handle remaining settings

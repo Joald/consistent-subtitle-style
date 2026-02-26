@@ -112,14 +112,14 @@ describe('css-mappings', () => {
       expect(result).toContain('background-color: #00f !important;');
     });
 
-    it('handles missing color but present opacity by defaulting to black', () => {
+    it('handles missing color (auto) but present opacity by emitting no color rule', () => {
+      // When color is 'auto' (site default), we must NOT override it even if opacity is set,
+      // because the site may have its own default color (e.g. Nebula uses white).
       const settings: Partial<Record<keyof StorageSettings, string>> = {
         backgroundOpacity: '75',
       };
       const result = generateCombinedCssRules('background', settings);
-      expect(result).toContain(
-        'background-color: color-mix(in srgb, black, transparent 25%) !important;',
-      );
+      expect(result).toHaveLength(0);
     });
   });
 });
