@@ -1,6 +1,7 @@
 # Changelog
 
 ## 1.0.1 - Style Refinements & Bug Fixes
+
 - **Improved Visibility**: Enhanced drop shadow with a more robust, multi-layer shadow to ensure readability on light backgrounds on Nebula.
 - **Color Fix**: Fixed an issue where selecting "Site Default" font color would incorrectly default to black when opacity was adjusted; it now correctly preserves the platform's native color. Added a warning to the popup when using incompatible settings.
 - **Developer Experience**: Added automated CI checks via commit hooks.

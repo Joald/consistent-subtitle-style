@@ -30,6 +30,8 @@ export default tseslint.config(
       'vitest.config.ts',
       '.opencode/**',
       'coverage/**',
+      'scripts/**',
+      'releases/**',
     ],
   },
   {
