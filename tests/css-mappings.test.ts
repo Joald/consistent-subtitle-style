@@ -112,13 +112,24 @@ describe('css-mappings', () => {
       expect(result).toContain('background-color: #00f !important;');
     });
 
-    it('handles missing color (auto) but present opacity by emitting no color rule', () => {
-      // When color is 'auto' (site default), we must NOT override it even if opacity is set,
-      // because the site may have its own default color (e.g. Nebula uses white).
+    it('handles missing color (auto) but present opacity for Background by defaulting to black', () => {
+      // For background/window, we maintain the old behavior of defaulting to black.
       const settings: Partial<Record<keyof StorageSettings, string>> = {
         backgroundOpacity: '75',
       };
       const result = generateCombinedCssRules('background', settings);
+      expect(result).toContain(
+        'background-color: color-mix(in srgb, black, transparent 25%) !important;',
+      );
+    });
+
+    it('handles missing color (auto) but present opacity for Font Color by emitting NO color rule', () => {
+      // For fontColor, we MUST NOT override the site's default (e.g. Nebula white)
+      // when only opacity is changed.
+      const settings: Partial<Record<keyof StorageSettings, string>> = {
+        fontOpacity: '75',
+      };
+      const result = generateCombinedCssRules('subtitle', settings);
       expect(result).toHaveLength(0);
     });
   });

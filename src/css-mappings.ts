@@ -165,24 +165,33 @@ export function generateCombinedCssRules(
     if (pair.opacityKey) handledKeys.add(pair.opacityKey);
 
     // Only emit a color rule when we have enough information to do so
-    if (colorValue !== 'auto' && pair.colorKey) {
+    if (pair.colorKey) {
       const mapping = CSS_SETTING_MAPPINGS[pair.colorKey];
       const cssProperty = getCssProperty(mapping.property);
-      const color = mapping.valueMap?.[colorValue] ?? colorValue;
 
-      let finalValue: string;
-      if (opacityValue !== 'auto') {
-        const opacity = parseInt(opacityValue) / 100;
-        const percentage = Math.round((1 - opacity) * 100);
-        finalValue = `color-mix(in srgb, ${color}, transparent ${percentage.toString()}%)`;
-      } else {
-        finalValue = color;
+      let color: string | undefined;
+      if (colorValue !== 'auto') {
+        color = mapping.valueMap?.[colorValue] ?? colorValue;
+      } else if (opacityValue !== 'auto' && pair.colorKey !== 'fontColor') {
+        // Fallback to black for background/window only, preserving Font Color default
+        color = 'black';
       }
 
-      rules.push(`${cssProperty}: ${finalValue} !important;`);
+      if (color) {
+        let finalValue: string;
+        if (opacityValue !== 'auto') {
+          const opacity = parseInt(opacityValue) / 100;
+          const percentage = Math.round((1 - opacity) * 100);
+          finalValue = `color-mix(in srgb, ${color}, transparent ${percentage.toString()}%)`;
+        } else {
+          finalValue = color;
+        }
+
+        rules.push(`${cssProperty}: ${finalValue} !important;`);
+      }
     }
-    // If colorValue === 'auto' (site default), we intentionally emit no color rule
-    // so the site's own default color is preserved, even if opacity is set.
+    // If color is 'auto' and it's Font Color, we intentionally emit no rule
+    // so the site's own default color is preserved.
   }
 
   // Handle remaining settings
