@@ -3,6 +3,18 @@ import { loadSettings, saveSettings } from '../storage.js';
 import { debug } from '../debug.js';
 import { generateCombinedCssRules } from '../css-mappings.js';
 
+const ID_TO_SETTING_KEY: Record<string, keyof StorageSettings> = {
+  'character-edge-style': 'characterEdgeStyle',
+  'background-opacity': 'backgroundOpacity',
+  'window-opacity': 'windowOpacity',
+  'font-color': 'fontColor',
+  'font-opacity': 'fontOpacity',
+  'background-color': 'backgroundColor',
+  'window-color': 'windowColor',
+  'font-family': 'fontFamily',
+  'font-size': 'fontSize',
+};
+
 function setCustomSelectValue(container: HTMLElement | null, value: string): void {
   if (!container) return;
   const options = container.querySelectorAll('.select-option');
@@ -55,21 +67,8 @@ function updatePreview(): void {
 }
 
 function populateForm(settings: StorageSettings): void {
-  const ids = [
-    'character-edge-style',
-    'background-opacity',
-    'window-opacity',
-    'font-color',
-    'font-opacity',
-    'background-color',
-    'window-color',
-    'font-family',
-    'font-size',
-  ];
-
-  ids.forEach((id) => {
+  Object.entries(ID_TO_SETTING_KEY).forEach(([id, settingKey]) => {
     const el = document.querySelector(`[data-id="${id}"]`);
-    const settingKey = id.replace(/-./g, (x) => x[1]?.toUpperCase() ?? '') as keyof StorageSettings;
     if (el instanceof HTMLElement) {
       setCustomSelectValue(el, settings[settingKey] as string);
     }
@@ -78,24 +77,11 @@ function populateForm(settings: StorageSettings): void {
 }
 
 function collectSettings(): Partial<StorageSettings> {
-  const ids = [
-    'character-edge-style',
-    'background-opacity',
-    'window-opacity',
-    'font-color',
-    'font-opacity',
-    'background-color',
-    'window-color',
-    'font-family',
-    'font-size',
-  ];
-
   const partialSettings: Record<string, string> = {};
 
-  ids.forEach((id) => {
+  Object.entries(ID_TO_SETTING_KEY).forEach(([id, settingKey]) => {
     const el = document.querySelector(`[data-id="${id}"]`);
     if (el instanceof HTMLElement) {
-      const settingKey = id.replace(/-./g, (x) => x[1]?.toUpperCase() ?? '');
       partialSettings[settingKey] = getCustomSelectValue(el);
     }
   });
