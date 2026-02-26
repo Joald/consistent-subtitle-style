@@ -35,6 +35,7 @@
     "@types/chrome": "^0.1.36",
     "@types/jsdom": "^27.0.0",
     "@types/node": "^25.1.0",
+    "@vitest/coverage-v8": "^4.0.18",
     "cross-env": "^7.0.3",
     "esbuild": "^0.27.2",
     "eslint": "^10.0.1",

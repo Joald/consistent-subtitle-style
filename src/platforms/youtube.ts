@@ -124,21 +124,21 @@ export const youtube: PlatformConfig = {
   },
   nativeSettings: {
     characterEdgeStyle: {
-      getCurrentValue(): StorageSettings['characterEdgeStyle'] | undefined {
+      getCurrentValue: (): StorageSettings['characterEdgeStyle'] | undefined => {
         const displaySettings = getCurrentYouTubeSettings();
         if (displaySettings?.charEdgeStyle !== undefined) {
           return REVERSE_EDGE_STYLE_MAP[displaySettings.charEdgeStyle] ?? 'auto';
         }
         return undefined;
       },
-      applySetting(value: string): SettingApplicationReport {
+      applySetting: (value: string): SettingApplicationReport => {
         const edgeValue = value as keyof typeof EDGE_STYLE_MAP;
         const charEdgeStyle = EDGE_STYLE_MAP[edgeValue];
         return applyYouTubeSetting({ charEdgeStyle });
       },
     },
     backgroundOpacity: {
-      getCurrentValue(): StorageSettings['backgroundOpacity'] | undefined {
+      getCurrentValue: (): StorageSettings['backgroundOpacity'] | undefined => {
         const displaySettings = getCurrentYouTubeSettings();
         if (displaySettings?.backgroundOpacity !== undefined) {
           return Math.round(
@@ -147,14 +147,14 @@ export const youtube: PlatformConfig = {
         }
         return 'auto';
       },
-      applySetting(value: string): SettingApplicationReport {
+      applySetting: (value: string): SettingApplicationReport => {
         if (value === 'auto') return { success: true, message: 'Skip auto value' };
         const backgroundOpacity = parseInt(value) / 100;
         return applyYouTubeSetting({ backgroundOpacity });
       },
     },
     windowOpacity: {
-      getCurrentValue(): StorageSettings['windowOpacity'] | undefined {
+      getCurrentValue: (): StorageSettings['windowOpacity'] | undefined => {
         const displaySettings = getCurrentYouTubeSettings();
         if (displaySettings?.windowOpacity !== undefined) {
           return Math.round(
@@ -163,14 +163,14 @@ export const youtube: PlatformConfig = {
         }
         return 'auto';
       },
-      applySetting(value: string): SettingApplicationReport {
+      applySetting: (value: string): SettingApplicationReport => {
         if (value === 'auto') return { success: true, message: 'Skip auto value' };
         const windowOpacity = parseInt(value) / 100;
         return applyYouTubeSetting({ windowOpacity });
       },
     },
     fontColor: {
-      getCurrentValue(): StorageSettings['fontColor'] | undefined {
+      getCurrentValue: (): StorageSettings['fontColor'] | undefined => {
         const displaySettings = getCurrentYouTubeSettings();
         const color = displaySettings?.color;
         if (color && color in REVERSE_COLOR_MAP) {
@@ -178,14 +178,14 @@ export const youtube: PlatformConfig = {
         }
         return 'auto';
       },
-      applySetting(value: string): SettingApplicationReport {
+      applySetting: (value: string): SettingApplicationReport => {
         if (value === 'auto') return { success: true, message: 'Skip auto value' };
         const color = COLOR_MAP[value as keyof typeof COLOR_MAP];
         return applyYouTubeSetting({ color });
       },
     },
     fontOpacity: {
-      getCurrentValue(): StorageSettings['fontOpacity'] | undefined {
+      getCurrentValue: (): StorageSettings['fontOpacity'] | undefined => {
         const displaySettings = getCurrentYouTubeSettings();
         if (displaySettings?.textOpacity !== undefined) {
           return Math.round(
@@ -194,14 +194,14 @@ export const youtube: PlatformConfig = {
         }
         return 'auto';
       },
-      applySetting(value: string): SettingApplicationReport {
+      applySetting: (value: string): SettingApplicationReport => {
         if (value === 'auto') return { success: true, message: 'Skip auto value' };
         const textOpacity = parseInt(value) / 100;
         return applyYouTubeSetting({ textOpacity });
       },
     },
     backgroundColor: {
-      getCurrentValue(): StorageSettings['backgroundColor'] | undefined {
+      getCurrentValue: (): StorageSettings['backgroundColor'] | undefined => {
         const displaySettings = getCurrentYouTubeSettings();
         const background = displaySettings?.background;
         if (background && background in REVERSE_COLOR_MAP) {
@@ -209,14 +209,14 @@ export const youtube: PlatformConfig = {
         }
         return 'auto';
       },
-      applySetting(value: string): SettingApplicationReport {
+      applySetting: (value: string): SettingApplicationReport => {
         if (value === 'auto') return { success: true, message: 'Skip auto value' };
         const background = COLOR_MAP[value as keyof typeof COLOR_MAP];
         return applyYouTubeSetting({ background });
       },
     },
     windowColor: {
-      getCurrentValue(): StorageSettings['windowColor'] | undefined {
+      getCurrentValue: (): StorageSettings['windowColor'] | undefined => {
         const displaySettings = getCurrentYouTubeSettings();
         const windowColor = displaySettings?.windowColor;
         if (windowColor && windowColor in REVERSE_COLOR_MAP) {
@@ -224,35 +224,35 @@ export const youtube: PlatformConfig = {
         }
         return 'auto';
       },
-      applySetting(value: string): SettingApplicationReport {
+      applySetting: (value: string): SettingApplicationReport => {
         if (value === 'auto') return { success: true, message: 'Skip auto value' };
         const windowColor = COLOR_MAP[value as keyof typeof COLOR_MAP];
         return applyYouTubeSetting({ windowColor });
       },
     },
     fontFamily: {
-      getCurrentValue(): StorageSettings['fontFamily'] | undefined {
+      getCurrentValue: (): StorageSettings['fontFamily'] | undefined => {
         const displaySettings = getCurrentYouTubeSettings();
         if (displaySettings?.fontFamily !== undefined) {
           return REVERSE_FONT_FAMILY_MAP[displaySettings.fontFamily] ?? 'auto';
         }
         return 'auto';
       },
-      applySetting(value: string): SettingApplicationReport {
+      applySetting: (value: string): SettingApplicationReport => {
         if (value === 'auto') return { success: true, message: 'Skip auto value' };
         const fontFamily = FONT_FAMILY_MAP[value as keyof typeof FONT_FAMILY_MAP];
         return applyYouTubeSetting({ fontFamily });
       },
     },
     fontSize: {
-      getCurrentValue(): StorageSettings['fontSize'] | undefined {
+      getCurrentValue: (): StorageSettings['fontSize'] | undefined => {
         const displaySettings = getCurrentYouTubeSettings();
         if (displaySettings?.fontSizeIncrement !== undefined) {
           return REVERSE_FONT_SIZE_MAP[displaySettings.fontSizeIncrement] ?? 'auto';
         }
         return 'auto';
       },
-      applySetting(value: string): SettingApplicationReport {
+      applySetting: (value: string): SettingApplicationReport => {
         if (value === 'auto') return { success: true, message: 'Skip auto value' };
         const fontSizeIncrement = FONT_SIZE_MAP[value as keyof typeof FONT_SIZE_MAP];
         return applyYouTubeSetting({ fontSizeIncrement });

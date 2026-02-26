@@ -28,6 +28,8 @@ export default tseslint.config(
       'eslint.config.js',
       'esbuild.config.js',
       'vitest.config.ts',
+      '.opencode/**',
+      'coverage/**',
     ],
   },
   {
@@ -39,6 +41,12 @@ export default tseslint.config(
       '@typescript-eslint/no-misused-promises': 'error',
       '@typescript-eslint/restrict-template-expressions': 'error',
       'no-console': ['error', { allow: ['warn', 'error', 'log'] }],
+    },
+  },
+  {
+    files: ['tests/**/*.ts'],
+    rules: {
+      '@typescript-eslint/unbound-method': 'off',
     },
   },
 );

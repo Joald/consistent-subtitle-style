@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeEach } from 'vitest';
+import { describe, it, expect, beforeEach, afterEach, vi, type Mock } from 'vitest';
 import { Settings, isValidValue } from '../src/storage.js';
 
 describe('storage', () => {
@@ -143,6 +143,101 @@ describe('storage', () => {
         expect(settings.get('windowOpacity')).toBe('100');
         expect(settings.get('backgroundOpacity')).toBe('auto');
       });
+    });
+  });
+
+  describe('loadSettings', () => {
+    let addEventListenerSpy: Mock;
+    let postMessageSpy: Mock;
+
+    beforeEach(() => {
+      addEventListenerSpy = vi.spyOn(window, 'addEventListener');
+      postMessageSpy = vi.spyOn(window, 'postMessage');
+    });
+
+    afterEach(() => {
+      vi.restoreAllMocks();
+      const g = globalThis as unknown as Record<string, unknown>;
+      delete g['chrome'];
+    });
+
+    it('loads settings from chrome.storage.sync if chrome is available', async () => {
+      const mockGet = vi.fn().mockResolvedValue({ characterEdgeStyle: 'outline' });
+      vi.stubGlobal('chrome', {
+        storage: {
+          sync: {
+            get: mockGet,
+          },
+        },
+      });
+
+      const { loadSettings } = await import('../src/storage.js');
+      const result = await loadSettings();
+
+      expect(mockGet).toHaveBeenCalledWith(null as unknown as string);
+      expect(result.characterEdgeStyle).toBe('outline');
+    });
+
+    it('uses postMessage fallback if chrome is not available', async () => {
+      vi.stubGlobal('chrome', undefined);
+      vi.useFakeTimers();
+
+      const { loadSettings } = await import('../src/storage.js');
+      const promise = loadSettings();
+
+      expect(postMessageSpy).toHaveBeenCalledWith(
+        expect.objectContaining({
+          type: 'subtitleStyler',
+          data: { action: 'get' },
+        }),
+        '*',
+      );
+
+      const messageHandler = addEventListenerSpy.mock.calls.find(
+        (c: unknown[]) => c[0] === 'message',
+      )?.[1] as EventListener;
+      const firstCall = postMessageSpy.mock.calls[0];
+      if (!firstCall) throw new Error('postMessage not called');
+      const callArgs = firstCall[0] as { requestId: number };
+      const reqId = callArgs.requestId;
+
+      messageHandler({
+        data: {
+          type: 'subtitleStylerResponse',
+          requestId: reqId,
+          data: { windowOpacity: '75' },
+        },
+      } as unknown as MessageEvent);
+
+      const result = await promise;
+      expect(result.windowOpacity).toBe('75');
+      expect(result.characterEdgeStyle).toBe('auto');
+
+      vi.useRealTimers();
+    });
+  });
+
+  describe('saveSettings', () => {
+    it('resolves immediately if chrome is not available', async () => {
+      vi.stubGlobal('chrome', undefined);
+      const { saveSettings } = await import('../src/storage.js');
+      await expect(saveSettings({ characterEdgeStyle: 'none' })).resolves.toBeUndefined();
+    });
+
+    it('calls chrome.storage.sync.set if chrome is available', async () => {
+      const mockSet = vi.fn().mockResolvedValue(undefined);
+      vi.stubGlobal('chrome', {
+        storage: {
+          sync: {
+            set: mockSet,
+          },
+        },
+      });
+
+      const { saveSettings } = await import('../src/storage.js');
+      await saveSettings({ characterEdgeStyle: 'none' });
+
+      expect(mockSet).toHaveBeenCalledWith({ characterEdgeStyle: 'none' });
     });
   });
 });
