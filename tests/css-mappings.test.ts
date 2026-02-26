@@ -47,7 +47,9 @@ describe('css-mappings', () => {
     it('applies textShadow for characterEdgeStyle dropshadow', () => {
       const mapping = CSS_SETTING_MAPPINGS.characterEdgeStyle;
       const result = generateCssRule(mapping, 'dropshadow');
-      expect(result).toBe('text-shadow: 4px 4px 4px rgba(0,0,0,0.9) !important;');
+      expect(result).toBe(
+        'text-shadow: 2px 2px 3px rgba(0,0,0,1), 0px 0px 6px rgba(0,0,0,0.9), 1px 1px 8px rgba(0,0,0,0.8) !important;',
+      );
     });
 
     it('applies raised style', () => {

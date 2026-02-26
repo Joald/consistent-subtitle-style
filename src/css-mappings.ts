@@ -14,7 +14,8 @@ export const CSS_SETTING_MAPPINGS: {
     property: 'textShadow',
     appliesTo: 'subtitle',
     valueMap: {
-      dropshadow: '4px 4px 4px rgba(0,0,0,0.9)',
+      dropshadow:
+        '2px 2px 3px rgba(0,0,0,1), 0px 0px 6px rgba(0,0,0,0.9), 1px 1px 8px rgba(0,0,0,0.8)',
       none: 'none',
       raised: '1px 1px 0px #222, -1px -1px 0px #fff',
       depressed: '-1px -1px 0px #222, 1px 1px 0px #fff',
