@@ -50,8 +50,8 @@ export interface SettingApplicationReport {
 }
 
 export interface PlatformSettingConfig {
-  getCurrentValue(): StorageSettings[keyof StorageSettings] | undefined;
-  applySetting(value: StorageSettings[keyof StorageSettings]): SettingApplicationReport;
+  getCurrentValue: () => StorageSettings[keyof StorageSettings] | undefined;
+  applySetting: (value: StorageSettings[keyof StorageSettings]) => SettingApplicationReport;
 }
 
 export interface CssConfig {
