@@ -5,7 +5,7 @@ import { execSync } from 'node:child_process';
 // Get version from package.json
 const pkg = JSON.parse(fs.readFileSync('package.json', 'utf8'));
 const version = pkg.version;
-const zipName = `${version}.zip`;
+const zipName = `v${version}.zip`;
 const buildDir = 'dist';
 const releaseDir = 'releases';
 
