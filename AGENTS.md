@@ -12,7 +12,8 @@ src/
 ├── debug.ts         # Debug logging utilities (debug.log, debug.error, debug.warn)
 ├── platforms/
 │   ├── index.ts     # Platform registry, detection, and CSS helpers
-│   └── youtube.ts   # YouTube-specific per-setting configuration
+│   ├── youtube.ts   # YouTube-specific per-setting configuration (native player API)
+│   └── dropout.ts   # Dropout.tv-specific per-setting configuration (Video.js API via embed.vhx.tv)
 ├── storage.ts       # Type-safe Chrome storage with StorageSettings interface
 ├── ui/              # interface for changing the settings
 │   ├── popup.ts
@@ -29,6 +30,7 @@ dist/                # Build output (load this folder in Chrome)
 - **Per-Platform Per-Setting Strategy**: Each setting on each platform chooses optimal method (native vs CSS)
 - **Comprehensive Styling**: Supports font family, size, color, opacity, edge style, background/window color and opacity.
 - **YouTube Native Integration**: Uses YouTube's internal player API for seamless, non-intrusive styling.
+- **Dropout.tv Native Integration**: Uses Video.js `textTrackSettings` API (`setValues`/`updateDisplay`) via the `embed.vhx.tv` cross-origin iframe. Content scripts must match `embed.vhx.tv` directly — the player does not live on `watch.dropout.tv`.
 - **Dynamic Style Injection**: CSS styling is now done via an injected `<style>` tag, avoiding performance issues with layout thrashing from MutationObservers.
 - **Type Safety**: Full TypeScript with strict interfaces
 - **Persistent Settings**: Chrome storage with validation
@@ -135,7 +137,9 @@ newplatform: {
 }
 ```
 
-**Note:** Provide a `css` configuration for platforms that need CSS manipulation via injected `<style>` tags. Use `nativeSettings` when APIs are available (like YouTube).
+**Note:** Provide a `css` configuration for platforms that need CSS manipulation via injected `<style>` tags. Use `nativeSettings` when APIs are available (like YouTube or Dropout/Video.js).
+
+**Dropout/VHX specifics:** The player runs inside a cross-origin iframe (`embed.vhx.tv`). The Video.js `textTrackSettings` API is used: `player.textTrackSettings.setValues(values)` then `player.textTrackSettings.updateDisplay()`. Key value format differences vs YouTube: opacity is coarse (0/0.5/1 only), `outline` maps to `'uniform'`, font families use camelCase strings, `fontPercent` is a Number (`null` = 100% default).
 
 #### Testing New Features
 
@@ -165,6 +169,31 @@ newplatform: {
 - **Dynamic Player Sensing**: Uses a MutationObserver to detect when player elements (like YouTube's mini-players or previews) are added to the DOM, ensuring styles are applied even without a page navigation.
 - **SPA Support**: Listens for platform-specific events (like YouTube's `yt-navigate-finish`) to re-apply styles during SPA navigation.
 - **Memory Safety**: Proper null/undefined handling
+
+## Agentic Developer Experience (ADX)
+
+This project is optimized for AI-driven development and testing.
+
+### Stable Extension ID
+
+The `manifest.json` contains a hardcoded `key` that ensures the extension always has the ID `fdhobonfeacceokemphmkngikeeakbok`. This allows for persistent settings across builds and predictable URL-based testing.
+
+### Headless Popup Testing
+
+The popup script (`src/ui/popup.ts`) automatically imports `mock-chrome.ts`. When running outside of an extension context (e.g., as a local file in the browser agent), it injects mocks for `chrome.storage.sync` and `chrome.runtime`.
+
+- **Mock Storage**: Uses `localStorage` (`cs_style_mock_storage`) to simulate sync storage.
+- **Interactivity**: The mocks allow the popup UI to be fully functional (dropdowns, save, reset) when opened as `file:///.../dist/index.html`.
+
+### Automated Reload/Test Cycle
+
+The browser agent can automate the entire development cycle using the `/reload-and-test` workflow:
+
+1. Rebuild the project.
+2. Open the popup locally in the agent to verify UI changes.
+3. Open a live site (e.g., Dropout, YouTube) in the agent.
+4. **Refresh the page** to force-load the new content scripts.
+5. Verify style application via DOM inspection and screenshots.
 
 **CRITICAL: Always run `npm run ci` after every edit.**
 **CRITICAL: At the end of each major change, update this AGENTS.md with ACTUALLY NECESSARY info**

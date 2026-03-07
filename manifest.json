@@ -3,6 +3,7 @@
   "description": "Configure persistent subtitle styles across streaming services",
   "version": "1.0.1",
   "manifest_version": 3,
+  "key": "MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAzXD/kTAzrl/4f1ttSYubn7U5XSdtRCVwfkq+0wlKT9/g/iDKUV8//Y/Z/3PXVqdFPvEsAJJh4lrpeZN6+VSaKuk2tVki0w01395BpWcFO4LJkTfNbrdmXlP1qRlNd7J0Wd7ZpiF6wQ7hn31j+HKE3azlhENxc5fwhE1P6u6zpAlfN389XMAND1H44Q6LVULURS62wEbgKB8lykRXg0mR8iv+6J6SAzhAIzjAoW1cYMgefzhHzxEKQ5L7xgx8vqc80Vtvzm4azuioZk70oxNg+hbaF5UqR6muXm68CyckZmGBoCu/Hea5FauCxUsoM5KDd5BekjVArhrM4uJWeZdXXQIDAQAB",
   "action": {
     "default_popup": "index.html",
     "default_title": "Consistent Subtitle Style",
@@ -16,19 +17,35 @@
   "content_scripts": [
     {
       "js": ["injection.js"],
-      "matches": ["*://*.youtube.com/*", "*://*.nebula.tv/*"],
-      "run_at": "document_idle"
+      "matches": [
+        "*://*.youtube.com/*",
+        "*://*.nebula.tv/*",
+        "*://*.dropout.tv/*",
+        "*://embed.vhx.tv/*",
+        "*://*.vhx.tv/*"
+      ],
+      "run_at": "document_idle",
+      "all_frames": true
     }
   ],
   "web_accessible_resources": [
     {
       "resources": ["platforms.js", "storage.js", "main.js", "bridge.js"],
-      "matches": ["*://*.youtube.com/*", "*://*.nebula.tv/*"]
+      "matches": [
+        "*://*.youtube.com/*",
+        "*://*.nebula.tv/*",
+        "*://*.dropout.tv/*",
+        "*://embed.vhx.tv/*",
+        "*://*.vhx.tv/*"
+      ]
     }
   ],
   "icons": {
     "16": "images/logo-16.png",
     "48": "images/logo-48.png",
     "128": "images/logo-128.png"
+  },
+  "background": {
+    "service_worker": "background.js"
   }
 }

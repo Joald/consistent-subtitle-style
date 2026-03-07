@@ -1,5 +1,11 @@
+/* eslint-disable */
 (function (): void {
   'use strict';
+  console.log(
+    '[CSS-STYL] Injection script started (all_frames: ' +
+      (window.location !== window.parent.location) +
+      ')',
+  );
 
   interface SubtitleStylerMessage {
     type: string;
@@ -116,14 +122,17 @@
   );
 
   function injectScript(scriptUrl: string, callback?: () => void): void {
+    const fullUrl = chrome.runtime.getURL(scriptUrl);
+    console.log(`[CSS-STYL] Injecting script: ${scriptUrl} (${fullUrl})`);
     const script = document.createElement('script');
-    script.src = chrome.runtime.getURL(scriptUrl);
+    script.src = fullUrl;
     script.onload = function (): void {
+      console.log(`[CSS-STYL] Script loaded successfully: ${scriptUrl}`);
       script.remove();
       if (callback) callback();
     };
     script.onerror = function (error: string | Event): void {
-      console.error(`SubtitleStyler: Failed to inject script ${scriptUrl}`, error);
+      console.error(`[CSS-STYL] Failed to inject script: ${scriptUrl}`, error);
       script.remove();
       if (callback) callback(); // Proceed so it doesn't block the rest of the chain
     };

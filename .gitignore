@@ -83,3 +83,7 @@ extensions/
 .claude/
 ai-inputs/
 releases/
+
+# ESLint debug dumps
+lint.json
+lint.txt
