@@ -1,5 +1,6 @@
 (function (): void {
   'use strict';
+  console.log('[CSS-STYL] Bridge script initialized');
 
   let requestId = 0;
 

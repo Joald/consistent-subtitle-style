@@ -1,6 +1,11 @@
 import { defineConfig } from 'vitest/config';
 
 export default defineConfig({
+  // Mirror esbuild's compile-time constants so tests see the same globals.
+  define: {
+    __DEV__: true,
+    DEBUG: true,
+  },
   test: {
     environment: 'jsdom',
     globals: true,

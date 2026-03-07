@@ -21,6 +21,9 @@ const baseConfig = {
   define: {
     'process.env.NODE_ENV': `"${process.env.NODE_ENV || 'development'}"`,
     DEBUG: `${!isProduction}`,
+    // __DEV__ lets source files guard dev-only code (e.g. mock-chrome) behind
+    // a compile-time constant so it is tree-shaken out of production bundles.
+    __DEV__: `${!isProduction}`,
   },
 };
 
@@ -65,6 +68,13 @@ async function build() {
         outfile: 'dist/bridge.js',
       });
       console.log('Built bridge.js');
+
+      await esbuild.build({
+        ...baseConfig,
+        entryPoints: ['src/background.ts'],
+        outfile: 'dist/background.js',
+      });
+      console.log('Built background.js');
     } catch (buildError) {
       console.error('Content script build failed:', buildError);
       throw buildError;
@@ -96,6 +106,7 @@ async function build() {
           'src/main.ts',
           'src/injection.ts',
           'src/bridge.ts',
+          'src/background.ts',
           'src/ui/popup.ts',
         ],
         outdir: 'dist',

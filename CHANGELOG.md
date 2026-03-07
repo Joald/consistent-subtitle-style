@@ -1,5 +1,9 @@
 # Changelog
 
+## Unreleased - Dropout.tv Support
+
+- **New Platform**: Added Dropout.tv support via the Video.js `textTrackSettings` native API (`embed.vhx.tv` iframe). All settings (font color, opacity, background color/opacity, window color/opacity, edge style, font family, font size) are applied through the player's own subtitle engine, consistent with how YouTube integration works.
+
 ## 1.0.1 - Style Refinements & Bug Fixes
 
 - **Improved Visibility**: Enhanced drop shadow with a more robust, multi-layer shadow to ensure readability on light backgrounds on Nebula.

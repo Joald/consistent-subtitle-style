@@ -1,8 +1,10 @@
 import type { PlatformConfig, StorageSettings } from '../types/index.js';
 import { youtube } from './youtube.js';
+import { dropout } from './dropout.js';
 
 export const PLATFORMS: Record<string, PlatformConfig> = {
   youtube,
+  dropout,
   nebula: {
     name: 'Nebula',
     baselineCss: {
@@ -25,13 +27,14 @@ export const PLATFORMS: Record<string, PlatformConfig> = {
   },
 };
 
-export type Platform = 'youtube' | 'nebula';
+export type Platform = 'youtube' | 'nebula' | 'dropout';
 
 export function detectPlatform(): Platform | 'unknown' {
   const hostname = window.location.hostname.toLowerCase();
 
   if (hostname.includes('youtube.com')) return 'youtube';
   if (hostname.includes('nebula.tv')) return 'nebula';
+  if (hostname.includes('vhx.tv') || hostname.includes('dropout.tv')) return 'dropout';
 
   return 'unknown';
 }

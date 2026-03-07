@@ -48,8 +48,12 @@ class SubtitleStylerApp {
           if (!(node instanceof HTMLElement)) continue;
 
           if (
+            node.tagName === 'VIDEO' ||
+            node.querySelector('video') ||
             node.classList.contains('html5-video-player') ||
-            node.querySelector('.html5-video-player')
+            node.classList.contains('vp-player') ||
+            node.classList.contains('vjs-player') ||
+            node.querySelector('.html5-video-player, .vp-player, .vjs-player')
           ) {
             shouldReapply = true;
             break;
@@ -119,6 +123,9 @@ class SubtitleStylerApp {
           }
 
           toApply.push({ key, value, type: 'native' });
+          // If we successfully identified a native setting to apply, we prefer it
+          // over a CSS fallback to avoid double-application/compounding.
+          continue;
         }
       }
 
@@ -131,9 +138,14 @@ class SubtitleStylerApp {
   }
 
   private applyStyles(): void {
-    if (!this.platformConfig) return;
+    console.log('[CSS-STYL] app.applyStyles() called');
+    if (!this.platformConfig) {
+      console.warn('[CSS-STYL] applyStyles failed: No platform configuration found');
+      return;
+    }
 
     const toApply = this.processSettings(this.platformConfig, this.currentSettings);
+    console.log('[CSS-STYL] Settings to apply:', toApply);
 
     for (const { key } of toApply) {
       this.applicationLog[key] = { success: false };
@@ -208,8 +220,12 @@ class SubtitleStylerApp {
   }
 
   public async initialize(): Promise<void> {
+    console.log('[CSS-STYL] SubtitleStylerApp initializing...');
     try {
       this.currentPlatform = detectPlatform();
+      console.log(
+        `[CSS-STYL] Detected platform: ${this.currentPlatform} for host: ${window.location.host}`,
+      );
       this.platformConfig = getPlatformConfig(this.currentPlatform);
 
       if (!this.platformConfig) {
