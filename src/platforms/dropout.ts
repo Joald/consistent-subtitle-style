@@ -13,38 +13,13 @@ const COLOR_HEX_MAP: Record<string, string> = {
   black: '#000',
 };
 
-// The Vimeo OTT player accepts different color representations depending on the
-// property being set:
-//   `color`       (font color)   → expects a hex string, e.g. '#fff'
-//   `bgColor`     (background)   → expects a color name, e.g. 'white'
-//   `windowColor` (window bg)    → expects a hex string, e.g. '#fff'
-// Hence we maintain both maps and use the appropriate one per setting.
-const COLOR_NAME_MAP: Record<string, string> = {
-  white: 'white',
-  yellow: 'yellow',
-  green: 'green',
-  cyan: 'cyan',
-  blue: 'blue',
-  magenta: 'magenta',
-  red: 'red',
-  black: 'black',
-};
-
 const REVERSE_COLOR_MAP: Record<string, string> = Object.fromEntries(
   Object.entries(COLOR_HEX_MAP).map(([k, v]) => [v, k]),
 );
 
 // Opacity values are passed to the Vimeo player as percentage strings ('0'–'100').
 // The player maps these to its own internal 0.0–1.0 scale.
-const TEXT_OPACITY_MAP: Record<string, string> = {
-  '0': '0',
-  '25': '25',
-  '50': '50',
-  '75': '75',
-  '100': '100',
-};
-
-const BG_OPACITY_MAP: Record<string, string> = {
+const OPACITY_MAP: Record<string, string> = {
   '0': '0',
   '25': '25',
   '50': '50',
@@ -156,7 +131,7 @@ function hasFn(obj: AnyRecord, key: string): boolean {
 // ── Globals ─────────────────────────────────────────────────────────────────
 
 const currentValues: Record<string, string | null> = {};
-let pokeTimer: ReturnType<typeof setTimeout> | null = null;
+let cachedPlayer: VimeoPlayer | null = null;
 
 // ── Discovery Helpers ───────────────────────────────────────────────────────
 
@@ -230,6 +205,12 @@ function syncLocalStorage(values: Record<string, string | null>): void {
 }
 
 function getVimeoPlayer(): VimeoPlayer | null {
+  if (cachedPlayer) return cachedPlayer;
+  cachedPlayer = _getVimeoPlayer();
+  return cachedPlayer;
+}
+
+function _getVimeoPlayer(): VimeoPlayer | null {
   console.log('[CSS-STYL] Searching for Vimeo Player (URL:', window.location.href, ')');
   try {
     const win = window as unknown as AnyRecord;
@@ -507,95 +488,6 @@ function getVimeoPlayer(): VimeoPlayer | null {
   }
 }
 
-function pokeCaptions(): void {
-  console.log('[CSS-STYL] pokeCaptions cycle starting...');
-
-  if (Object.keys(currentValues).length === 0) {
-    console.log('[CSS-STYL] Poke skipped: currentValues is empty');
-    return;
-  }
-
-  // Step 1: Write to localStorage (Always do this for persistence)
-  syncLocalStorage(currentValues);
-
-  const player = getVimeoPlayer();
-  if (!player) {
-    console.warn('[CSS-STYL] Poke: Player object NOT found. Skipping JS-based styling.');
-    return;
-  }
-
-  // Step 2: Identification and Track Toggling
-  let trackLanguage: string | null = null;
-  let trackKind: string | null = null;
-  try {
-    const rawPlayer = player as unknown as AnyRecord;
-    const tracksFn = rawPlayer.textTracks ?? rawPlayer.getTextTracks;
-    const tracksRes =
-      typeof tracksFn === 'function' ? (tracksFn as () => unknown[])() : rawPlayer.textTracks;
-
-    if (Array.isArray(tracksRes)) {
-      for (const t of tracksRes) {
-        if (isRecord(t) && (t.mode === 'showing' || t.showing === true)) {
-          trackLanguage =
-            (t.language as string | undefined) ??
-            (t.srclang as string | undefined) ??
-            (t.label as string | undefined) ??
-            'en';
-          trackKind = (t.kind as string | undefined) ?? 'captions';
-          break;
-        }
-      }
-    }
-  } catch {
-    /* silent */
-  }
-
-  if (trackLanguage && trackKind) {
-    console.log(`[CSS-STYL] Poke Step 2: Toggling track ${trackLanguage} to refresh styles...`);
-    try {
-      if (typeof player.disableTextTrack === 'function') player.disableTextTrack();
-
-      setTimeout(() => {
-        if (typeof player.enableTextTrack === 'function') {
-          player.enableTextTrack(trackLanguage, trackKind);
-        }
-
-        // Step 4: Final push
-        setTimeout(() => {
-          if (typeof player.setCaptionStyle === 'function') {
-            const count = String(Object.keys(currentValues).length);
-            console.log(`[CSS-STYL] Poke Step 4: Pushing ${count} properties...`);
-            for (const [k, v] of Object.entries(currentValues)) {
-              const val = String(v);
-              try {
-                player.setCaptionStyle(k, val);
-                const underscored = k.replace(/([A-Z])/g, '_$1').toLowerCase();
-                if (underscored !== k) player.setCaptionStyle(underscored, val);
-                console.log(`[CSS-STYL] -> setCaptionStyle(${k}, ${val}) -> OK`);
-              } catch (e) {
-                console.warn(
-                  `[CSS-STYL] -> setCaptionStyle(${k}, ${val}) -> FAIL:`,
-                  e instanceof Error ? e.message : String(e),
-                );
-              }
-            }
-          }
-        }, 400); // Increased delay
-      }, 150);
-    } catch (e) {
-      console.warn('[CSS-STYL] Poke Step 2/3 failed:', e);
-    }
-  } else {
-    // If no track to toggle, just try direct push
-    console.log('[CSS-STYL] Poke: No active track to toggle, using direct push.');
-    if (typeof player.setCaptionStyle === 'function') {
-      for (const [k, v] of Object.entries(currentValues)) {
-        player.setCaptionStyle(k, String(v));
-      }
-    }
-  }
-}
-
 function applyVjsSetting(values: Record<string, string | null>): SettingApplicationReport {
   console.log('[CSS-STYL] applyVjsSetting called with:', JSON.stringify(values));
 
@@ -616,12 +508,6 @@ function applyVjsSetting(values: Record<string, string | null>): SettingApplicat
       }
     }
   }
-
-  if (pokeTimer) clearTimeout(pokeTimer);
-  pokeTimer = setTimeout(() => {
-    pokeTimer = null;
-    pokeCaptions();
-  }, 300);
 
   return { success: true, message: 'Styles queued' };
 }
@@ -649,10 +535,9 @@ export const dropout: PlatformConfig = {
   },
 
   detectNativeCapabilities(): boolean {
-    const isVimeoHost =
-      window.location.hostname.includes('vhx.tv') ||
-      window.location.hostname.includes('dropout.tv');
-    return isVimeoHost || !!document.querySelector('video');
+    return (
+      window.location.hostname.includes('vhx.tv') || window.location.hostname.includes('dropout.tv')
+    );
   },
 
   nativeSettings: {
@@ -674,7 +559,7 @@ export const dropout: PlatformConfig = {
         return 'auto';
       },
       applySetting(value: string): SettingApplicationReport {
-        const fontOpacity = TEXT_OPACITY_MAP[value];
+        const fontOpacity = OPACITY_MAP[value];
         if (fontOpacity === undefined)
           return { success: false, message: `Unknown opacity: ${value}` };
         return applyVjsSetting({ fontOpacity });
@@ -684,13 +569,11 @@ export const dropout: PlatformConfig = {
     backgroundColor: {
       getCurrentValue(): StorageSettings['backgroundColor'] {
         const color = currentValues['bgColor'];
-        return ((color != null ? REVERSE_COLOR_MAP[color] : undefined) ??
-          'auto') as StorageSettings['backgroundColor'];
+        return (color ?? 'auto') as StorageSettings['backgroundColor'];
       },
       applySetting(value: string): SettingApplicationReport {
-        const bgColor = COLOR_NAME_MAP[value];
-        if (!bgColor) return { success: false, message: `Unknown color: ${value}` };
-        return applyVjsSetting({ bgColor });
+        if (!COLOR_HEX_MAP[value]) return { success: false, message: `Unknown color: ${value}` };
+        return applyVjsSetting({ bgColor: value });
       },
     },
 
@@ -699,7 +582,7 @@ export const dropout: PlatformConfig = {
         return 'auto';
       },
       applySetting(value: string): SettingApplicationReport {
-        const bgOpacity = BG_OPACITY_MAP[value];
+        const bgOpacity = OPACITY_MAP[value];
         if (bgOpacity === undefined)
           return { success: false, message: `Unknown opacity: ${value}` };
         return applyVjsSetting({ bgOpacity });
@@ -722,7 +605,7 @@ export const dropout: PlatformConfig = {
         return 'auto';
       },
       applySetting(value: string): SettingApplicationReport {
-        const windowOpacity = BG_OPACITY_MAP[value];
+        const windowOpacity = OPACITY_MAP[value];
         if (windowOpacity === undefined)
           return { success: false, message: `Unknown opacity: ${value}` };
         return applyVjsSetting({ windowOpacity });
