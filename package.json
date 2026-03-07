@@ -1,6 +1,6 @@
 {
   "name": "consistent-subtitle-style",
-  "version": "1.0.1",
+  "version": "1.1.0",
   "description": "Chrome extension for subtitle style management with native/CSS hybrid approach",
   "main": "main.js",
   "type": "module",
