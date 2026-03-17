@@ -1,7 +1,7 @@
 // Inject the Chrome API mock only in development builds.
 // esbuild replaces __DEV__ with a boolean literal at compile time, so this
 // import is completely eliminated from the production bundle.
-if (__DEV__) await import('./mock-chrome.js');
+if (__DEV__) void import('./mock-chrome.js');
 import type { StorageSettings } from '../types/index.js';
 import { loadSettings, saveSettings } from '../storage.js';
 import { debug } from '../debug.js';
