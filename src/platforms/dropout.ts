@@ -17,8 +17,6 @@ const REVERSE_COLOR_MAP: Record<string, string> = Object.fromEntries(
   Object.entries(COLOR_HEX_MAP).map(([k, v]) => [v, k]),
 );
 
-// Opacity values are passed to the Vimeo player as percentage strings ('0'–'100').
-// The player maps these to its own internal 0.0–1.0 scale.
 const OPACITY_MAP: Record<string, string> = {
   '0': '0',
   '25': '25',
@@ -40,13 +38,13 @@ const REVERSE_EDGE_STYLE_MAP: Record<string, string> = Object.fromEntries(
 );
 
 const FONT_FAMILY_MAP: Record<string, string> = {
-  proportional_sans_serif: 'proportionalSansSerif',
-  monospace_sans_serif: 'monospaceSansSerif',
-  proportional_serif: 'proportionalSerif',
-  monospace_serif: 'monospaceSerif',
+  'proportional-sans-serif': 'proportionalSansSerif',
+  'monospaced-sans-serif': 'monospaceSansSerif',
+  'proportional-serif': 'proportionalSerif',
+  'monospaced-serif': 'monospaceSerif',
   casual: 'casual',
   cursive: 'cursive',
-  small_capitals: 'smallCaps',
+  'small-caps': 'smallCaps',
 };
 
 const REVERSE_FONT_FAMILY_MAP: Record<string, string> = Object.fromEntries(
@@ -118,6 +116,7 @@ interface VimeoPlayer {
   // (native HTMLVideoElement / Vimeo OTT). We cast to `any` at call-sites.
   textTracks?: (() => unknown[]) | unknown[];
   getTextTracks?(): unknown[];
+  isFallback?: boolean;
 }
 
 function isRecord(obj: unknown): obj is AnyRecord {
@@ -132,6 +131,8 @@ function hasFn(obj: AnyRecord, key: string): boolean {
 
 const currentValues: Record<string, string | null> = {};
 let cachedPlayer: VimeoPlayer | null = null;
+let lastScanTime = 0;
+const SCAN_THROTTLE_MS = 2000;
 
 // ── Discovery Helpers ───────────────────────────────────────────────────────
 
@@ -154,29 +155,62 @@ function findAllReactRoots(root: Document | ShadowRoot, roots: HTMLElement[] = [
 
 // ── Helper: Sync to LocalStorage ───────────────────────────────────────────
 
-function syncLocalStorage(values: Record<string, string | null>): void {
+function syncLocalStorageForVimeo(values: Record<string, string | null>): void {
   const keys = [
     'vimeo-ott-player-settings',
     'vimeo-video-settings',
     'vimeo-player-settings',
     'vimeo.player.settings',
   ];
+
   for (const lsk of keys) {
     try {
       const raw = localStorage.getItem(lsk);
       const existing = JSON.parse(raw ?? '{}') as Record<string, unknown>;
       let modified = false;
 
+      const setDeep = (obj: Record<string, unknown>, path: string, val: unknown): void => {
+        const parts = path.split('.');
+        let cur = obj;
+        for (let i = 0; i < parts.length - 1; i++) {
+          const part = parts[i];
+          if (part === undefined) continue;
+          if (!cur[part] || typeof cur[part] !== 'object') {
+            cur[part] = {};
+            modified = true;
+          }
+          cur = cur[part] as Record<string, unknown>;
+        }
+        const lastPart = parts[parts.length - 1];
+        if (lastPart !== undefined && cur[lastPart] !== val) {
+          cur[lastPart] = val;
+          modified = true;
+        }
+      };
+
       for (const [k, v] of Object.entries(values)) {
         const val = v ?? undefined;
         const snakeKey = k.replace(/([A-Z])/g, '_$1').toLowerCase();
 
-        // Write both variants and prefixed variants
-        const variants = [k, snakeKey, `captionStyle.${k}`, `captionStyle.${snakeKey}`];
-        for (const variant of variants) {
+        // Write to both flat and nested locations to be safe
+        const paths = [
+          k,
+          snakeKey,
+          `captionStyle.${k}`,
+          `captionStyle.${snakeKey}`,
+          `caption_style.${k}`,
+          `caption_style.${snakeKey}`,
+        ];
+
+        for (const variant of paths) {
+          // Flat write
           if (existing[variant] !== val) {
             existing[variant] = val;
             modified = true;
+          }
+          // Deep write
+          if (variant.includes('.')) {
+            setDeep(existing, variant, val);
           }
         }
       }
@@ -186,8 +220,7 @@ function syncLocalStorage(values: Record<string, string | null>): void {
         const newValue = JSON.stringify(existing);
         localStorage.setItem(lsk, newValue);
 
-        // Manually dispatch a StorageEvent in the current window so any
-        // listeners in the same frame (like the Vimeo OTT Player) pick it up live.
+        // Manually dispatch a StorageEvent
         const event = new StorageEvent('storage', {
           key: lsk,
           newValue: newValue,
@@ -205,7 +238,14 @@ function syncLocalStorage(values: Record<string, string | null>): void {
 }
 
 function getVimeoPlayer(): VimeoPlayer | null {
-  if (cachedPlayer) return cachedPlayer;
+  const now = Date.now();
+  if (cachedPlayer && !cachedPlayer.isFallback) return cachedPlayer;
+
+  if (now - lastScanTime < SCAN_THROTTLE_MS && cachedPlayer) {
+    return cachedPlayer;
+  }
+
+  lastScanTime = now;
   cachedPlayer = _getVimeoPlayer();
   return cachedPlayer;
 }
@@ -469,6 +509,7 @@ function _getVimeoPlayer(): VimeoPlayer | null {
     // 5. Ultimate Fallback: Return a Dummy Player that triggers PostMessage
     console.log('[CSS-STYL] API missing. Returning postMessage fallback adapter.');
     return {
+      isFallback: true,
       setCaptionStyle(property: string, value: string): void {
         try {
           // Broadblast to the window to invoke Vimeo SDK listeners if they exist globally
@@ -496,7 +537,7 @@ function applyVjsSetting(values: Record<string, string | null>): SettingApplicat
   }
 
   // Sycn to localStorage IMMEDIATELY (Synchronously)
-  syncLocalStorage(values);
+  syncLocalStorageForVimeo(values);
 
   const player = getVimeoPlayer();
   if (player && typeof player.setCaptionStyle === 'function') {
@@ -506,6 +547,19 @@ function applyVjsSetting(values: Record<string, string | null>): SettingApplicat
       } catch {
         /* ignore */
       }
+    }
+
+    // If it was a fallback, schedule a retry in case the real player mounts soon
+    if (player.isFallback) {
+      setTimeout(() => {
+        const realPlayer = getVimeoPlayer();
+        if (realPlayer && !realPlayer.isFallback) {
+          console.log('[CSS-STYL] Real player arrived after fallback retry!');
+          for (const [k, v] of Object.entries(values)) {
+            realPlayer.setCaptionStyle(k, String(v));
+          }
+        }
+      }, 1500);
     }
   }
 
