@@ -48,16 +48,38 @@
     },
   };
 
+  // Forward a subtitleStylerChanged message to the current window AND any
+  // cross-origin VHX/Vimeo iframes on the page. This is needed because
+  // injection.ts may only run in the top frame while the video player lives
+  // inside an embed.vhx.tv iframe.
+  function broadcastChanges(data: Record<string, unknown>): void {
+    const msg = { type: 'subtitleStylerChanged', data };
+    window.postMessage(msg, '*');
+
+    // Also relay into cross-origin video iframes so main.ts there can apply styles.
+    try {
+      const iframes = document.querySelectorAll('iframe');
+      console.log(`[CSS-STYL] broadcastChanges: found ${iframes.length} iframes`);
+      iframes.forEach((iframe) => {
+        const src = iframe.src || '';
+        if (
+          src.includes('embed.vhx.tv') ||
+          src.includes('vhx.tv') ||
+          src.includes('vimeo.com')
+        ) {
+          console.log(`[CSS-STYL] broadcastChanges: posting to iframe ${src.substring(0, 60)}`);
+          iframe.contentWindow?.postMessage(msg, '*');
+        }
+      });
+    } catch (e) {
+      console.log('[CSS-STYL] broadcastChanges: error -', e);
+    }
+  }
+
   chrome.storage.onChanged.addListener(
     (changes: Record<string, chrome.storage.StorageChange>, namespace: string) => {
       if (namespace === 'sync') {
-        window.postMessage(
-          {
-            type: 'subtitleStylerChanged',
-            data: changes,
-          },
-          '*',
-        );
+        broadcastChanges(changes);
       }
     },
   );
@@ -101,18 +123,14 @@
       sendResponse: (response?: { success?: boolean }) => void,
     ) => {
       if (message.type === 'subtitleStylerPopupUpdate' && message.settings) {
-        window.postMessage(
-          {
-            type: 'subtitleStylerChanged',
-            data: Object.keys(message.settings).reduce<Record<string, { newValue: unknown }>>(
-              (acc, key) => {
-                acc[key] = { newValue: message.settings?.[key] };
-                return acc;
-              },
-              {},
-            ),
-          },
-          '*',
+        broadcastChanges(
+          Object.keys(message.settings).reduce<Record<string, { newValue: unknown }>>(
+            (acc, key) => {
+              acc[key] = { newValue: message.settings?.[key] };
+              return acc;
+            },
+            {},
+          ),
         );
       }
 

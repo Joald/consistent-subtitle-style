@@ -263,9 +263,11 @@ class SubtitleStylerApp {
 
   private setupMessageListener(): void {
     window.addEventListener('message', (event: MessageEvent<{ type?: string; data?: unknown }>) => {
-      if (event.source !== window) return;
-
+      // For subtitleStylerChanged, accept messages from parent/sibling frames too
+      // (injection.ts in the top frame relays storage changes to VHX iframes).
+      // For other message types (bridge requests), require same-window origin.
       if (event.data.type === 'subtitleStylerChanged') {
+        // Accept from any source — the message type is specific enough.
         const changes = event.data.data as Record<string, { newValue?: unknown }>;
 
         const settingKeys = Object.keys(changes) as (keyof StorageSettings)[];
