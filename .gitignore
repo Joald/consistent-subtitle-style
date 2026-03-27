@@ -87,3 +87,4 @@ releases/
 # ESLint debug dumps
 lint.json
 lint.txt
+e2e-v*.cjs
