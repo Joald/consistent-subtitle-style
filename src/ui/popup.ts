@@ -140,12 +140,14 @@ async function handleSave(): Promise<void> {
     try {
       const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
       if (tab?.id != null) {
-        await chrome.tabs.sendMessage(tab.id, {
-          type: 'subtitleStylerPopupUpdate',
-          settings,
-        }).catch(() => {
-          // Tab may not have a content script (e.g. non-matching URL) — ignore.
-        });
+        await chrome.tabs
+          .sendMessage(tab.id, {
+            type: 'subtitleStylerPopupUpdate',
+            settings,
+          })
+          .catch(() => {
+            // Tab may not have a content script (e.g. non-matching URL) — ignore.
+          });
       }
     } catch {
       // Popup may not have tabs permission in some contexts — ignore.

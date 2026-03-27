@@ -529,6 +529,118 @@ function _getVimeoPlayer(): VimeoPlayer | null {
   }
 }
 
+/**
+ * Directly set inline styles on .vp-captions, mirroring how the Vimeo player's
+ * own Customize UI applies caption styles. The React CaptionsRenderer reads
+ * these inline styles when rendering caption cues.
+ *
+ * This is the primary mechanism for live visual updates — localStorage alone
+ * only takes effect on reload, and the player's setCaptionStyle API is
+ * typically unavailable from the page world.
+ */
+function applyCaptionInlineStyles(values: Record<string, string | null>): void {
+  const container = document.querySelector<HTMLElement>('.vp-captions');
+  if (!container) return;
+
+  for (const [key, value] of Object.entries(values)) {
+    if (value == null) continue;
+    switch (key) {
+      case 'color':
+        container.style.color = value;
+        break;
+      case 'fontOpacity': {
+        // Combine current color with opacity
+        const currentColor = container.style.color || getComputedStyle(container).color;
+        const match = currentColor.match(/\d+/g);
+        if (match && match.length >= 3) {
+          container.style.color = `rgba(${match[0]}, ${match[1]}, ${match[2]}, ${value})`;
+        }
+        break;
+      }
+      case 'bgColor': {
+        // Background is set on individual caption lines, not the container
+        const lines = document.querySelectorAll<HTMLElement>('[class*="CaptionsRenderer_module_captionsLine"]');
+        lines.forEach(line => { line.style.background = value; });
+        break;
+      }
+      case 'bgOpacity': {
+        const lines = document.querySelectorAll<HTMLElement>('[class*="CaptionsRenderer_module_captionsLine"]');
+        lines.forEach(line => {
+          const bg = line.style.background || getComputedStyle(line).backgroundColor;
+          const m = bg.match(/\d+/g);
+          if (m && m.length >= 3) {
+            line.style.background = `rgba(${m[0]}, ${m[1]}, ${m[2]}, ${value})`;
+          }
+        });
+        break;
+      }
+      case 'windowColor': {
+        const win = document.querySelector<HTMLElement>('[class*="CaptionsRenderer_module_captionsWindow"]');
+        if (win) win.style.backgroundColor = value;
+        break;
+      }
+      case 'windowOpacity': {
+        const win = document.querySelector<HTMLElement>('[class*="CaptionsRenderer_module_captionsWindow"]');
+        if (win) {
+          const bg = win.style.backgroundColor || getComputedStyle(win).backgroundColor;
+          const m = bg.match(/\d+/g);
+          if (m && m.length >= 3) {
+            win.style.backgroundColor = `rgba(${m[0]}, ${m[1]}, ${m[2]}, ${value})`;
+          }
+        }
+        break;
+      }
+      case 'fontFamily':
+        container.style.fontFamily = VIMEO_FONT_CSS[value] ?? '';
+        if (value === 'smallCaps') {
+          container.style.fontVariant = 'small-caps';
+        } else {
+          container.style.fontVariant = 'initial';
+        }
+        break;
+      case 'fontSize': {
+        // Vimeo uses a base size (~49px at 1080p) multiplied by the scale factor
+        const computed = getComputedStyle(container).fontSize;
+        const basePx = parseFloat(computed) || 49;
+        const anyContainer = container as unknown as Record<string, unknown>;
+        const origBase = anyContainer['__baseFontSize'] as number | undefined;
+        const base = origBase ?? basePx;
+        if (!origBase) anyContainer['__baseFontSize'] = base;
+        container.style.fontSize = `${base * parseFloat(value)}px`;
+        break;
+      }
+      case 'edgeStyle':
+        container.style.textShadow = VIMEO_EDGE_CSS[value] ?? 'none';
+        break;
+    }
+  }
+}
+
+/**
+ * Maps Vimeo internal font family names to CSS font-family values.
+ * These match what the Vimeo CaptionsRenderer produces in inline styles.
+ */
+const VIMEO_FONT_CSS: Record<string, string> = {
+  proportionalSansSerif: '"Helvetica Neue", Helvetica, Arial, sans-serif',
+  monospaceSansSerif: '"Andale Mono", "Lucida Console", monospace',
+  proportionalSerif: '"Times New Roman", Times, Georgia, serif',
+  monospaceSerif: '"Courier New", Courier, "Lucida Console", monospace',
+  casual: '"Comic Sans MS", Impact, Handlee, fantasy',
+  cursive: '"Monotype Corsiva", "URW Chancery L", "Apple Chancery", cursive',
+  smallCaps: '"Helvetica Neue", Helvetica, Arial, sans-serif',
+};
+
+/**
+ * Maps Vimeo edge style names to CSS text-shadow values.
+ */
+const VIMEO_EDGE_CSS: Record<string, string> = {
+  none: 'none',
+  shadow: 'rgb(0, 0, 0) 2px 2px 4px',
+  raised: 'rgb(0, 0, 0) 1px 1px 0px, rgb(0, 0, 0) 2px 2px 0px',
+  depressed: 'rgb(0, 0, 0) -1px -1px 0px, rgb(0, 0, 0) -2px -2px 0px',
+  uniform: 'rgb(0, 0, 0) -1px 0px 0px, rgb(0, 0, 0) 0px -1px 0px, rgb(0, 0, 0) 1px 0px 0px, rgb(0, 0, 0) 0px 1px 0px',
+};
+
 function applyVjsSetting(values: Record<string, string | null>): SettingApplicationReport {
   console.log('[CSS-STYL] applyVjsSetting called with:', JSON.stringify(values));
 
@@ -536,8 +648,12 @@ function applyVjsSetting(values: Record<string, string | null>): SettingApplicat
     currentValues[k] = v;
   }
 
-  // Sycn to localStorage IMMEDIATELY (Synchronously)
+  // Sync to localStorage IMMEDIATELY (Synchronously)
   syncLocalStorageForVimeo(values);
+
+  // Apply inline styles directly to the caption container — this is how the
+  // player's own Customize UI works (React sets inline styles on .vp-captions).
+  applyCaptionInlineStyles(values);
 
   const player = getVimeoPlayer();
   if (player && typeof player.setCaptionStyle === 'function') {
