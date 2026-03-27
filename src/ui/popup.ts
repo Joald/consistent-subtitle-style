@@ -133,6 +133,24 @@ async function handleSave(): Promise<void> {
     debug.log(`Saving settings: ${JSON.stringify(settings)}`);
     await saveSettings(settings);
     updatePreview();
+
+    // Notify content scripts directly so live updates work even when
+    // chrome.storage.onChanged doesn't fire in cross-origin iframes (e.g. Dropout).
+    // injection.ts already has a handler for 'subtitleStylerPopupUpdate'.
+    try {
+      const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
+      if (tab?.id != null) {
+        await chrome.tabs.sendMessage(tab.id, {
+          type: 'subtitleStylerPopupUpdate',
+          settings,
+        }).catch(() => {
+          // Tab may not have a content script (e.g. non-matching URL) — ignore.
+        });
+      }
+    } catch {
+      // Popup may not have tabs permission in some contexts — ignore.
+    }
+
     showMessage('Saved!', 'success');
   } catch (error) {
     console.error('Failed to save settings:', error);
