@@ -88,3 +88,6 @@ releases/
 lint.json
 lint.txt
 e2e-v*.cjs
+
+# E2E test screenshots
+e2e-screenshots/
