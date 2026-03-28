@@ -16,6 +16,7 @@
     "format": "prettier --write .",
     "test": "vitest run",
     "test:watch": "vitest",
+    "test:e2e": "bash e2e/run.sh",
     "ci": "npm run format && npm run lint && npm run typecheck && npm run test && npm run build:prod",
     "release": "node scripts/release.js",
     "prepare": "husky"
