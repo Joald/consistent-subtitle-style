@@ -9,6 +9,9 @@ describe('injection.ts module', () => {
   beforeEach(() => {
     vi.clearAllMocks();
 
+    // Reset injection dedup guard so each test can re-import
+    delete (window as unknown as Record<string, unknown>)['__subtitleStylerInjected'];
+
     // Create spies
     addEventListenerSpy = vi.spyOn(window, 'addEventListener') as Mock;
     createElementSpy = vi.spyOn(document, 'createElement') as Mock;

@@ -1,6 +1,15 @@
 /* eslint-disable */
 (function (): void {
   'use strict';
+
+  // Guard against double injection (e.g. manifest content_scripts + programmatic registration)
+  const GUARD_KEY = '__subtitleStylerInjected';
+  if ((window as unknown as Record<string, unknown>)[GUARD_KEY]) {
+    console.log('[CSS-STYL] Injection script already ran in this frame — skipping.');
+    return;
+  }
+  (window as unknown as Record<string, unknown>)[GUARD_KEY] = true;
+
   console.log(
     '[CSS-STYL] Injection script started (all_frames: ' +
       (window.location !== window.parent.location) +
