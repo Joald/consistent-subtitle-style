@@ -30,7 +30,7 @@ const YT_URL = 'https://www.youtube.com/watch?v=dQw4w9WgXcQ';
 
 async function run() {
   console.log('Launching Chrome with extension…');
-  const browser = await launchBrowser();
+  const browser = await launchBrowser({ freshProfile: true });
 
   try {
     const page = await browser.newPage();

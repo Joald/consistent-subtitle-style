@@ -77,11 +77,17 @@ export async function getExtensionId(browser, timeoutMs = 15_000) {
   // Strategy 1: scan existing targets
   while (Date.now() < deadline) {
     for (const t of browser.targets()) {
-      if (t.type() === 'service_worker') return t.url().split('/')[2];
+      const url = t.url();
+      if (t.type() === 'service_worker' && url.startsWith('chrome-extension://'))
+        return url.split('/')[2];
     }
     for (const t of browser.targets()) {
       const url = t.url();
-      if (url.startsWith('chrome-extension://') && url.includes('/')) return url.split('/')[2];
+      if (url.startsWith('chrome-extension://') && url.includes('/')) {
+        const id = url.split('/')[2];
+        // Validate it looks like a Chrome extension ID (32 lowercase hex chars)
+        if (/^[a-z]{32}$/.test(id)) return id;
+      }
     }
 
     // Strategy 2: read extension ID from chrome://extensions
