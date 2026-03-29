@@ -16,6 +16,7 @@ import {
   setStorage,
   resetStorage,
   sleep,
+  waitForStyle,
   createTestRunner,
 } from './helpers.js';
 
@@ -212,12 +213,13 @@ async function run() {
 
       consoleLogs.length = 0;
       await setStorage(browser, extId, { fontColor: 'yellow' });
-      await sleep(3000);
 
-      const color1 = await page.evaluate((sel) => {
-        const el = document.querySelector(sel);
-        return el ? getComputedStyle(el).color : null;
-      }, SUB_SEL);
+      const color1 = await waitForStyle(
+        page,
+        SUB_SEL,
+        'color',
+        (v) => v === 'rgb(255, 255, 0)',
+      );
       assert(color1 === 'rgb(255, 255, 0)', 'Font color changes to yellow', color1);
 
       const logs1 = consoleLogs.filter((l) => l.includes('CSS-STYL'));
@@ -230,12 +232,15 @@ async function run() {
       console.log('\n🔤  Live font family');
 
       await setStorage(browser, extId, { fontFamily: 'monospaced-serif' });
-      await sleep(3000);
 
-      const font1 = await page.evaluate((sel) => {
-        const el = document.querySelector(sel);
-        return el ? getComputedStyle(el).fontFamily?.substring(0, 60) : null;
-      }, SUB_SEL);
+      // Poll — font-family update can lag behind the storage change,
+      // especially when the suite runs sequentially after other platforms.
+      const font1 = await waitForStyle(
+        page,
+        SUB_SEL,
+        'fontFamily',
+        (v) => v != null && (v.includes('Courier') || v.includes('monospace')),
+      );
       assert(
         font1 && (font1.includes('Courier') || font1.includes('monospace')),
         'Font family changes to monospace serif',
@@ -259,24 +264,26 @@ async function run() {
       console.log('\n🟦  Live background color');
 
       await setStorage(browser, extId, { backgroundColor: 'blue' });
-      await sleep(3000);
 
-      const bgColor = await page.evaluate((sel) => {
-        const el = document.querySelector(sel);
-        return el ? getComputedStyle(el).backgroundColor : null;
-      }, SUB_SEL);
+      const bgColor = await waitForStyle(
+        page,
+        SUB_SEL,
+        'backgroundColor',
+        (v) => v != null && v.includes('0, 0, 255'),
+      );
       assert(bgColor && bgColor.includes('0, 0, 255'), 'Background changes to blue', bgColor);
 
       // ── Live edge style ──────────────────────────────────────────────
       console.log('\n🔲  Live edge style');
 
       await setStorage(browser, extId, { characterEdgeStyle: 'dropshadow' });
-      await sleep(3000);
 
-      const shadow = await page.evaluate((sel) => {
-        const el = document.querySelector(sel);
-        return el ? getComputedStyle(el).textShadow : null;
-      }, SUB_SEL);
+      const shadow = await waitForStyle(
+        page,
+        SUB_SEL,
+        'textShadow',
+        (v) => v != null && v !== 'none',
+      );
       assert(
         shadow && shadow !== 'none',
         'Text shadow applied for dropshadow edge',
@@ -291,7 +298,9 @@ async function run() {
         fontFamily: 'cursive',
         characterEdgeStyle: 'raised',
       });
-      await sleep(3000);
+
+      // Wait for at least color to settle, then grab all properties together
+      await waitForStyle(page, SUB_SEL, 'color', (v) => v === 'rgb(0, 255, 255)');
 
       const combined = await page.evaluate((sel) => {
         const el = document.querySelector(sel);
