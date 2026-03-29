@@ -157,6 +157,37 @@ async function run() {
       afterFont?.fontFamily,
     );
 
+    // Verify localStorage stores snake_case value (Vimeo expects "monospace_serif", not "monospaceSerif")
+    const lsFontFamily = await page.evaluate(() => {
+      const keys = [
+        'vimeo-ott-player-settings',
+        'vimeo-video-settings',
+        'vimeo-player-settings',
+        'vimeo.player.settings',
+      ];
+      for (const key of keys) {
+        try {
+          const raw = localStorage.getItem(key);
+          if (!raw) continue;
+          const parsed = JSON.parse(raw);
+          // Check nested captionStyle.fontFamily
+          const nested = parsed?.captionStyle?.fontFamily;
+          if (nested) return nested;
+          // Check flat key
+          const flat = parsed?.['captionStyle.fontFamily'];
+          if (flat) return flat;
+        } catch {
+          /* skip */
+        }
+      }
+      return null;
+    });
+    assert(
+      lsFontFamily === 'monospace_serif',
+      'localStorage stores font-family in snake_case for Vimeo',
+      lsFontFamily,
+    );
+
     // ── Live update: edge style ──────────────────────────────────────────
     console.log('\n✨  Live update — edge style → dropshadow');
     await setStorage(browser, extId, { characterEdgeStyle: 'dropshadow' });
