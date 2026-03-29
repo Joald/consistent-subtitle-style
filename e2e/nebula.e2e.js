@@ -214,12 +214,7 @@ async function run() {
       consoleLogs.length = 0;
       await setStorage(browser, extId, { fontColor: 'yellow' });
 
-      const color1 = await waitForStyle(
-        page,
-        SUB_SEL,
-        'color',
-        (v) => v === 'rgb(255, 255, 0)',
-      );
+      const color1 = await waitForStyle(page, SUB_SEL, 'color', (v) => v === 'rgb(255, 255, 0)');
       assert(color1 === 'rgb(255, 255, 0)', 'Font color changes to yellow', color1);
 
       const logs1 = consoleLogs.filter((l) => l.includes('CSS-STYL'));
