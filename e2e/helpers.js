@@ -303,6 +303,43 @@ export async function resetStorage(browser, extId) {
   return resetStorageViaPopup(browser, extId);
 }
 
+// ── Style polling helpers ────────────────────────────────────────────────────
+
+/**
+ * Poll a computed CSS property on an element until it satisfies a predicate.
+ *
+ * Useful for style-change assertions that depend on timing (CSS injection,
+ * React re-renders, etc.).  Returns the final value, or the last sampled
+ * value if the timeout expires — the caller can still assert on it.
+ *
+ * @param {Page} page         Puppeteer page
+ * @param {string} selector   CSS selector for the target element
+ * @param {string} cssProp    CSS property name (camelCase, e.g. 'fontFamily')
+ * @param {(v: string|null) => boolean} predicate  Return true when the value is acceptable
+ * @param {{ timeoutMs?: number, intervalMs?: number }} opts
+ * @returns {Promise<string|null>}
+ */
+export async function waitForStyle(page, selector, cssProp, predicate, opts = {}) {
+  const { timeoutMs = 10_000, intervalMs = 500 } = opts;
+  const deadline = Date.now() + timeoutMs;
+  let lastValue = null;
+
+  while (Date.now() < deadline) {
+    lastValue = await page.evaluate(
+      (sel, prop) => {
+        const el = document.querySelector(sel);
+        return el ? getComputedStyle(el)[prop] ?? null : null;
+      },
+      selector,
+      cssProp,
+    );
+
+    if (predicate(lastValue)) return lastValue;
+    await sleep(intervalMs);
+  }
+  return lastValue; // timed out — return last value for assertion message
+}
+
 // ── Test runner helpers ──────────────────────────────────────────────────────
 
 export function createTestRunner() {
