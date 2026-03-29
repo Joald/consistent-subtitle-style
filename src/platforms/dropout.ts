@@ -191,8 +191,12 @@ function syncLocalStorageForVimeo(values: Record<string, string | null>): void {
       for (const [k, v] of Object.entries(values)) {
         const val = v ?? undefined;
         const snakeKey = k.replace(/([A-Z])/g, '_$1').toLowerCase();
+        // Vimeo stores values in snake_case too (e.g. "monospace_serif", not "monospaceSerif")
+        const snakeVal =
+          typeof val === 'string' ? val.replace(/([A-Z])/g, '_$1').toLowerCase() : val;
 
         // Write to both flat and nested locations to be safe
+        // Use the Vimeo-native format: captionStyle.{camelKey} = snake_value
         const paths = [
           k,
           snakeKey,
@@ -203,14 +207,16 @@ function syncLocalStorageForVimeo(values: Record<string, string | null>): void {
         ];
 
         for (const variant of paths) {
+          // Use snake_case value for Vimeo-native paths, original for others
+          const writeVal = variant.startsWith('captionStyle.') ? snakeVal : val;
           // Flat write
-          if (existing[variant] !== val) {
-            existing[variant] = val;
+          if (existing[variant] !== writeVal) {
+            existing[variant] = writeVal;
             modified = true;
           }
           // Deep write
           if (variant.includes('.')) {
-            setDeep(existing, variant, val);
+            setDeep(existing, variant, writeVal);
           }
         }
       }

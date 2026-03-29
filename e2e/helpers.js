@@ -328,7 +328,7 @@ export async function waitForStyle(page, selector, cssProp, predicate, opts = {}
     lastValue = await page.evaluate(
       (sel, prop) => {
         const el = document.querySelector(sel);
-        return el ? getComputedStyle(el)[prop] ?? null : null;
+        return el ? (getComputedStyle(el)[prop] ?? null) : null;
       },
       selector,
       cssProp,

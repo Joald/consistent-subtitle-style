@@ -24,20 +24,20 @@ and sequential execution automatically.
 
 ### What is real
 
-| Component | Details |
-|---|---|
-| **Browser** | Actual Chromium, launched by Puppeteer with `--load-extension` |
-| **Extension** | Built from `dist/` — full production build, all content scripts, popup, service worker |
-| **Websites** | Live pages: `embed.vhx.tv` (Dropout), `nebula.tv`, `youtube.com` |
-| **Settings** | Changed via the popup page (`chrome-extension://{id}/index.html`) — clicks the real custom-select dropdowns, which triggers `handleSave()` → `chrome.storage.sync.set()` → `chrome.tabs.sendMessage()`, exactly as a human user would |
-| **Subtitles** | Real captions rendered by each platform's native player |
+| Component     | Details                                                                                                                                                                                                                               |
+| ------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Browser**   | Actual Chromium, launched by Puppeteer with `--load-extension`                                                                                                                                                                        |
+| **Extension** | Built from `dist/` — full production build, all content scripts, popup, service worker                                                                                                                                                |
+| **Websites**  | Live pages: `embed.vhx.tv` (Dropout), `nebula.tv`, `youtube.com`                                                                                                                                                                      |
+| **Settings**  | Changed via the popup page (`chrome-extension://{id}/index.html`) — clicks the real custom-select dropdowns, which triggers `handleSave()` → `chrome.storage.sync.set()` → `chrome.tabs.sendMessage()`, exactly as a human user would |
+| **Subtitles** | Real captions rendered by each platform's native player                                                                                                                                                                               |
 
 ### What is simulated
 
-| Component | Details |
-|---|---|
-| **Display** | Xvfb (X Virtual Framebuffer) — a headless X11 server. Chrome renders in a real window, but there is no physical monitor. Screenshots can be captured for debugging. |
-| **User interaction** | Puppeteer drives clicks and navigation. No actual mouse/keyboard. |
+| Component            | Details                                                                                                                                                             |
+| -------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Display**          | Xvfb (X Virtual Framebuffer) — a headless X11 server. Chrome renders in a real window, but there is no physical monitor. Screenshots can be captured for debugging. |
+| **User interaction** | Puppeteer drives clicks and navigation. No actual mouse/keyboard.                                                                                                   |
 
 ### Nothing is mocked
 
@@ -137,7 +137,7 @@ const color = await waitForStyle(
   page,
   '#subtitle-selector',
   'color',
-  (v) => v === 'rgb(255, 255, 0)',  // predicate
+  (v) => v === 'rgb(255, 255, 0)', // predicate
 );
 assert(color === 'rgb(255, 255, 0)', 'Font color is yellow');
 ```
