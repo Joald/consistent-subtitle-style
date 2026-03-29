@@ -20,19 +20,14 @@ import {
 
 const { assert, skip, summary } = createTestRunner();
 
-const EMBED_URL =
-  'https://embed.vhx.tv/videos/3867670?api=1&autoplay=1&vimeo=1';
+const EMBED_URL = 'https://embed.vhx.tv/videos/3867670?api=1&autoplay=1&vimeo=1';
 
 /** Read computed styles from the caption container and lines. */
 async function getCaptionStyles(page) {
   return page.evaluate(() => {
     const container = document.querySelector('.vp-captions');
-    const line = document.querySelector(
-      '[class*="CaptionsRenderer_module_captionsLine"]',
-    );
-    const win = document.querySelector(
-      '[class*="CaptionsRenderer_module_captionsWindow"]',
-    );
+    const line = document.querySelector('[class*="CaptionsRenderer_module_captionsLine"]');
+    const win = document.querySelector('[class*="CaptionsRenderer_module_captionsWindow"]');
     if (!container) return null;
     const cs = getComputedStyle(container);
     return {
@@ -67,9 +62,7 @@ async function run() {
     for (let attempt = 0; attempt < 3 && !extId; attempt++) {
       extId = await getExtensionId(browser, 8_000);
       if (!extId) {
-        await page
-          .reload({ waitUntil: 'networkidle2', timeout: 20_000 })
-          .catch(() => {});
+        await page.reload({ waitUntil: 'networkidle2', timeout: 20_000 }).catch(() => {});
         await sleep(3000);
       }
     }
@@ -104,17 +97,12 @@ async function run() {
     let captionText = '';
     for (let i = 0; i < 15; i++) {
       captionText = await page.evaluate(
-        () =>
-          document.querySelector('.vp-captions')?.innerText?.trim() || '',
+        () => document.querySelector('.vp-captions')?.innerText?.trim() || '',
       );
       if (captionText.length > 0) break;
       await sleep(1000);
     }
-    assert(
-      captionText.length > 0,
-      'Caption text is visible',
-      `got "${captionText}"`,
-    );
+    assert(captionText.length > 0, 'Caption text is visible', `got "${captionText}"`);
 
     const initLogs = consoleLogs.filter((l) => l.includes('CSS-STYL'));
     assert(
@@ -182,9 +170,7 @@ async function run() {
     );
 
     // ── Live update: background color ────────────────────────────────────
-    console.log(
-      '\n🟦  Live update — background color → blue (persisted to localStorage)',
-    );
+    console.log('\n🟦  Live update — background color → blue (persisted to localStorage)');
     consoleLogs.length = 0;
     await setStorage(browser, extId, { backgroundColor: 'blue' });
     await sleep(3000);
@@ -196,13 +182,8 @@ async function run() {
       bgLogs.join(' | ').substring(0, 120),
     );
 
-    const lsUpdated = consoleLogs.some((l) =>
-      l.includes('Updated localStorage'),
-    );
-    assert(
-      lsUpdated,
-      'Background colour written to localStorage for next reload',
-    );
+    const lsUpdated = consoleLogs.some((l) => l.includes('Updated localStorage'));
+    assert(lsUpdated, 'Background colour written to localStorage for next reload');
 
     // ── Live update: font size ───────────────────────────────────────────
     console.log('\n📏  Live update — font size → 200%');
@@ -235,8 +216,7 @@ async function run() {
       afterCombo?.color,
     );
     assert(
-      afterCombo?.fontFamily?.includes('Comic Sans') ||
-        afterCombo?.fontFamily?.includes('fantasy'),
+      afterCombo?.fontFamily?.includes('Comic Sans') || afterCombo?.fontFamily?.includes('fantasy'),
       'Combined: font family is casual',
       afterCombo?.fontFamily,
     );
@@ -252,9 +232,7 @@ async function run() {
     await resetStorage(browser, extId);
     await sleep(3000);
 
-    const resetLogs = consoleLogs.filter((l) =>
-      l.includes('app.applyStyles() called'),
-    );
+    const resetLogs = consoleLogs.filter((l) => l.includes('app.applyStyles() called'));
     assert(
       resetLogs.length >= 1,
       'applyStyles() called after reset',
@@ -274,8 +252,8 @@ async function run() {
       const popupInfo = await popupPage.evaluate(() => ({
         title: document.title,
         selectCount: document.querySelectorAll('.custom-select').length,
-        hasResetBtn: !!Array.from(document.querySelectorAll('button')).find(
-          (b) => b.textContent.includes('Reset'),
+        hasResetBtn: !!Array.from(document.querySelectorAll('button')).find((b) =>
+          b.textContent.includes('Reset'),
         ),
         hasPreview: !!document.getElementById('preview-text'),
       }));

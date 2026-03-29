@@ -50,9 +50,7 @@ async function run() {
         false,
     );
     if (isBot) {
-      console.log(
-        '\n⚠️  YouTube bot detection triggered — skipping YouTube E2E tests.',
-      );
+      console.log('\n⚠️  YouTube bot detection triggered — skipping YouTube E2E tests.');
       console.log('    This is expected in some CI/headless environments.');
       console.log('\n' + '═'.repeat(50));
       console.log('  YouTube: SKIPPED (bot detection)');
@@ -113,11 +111,7 @@ async function run() {
       const cc = document.querySelector('.ytp-subtitles-button');
       return cc?.getAttribute('aria-pressed');
     });
-    assert(
-      ccState === 'true',
-      'Captions enabled via CC button',
-      `aria-pressed=${ccState}`,
-    );
+    assert(ccState === 'true', 'Captions enabled via CC button', `aria-pressed=${ccState}`);
 
     // ── Live update: storage change triggers applyStyles ─────────────────
     console.log('\n🎨  Live update — fontColor → yellow');
@@ -125,9 +119,7 @@ async function run() {
     await setStorage(browser, extId, { fontColor: 'yellow' });
     await sleep(3000);
 
-    const newLogs = consoleLogs
-      .slice(logsBeforeChange)
-      .filter((l) => l.includes('CSS-STYL'));
+    const newLogs = consoleLogs.slice(logsBeforeChange).filter((l) => l.includes('CSS-STYL'));
     assert(
       newLogs.some((l) => l.includes('app.applyStyles() called')),
       'applyStyles() re-fires after fontColor change',
@@ -139,9 +131,7 @@ async function run() {
     await setStorage(browser, extId, { fontFamily: 'casual' });
     await sleep(3000);
 
-    const fontLogs = consoleLogs
-      .slice(logsBeforeFont)
-      .filter((l) => l.includes('CSS-STYL'));
+    const fontLogs = consoleLogs.slice(logsBeforeFont).filter((l) => l.includes('CSS-STYL'));
     assert(
       fontLogs.some((l) => l.includes('app.applyStyles() called')),
       'applyStyles() re-fires after fontFamily change',
@@ -153,9 +143,7 @@ async function run() {
     await setStorage(browser, extId, { fontSize: '200%' });
     await sleep(3000);
 
-    const sizeLogs = consoleLogs
-      .slice(logsBeforeSize)
-      .filter((l) => l.includes('CSS-STYL'));
+    const sizeLogs = consoleLogs.slice(logsBeforeSize).filter((l) => l.includes('CSS-STYL'));
     assert(
       sizeLogs.some((l) => l.includes('app.applyStyles() called')),
       'applyStyles() re-fires after fontSize change',
@@ -167,9 +155,7 @@ async function run() {
     await setStorage(browser, extId, { characterEdgeStyle: 'dropshadow' });
     await sleep(3000);
 
-    const edgeLogs = consoleLogs
-      .slice(logsBeforeEdge)
-      .filter((l) => l.includes('CSS-STYL'));
+    const edgeLogs = consoleLogs.slice(logsBeforeEdge).filter((l) => l.includes('CSS-STYL'));
     assert(
       edgeLogs.some((l) => l.includes('app.applyStyles() called')),
       'applyStyles() re-fires after characterEdgeStyle change',
@@ -186,9 +172,7 @@ async function run() {
     });
     await sleep(3000);
 
-    const comboLogs = consoleLogs
-      .slice(logsBeforeCombo)
-      .filter((l) => l.includes('CSS-STYL'));
+    const comboLogs = consoleLogs.slice(logsBeforeCombo).filter((l) => l.includes('CSS-STYL'));
     assert(
       comboLogs.some((l) => l.includes('app.applyStyles() called')),
       'applyStyles() re-fires after combined settings change',
@@ -200,9 +184,7 @@ async function run() {
     await resetStorage(browser, extId);
     await sleep(3000);
 
-    const resetLogs = consoleLogs
-      .slice(logsBeforeReset)
-      .filter((l) => l.includes('CSS-STYL'));
+    const resetLogs = consoleLogs.slice(logsBeforeReset).filter((l) => l.includes('CSS-STYL'));
     assert(
       resetLogs.some((l) => l.includes('app.applyStyles() called')),
       'applyStyles() re-fires after reset',

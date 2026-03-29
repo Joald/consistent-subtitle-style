@@ -32,6 +32,7 @@ export default tseslint.config(
       'coverage/**',
       'scripts/**',
       'releases/**',
+      'e2e/**',
     ],
   },
   {
