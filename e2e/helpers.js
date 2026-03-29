@@ -56,9 +56,7 @@ export async function launchBrowser(opts = {}) {
   if (opts.freshProfile) {
     const fs = require('fs');
     const os = require('os');
-    launchOpts.userDataDir = fs.mkdtempSync(
-      path.join(os.tmpdir(), 'css-e2e-'),
-    );
+    launchOpts.userDataDir = fs.mkdtempSync(path.join(os.tmpdir(), 'css-e2e-'));
   }
 
   return puppeteer.launch(launchOpts);
@@ -83,8 +81,7 @@ export async function getExtensionId(browser, timeoutMs = 15_000) {
     }
     for (const t of browser.targets()) {
       const url = t.url();
-      if (url.startsWith('chrome-extension://') && url.includes('/'))
-        return url.split('/')[2];
+      if (url.startsWith('chrome-extension://') && url.includes('/')) return url.split('/')[2];
     }
 
     // Strategy 2: read extension ID from chrome://extensions
@@ -179,9 +176,7 @@ export async function setStorageViaPopup(browser, extId, settings) {
           if (!container) return false;
 
           // Find the option with the matching data-value
-          const option = container.querySelector(
-            `.select-option[data-value="${val}"]`,
-          );
+          const option = container.querySelector(`.select-option[data-value="${val}"]`);
           if (!option) return false;
 
           // Click it — this triggers the event handler in popup.ts which:
@@ -196,9 +191,7 @@ export async function setStorageViaPopup(browser, extId, settings) {
       );
 
       if (!changed) {
-        console.warn(
-          `  ⚠️  Could not set ${storageKey}=${value} (data-id="${dataId}")`,
-        );
+        console.warn(`  ⚠️  Could not set ${storageKey}=${value} (data-id="${dataId}")`);
       }
     }
 
@@ -335,12 +328,21 @@ export function createTestRunner() {
     );
     if (failures.length) {
       console.log('\n  Failures:');
-      for (const f of failures)
-        console.log(`    • ${f.name}${f.detail ? ` (${f.detail})` : ''}`);
+      for (const f of failures) console.log(`    • ${f.name}${f.detail ? ` (${f.detail})` : ''}`);
     }
     console.log('═'.repeat(50));
     return { passed, failed, skipped };
   }
 
-  return { assert, skip, summary, get passed() { return passed; }, get failed() { return failed; } };
+  return {
+    assert,
+    skip,
+    summary,
+    get passed() {
+      return passed;
+    },
+    get failed() {
+      return failed;
+    },
+  };
 }

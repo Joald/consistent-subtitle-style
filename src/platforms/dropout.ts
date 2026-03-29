@@ -553,38 +553,51 @@ function applyCaptionInlineStyles(values: Record<string, string | null>): void {
         const currentColor = container.style.color || getComputedStyle(container).color;
         const match = currentColor.match(/\d+/g);
         if (match && match.length >= 3) {
+          // eslint-disable-next-line @typescript-eslint/restrict-template-expressions
           container.style.color = `rgba(${match[0]}, ${match[1]}, ${match[2]}, ${value})`;
         }
         break;
       }
       case 'bgColor': {
         // Background is set on individual caption lines, not the container
-        const lines = document.querySelectorAll<HTMLElement>('[class*="CaptionsRenderer_module_captionsLine"]');
-        lines.forEach(line => { line.style.background = value; });
+        const lines = document.querySelectorAll<HTMLElement>(
+          '[class*="CaptionsRenderer_module_captionsLine"]',
+        );
+        lines.forEach((line) => {
+          line.style.background = value;
+        });
         break;
       }
       case 'bgOpacity': {
-        const lines = document.querySelectorAll<HTMLElement>('[class*="CaptionsRenderer_module_captionsLine"]');
-        lines.forEach(line => {
+        const lines = document.querySelectorAll<HTMLElement>(
+          '[class*="CaptionsRenderer_module_captionsLine"]',
+        );
+        lines.forEach((line) => {
           const bg = line.style.background || getComputedStyle(line).backgroundColor;
           const m = bg.match(/\d+/g);
           if (m && m.length >= 3) {
+            // eslint-disable-next-line @typescript-eslint/restrict-template-expressions
             line.style.background = `rgba(${m[0]}, ${m[1]}, ${m[2]}, ${value})`;
           }
         });
         break;
       }
       case 'windowColor': {
-        const win = document.querySelector<HTMLElement>('[class*="CaptionsRenderer_module_captionsWindow"]');
+        const win = document.querySelector<HTMLElement>(
+          '[class*="CaptionsRenderer_module_captionsWindow"]',
+        );
         if (win) win.style.backgroundColor = value;
         break;
       }
       case 'windowOpacity': {
-        const win = document.querySelector<HTMLElement>('[class*="CaptionsRenderer_module_captionsWindow"]');
+        const win = document.querySelector<HTMLElement>(
+          '[class*="CaptionsRenderer_module_captionsWindow"]',
+        );
         if (win) {
           const bg = win.style.backgroundColor || getComputedStyle(win).backgroundColor;
           const m = bg.match(/\d+/g);
           if (m && m.length >= 3) {
+            // eslint-disable-next-line @typescript-eslint/restrict-template-expressions
             win.style.backgroundColor = `rgba(${m[0]}, ${m[1]}, ${m[2]}, ${value})`;
           }
         }
@@ -606,7 +619,7 @@ function applyCaptionInlineStyles(values: Record<string, string | null>): void {
         const origBase = anyContainer['__baseFontSize'] as number | undefined;
         const base = origBase ?? basePx;
         if (!origBase) anyContainer['__baseFontSize'] = base;
-        container.style.fontSize = `${base * parseFloat(value)}px`;
+        container.style.fontSize = `${(base * parseFloat(value)).toString()}px`;
         break;
       }
       case 'edgeStyle':
@@ -638,7 +651,8 @@ const VIMEO_EDGE_CSS: Record<string, string> = {
   shadow: 'rgb(0, 0, 0) 2px 2px 4px',
   raised: 'rgb(0, 0, 0) 1px 1px 0px, rgb(0, 0, 0) 2px 2px 0px',
   depressed: 'rgb(0, 0, 0) -1px -1px 0px, rgb(0, 0, 0) -2px -2px 0px',
-  uniform: 'rgb(0, 0, 0) -1px 0px 0px, rgb(0, 0, 0) 0px -1px 0px, rgb(0, 0, 0) 1px 0px 0px, rgb(0, 0, 0) 0px 1px 0px',
+  uniform:
+    'rgb(0, 0, 0) -1px 0px 0px, rgb(0, 0, 0) 0px -1px 0px, rgb(0, 0, 0) 1px 0px 0px, rgb(0, 0, 0) 0px 1px 0px',
 };
 
 function applyVjsSetting(values: Record<string, string | null>): SettingApplicationReport {

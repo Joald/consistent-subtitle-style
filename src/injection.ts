@@ -62,11 +62,7 @@
       console.log(`[CSS-STYL] broadcastChanges: found ${iframes.length} iframes`);
       iframes.forEach((iframe) => {
         const src = iframe.src || '';
-        if (
-          src.includes('embed.vhx.tv') ||
-          src.includes('vhx.tv') ||
-          src.includes('vimeo.com')
-        ) {
+        if (src.includes('embed.vhx.tv') || src.includes('vhx.tv') || src.includes('vimeo.com')) {
           console.log(`[CSS-STYL] broadcastChanges: posting to iframe ${src.substring(0, 60)}`);
           iframe.contentWindow?.postMessage(msg, '*');
         }

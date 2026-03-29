@@ -29,8 +29,7 @@ async function run() {
   const browser = await launchBrowser({ freshProfile: true });
 
   try {
-    const videoUrl =
-      'https://nebula.tv/videos/tldrnewseu-why-albania-and-kosovo-have-fallen-out';
+    const videoUrl = 'https://nebula.tv/videos/tldrnewseu-why-albania-and-kosovo-have-fallen-out';
     console.log(`Using free video: ${videoUrl}`);
 
     const page = await browser.newPage();
@@ -102,10 +101,7 @@ async function run() {
         const found = await page.evaluate(() => {
           for (const b of document.querySelectorAll('button')) {
             const text = (b.textContent || '').toLowerCase();
-            if (
-              text.includes('play') &&
-              (text.includes('video') || text.includes('watch'))
-            )
+            if (text.includes('play') && (text.includes('video') || text.includes('watch')))
               return true;
           }
           return false;
@@ -123,10 +119,7 @@ async function run() {
         await page.evaluate(() => {
           for (const b of document.querySelectorAll('button')) {
             const text = (b.textContent || '').toLowerCase();
-            if (
-              text.includes('play') &&
-              (text.includes('video') || text.includes('watch'))
-            ) {
+            if (text.includes('play') && (text.includes('video') || text.includes('watch'))) {
               b.click();
               return;
             }
@@ -141,9 +134,7 @@ async function run() {
           playerLoaded = true;
         } catch {
           await sleep(1000);
-          playerLoaded = await page.evaluate(
-            () => !!document.querySelector('#video-player'),
-          );
+          playerLoaded = await page.evaluate(() => !!document.querySelector('#video-player'));
         }
       }
     }
@@ -176,8 +167,7 @@ async function run() {
         const v = document.querySelector('video');
         if (v?.textTracks) {
           for (const t of v.textTracks) {
-            if (t.kind === 'subtitles' || t.kind === 'captions')
-              t.mode = 'showing';
+            if (t.kind === 'subtitles' || t.kind === 'captions') t.mode = 'showing';
           }
         }
       });
@@ -186,19 +176,12 @@ async function run() {
       let subsText = '';
       for (let i = 0; i < 15; i++) {
         subsText = await page.evaluate(
-          () =>
-            document
-              .querySelector('[data-subtitles-container]')
-              ?.textContent?.trim() || '',
+          () => document.querySelector('[data-subtitles-container]')?.textContent?.trim() || '',
         );
         if (subsText) break;
         await sleep(1000);
       }
-      assert(
-        !!subsText,
-        'Subtitle text visible',
-        subsText ? subsText.substring(0, 40) : 'empty',
-      );
+      assert(!!subsText, 'Subtitle text visible', subsText ? subsText.substring(0, 40) : 'empty');
 
       // ── Baseline styles ──────────────────────────────────────────────
       console.log('\n🎨  Baseline styles');
@@ -216,11 +199,7 @@ async function run() {
       }, SUB_SEL);
 
       if (baseline) {
-        assert(
-          baseline.color === 'rgb(255, 255, 255)',
-          'Default color is white',
-          baseline.color,
-        );
+        assert(baseline.color === 'rgb(255, 255, 255)', 'Default color is white', baseline.color);
         assert(
           baseline.fontWeight === '700',
           'Default font-weight is bold (Nebula baseline CSS)',
@@ -270,9 +249,7 @@ async function run() {
       await setStorage(browser, extId, { fontSize: '200%' });
       await sleep(3000);
 
-      const sizeLogs = consoleLogs
-        .slice(logsBeforeSize)
-        .filter((l) => l.includes('CSS-STYL'));
+      const sizeLogs = consoleLogs.slice(logsBeforeSize).filter((l) => l.includes('CSS-STYL'));
       assert(
         sizeLogs.some((l) => l.includes('app.applyStyles() called')),
         'applyStyles() fires for fontSize change',
@@ -288,11 +265,7 @@ async function run() {
         const el = document.querySelector(sel);
         return el ? getComputedStyle(el).backgroundColor : null;
       }, SUB_SEL);
-      assert(
-        bgColor && bgColor.includes('0, 0, 255'),
-        'Background changes to blue',
-        bgColor,
-      );
+      assert(bgColor && bgColor.includes('0, 0, 255'), 'Background changes to blue', bgColor);
 
       // ── Live edge style ──────────────────────────────────────────────
       console.log('\n🔲  Live edge style');
@@ -330,11 +303,7 @@ async function run() {
           textShadow: cs.textShadow?.substring(0, 60),
         };
       }, SUB_SEL);
-      assert(
-        combined?.color === 'rgb(0, 255, 255)',
-        'Combined: cyan color',
-        combined?.color,
-      );
+      assert(combined?.color === 'rgb(0, 255, 255)', 'Combined: cyan color', combined?.color);
       assert(
         combined?.fontFamily?.toLowerCase().includes('cursive') ||
           combined?.fontFamily?.includes('Corsiva') ||
@@ -375,8 +344,8 @@ async function run() {
         const popupInfo = await popupPage.evaluate(() => ({
           title: document.title,
           selectCount: document.querySelectorAll('.custom-select').length,
-          hasResetBtn: !!Array.from(document.querySelectorAll('button')).find(
-            (b) => b.textContent.includes('Reset'),
+          hasResetBtn: !!Array.from(document.querySelectorAll('button')).find((b) =>
+            b.textContent.includes('Reset'),
           ),
           hasPreview: !!document.getElementById('preview-text'),
         }));
