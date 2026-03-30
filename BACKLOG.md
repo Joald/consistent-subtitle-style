@@ -15,7 +15,7 @@
 
 - [ ] Add Prime Video subtitle support
 - [ ] Add HBO Max subtitle support
-- [ ] Update README with Dropout support details
+- [x] Update README with Dropout support details
 - [ ] Chrome Web Store submission
 
 ## Done
