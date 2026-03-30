@@ -8,6 +8,7 @@
 ## Medium Priority
 
 - [ ] Nebula font-family E2E flake — timing issue, monitoring
+- [ ] Preset system — one-click style presets with a recommended default (drop shadow, 0% window/background opacity, rest controlled by site). Dev build should include several test presets for easy manual testing
 
 ## Low Priority
 
