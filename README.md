@@ -35,10 +35,10 @@ Navigate to any streaming video with subtitles enabled and verify your custom st
 
 ## Supported Platforms
 
-| Platform | Status | Support Type |
-| -------- | ------ | ------------ |
-| YouTube  | ✅     | Native API   |
-| Nebula   | ✅     | CSS Only     |
+| Platform | Status | Support Type                                         |
+| -------- | ------ | ---------------------------------------------------- |
+| YouTube  | ✅     | Native API                                           |
+| Nebula   | ✅     | CSS Only                                             |
 | Dropout  | ✅     | Hybrid (Vimeo Player + Inline Styles + localStorage) |
 
 ### Dropout / VHX
@@ -56,6 +56,7 @@ Dropout uses a Vimeo OTT player embedded in a cross-origin iframe (`embed.vhx.tv
 **Supported style properties:** font color, font opacity, background color/opacity, window color/opacity, character edge style (shadow, raised, depressed, outline), font family (7 variants), and font size (50%–400%).
 
 **Caveats:**
+
 - Caption style classes use CSS Modules (hashed names), so selectors match on stable prefixes like `[class*="CaptionsRenderer_module_captionsLine"]` rather than exact class names.
 - Font size scaling is relative to the Vimeo player's base font size (~49px at 1080p), which may differ at other resolutions.
 - The first style application may use a `postMessage` fallback adapter if the player hasn't fully initialized; a retry fires after 1.5s to use the real API once available.
