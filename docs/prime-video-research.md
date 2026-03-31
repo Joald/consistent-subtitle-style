@@ -19,12 +19,14 @@ div.atvwebplayersdk-overlays-container
 ```
 
 **Key selectors:**
+
 - Container: `.atvwebplayersdk-captions-overlay`
-- Region/positioning: `.atvwebplayersdk-captions-region`  
+- Region/positioning: `.atvwebplayersdk-captions-region`
 - Text span: `.atvwebplayersdk-captions-text`
 - Background: The region div acts as the background container
 
 ### Important notes:
+
 1. **Class names are stable** — they've been consistent across multiple versions and are used by several extensions
 2. **No Shadow DOM** — direct CSS injection works, unlike some Netflix regions
 3. **Inline styles** — Prime Video applies inline styles for caption rendering, so `!important` is needed to override
@@ -32,6 +34,7 @@ div.atvwebplayersdk-overlays-container
 5. **Dynamic rendering** — subtitle elements are created/destroyed as captions change, requiring a MutationObserver approach
 
 ### Subtitle format
+
 - Web player renders TTML/DFXP format internally
 - Elements appear and disappear with each subtitle cue
 - Each cue creates a fresh set of DOM elements
@@ -39,6 +42,7 @@ div.atvwebplayersdk-overlays-container
 ## How Existing Extensions Work
 
 ### Prime Video SubStyler (nefaieamogpbokobidmgceonnjbakgof)
+
 - **Approach:** Content script + MutationObserver
 - **Settings:** chrome.storage.sync (same pattern as ours)
 - **Styling:** Applies CSS via `!important` overrides on the caption text spans
@@ -46,11 +50,13 @@ div.atvwebplayersdk-overlays-container
 - **Architecture:** Simple content script → MutationObserver on player container → apply inline styles when new caption elements appear
 
 ### Prime Video Dual Subtitles (cabhpipjdhilidbmghclbffddaddicfh)
+
 - **Approach:** Intercepts subtitle track data + renders second subtitle line
 - **More complex:** Has to parse TTML data and render additional subtitle elements
 - **Uses:** MutationObserver + subtitle track interception
 
 ### Shadowing Master
+
 - **Approach:** Dual subtitle display for language learning
 - **Intercepts:** Subtitle data stream to extract text for translation
 - **Custom rendering:** Creates additional DOM elements alongside native ones
@@ -89,25 +95,29 @@ export const primevideo: PlatformConfig = {
 
 ```json
 {
-  "content_scripts": [{
-    "matches": [
-      // ... existing ...
-      "*://*.primevideo.com/*",
-      "*://*.amazon.com/gp/video/*",
-      "*://*.amazon.co.uk/gp/video/*",
-      "*://*.amazon.de/gp/video/*"
-      // Note: Prime Video URLs vary by region
-    ]
-  }],
-  "web_accessible_resources": [{
-    "matches": [
-      // ... existing ...
-      "*://*.primevideo.com/*",
-      "*://*.amazon.com/*",
-      "*://*.amazon.co.uk/*",
-      "*://*.amazon.de/*"
-    ]
-  }]
+  "content_scripts": [
+    {
+      "matches": [
+        // ... existing ...
+        "*://*.primevideo.com/*",
+        "*://*.amazon.com/gp/video/*",
+        "*://*.amazon.co.uk/gp/video/*",
+        "*://*.amazon.de/gp/video/*"
+        // Note: Prime Video URLs vary by region
+      ]
+    }
+  ],
+  "web_accessible_resources": [
+    {
+      "matches": [
+        // ... existing ...
+        "*://*.primevideo.com/*",
+        "*://*.amazon.com/*",
+        "*://*.amazon.co.uk/*",
+        "*://*.amazon.de/*"
+      ]
+    }
+  ]
 }
 ```
 
@@ -115,8 +125,10 @@ export const primevideo: PlatformConfig = {
 
 ```typescript
 // In detectPlatform():
-if (hostname.includes('primevideo.com') || 
-    (hostname.includes('amazon.') && window.location.pathname.startsWith('/gp/video'))) {
+if (
+  hostname.includes('primevideo.com') ||
+  (hostname.includes('amazon.') && window.location.pathname.startsWith('/gp/video'))
+) {
   return 'primevideo';
 }
 ```
@@ -142,7 +154,7 @@ if (hostname.includes('primevideo.com') ||
 
 - [ ] Create `src/platforms/primevideo.ts` (~50 lines)
 - [ ] Update `src/platforms/index.ts` to register
-- [ ] Update `manifest.json` with URL patterns  
+- [ ] Update `manifest.json` with URL patterns
 - [ ] Update `detectPlatform()` for Prime Video URLs
 - [ ] Add E2E tests (mock approach or real account)
 - [ ] Test edge cases: different regions, subtitle languages, player states
