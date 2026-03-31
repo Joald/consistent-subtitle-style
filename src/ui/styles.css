@@ -369,3 +369,40 @@ button {
   bottom: 100%;
   border-color: transparent transparent #333 transparent;
 }
+
+/* ── Preset selector ─────────────────────────────── */
+.preset-group {
+  margin-bottom: 12px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid #333;
+}
+
+.preset-group label {
+  display: block;
+  font-size: 11px;
+  color: #888;
+  margin-bottom: 4px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.preset-select {
+  width: 100%;
+  padding: 8px 10px;
+  background: #1e1e1e;
+  color: #e0e0e0;
+  border: 1px solid #444;
+  border-radius: 6px;
+  font-size: 13px;
+  cursor: pointer;
+  outline: none;
+  transition: border-color 0.15s;
+}
+
+.preset-select:hover {
+  border-color: #666;
+}
+
+.preset-select:focus {
+  border-color: #4a9eff;
+}

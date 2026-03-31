@@ -147,3 +147,31 @@ export const saveSettings = (settings: Partial<StorageSettings>): Promise<void> 
 
   return chrome.storage.sync.set(settings);
 };
+
+/**
+ * Save the active preset id (or null for custom/manual mode).
+ */
+export const saveActivePreset = (presetId: string | null): Promise<void> => {
+  if (typeof chrome === 'undefined') return Promise.resolve();
+  return chrome.storage.sync.set({ activePreset: presetId });
+};
+
+/**
+ * Load the active preset id from storage.
+ */
+export const loadActivePreset = async (): Promise<string | null> => {
+  if (typeof chrome === 'undefined') return null;
+  const result = await chrome.storage.sync.get('activePreset');
+  return (result['activePreset'] as string | null) ?? null;
+};
+
+/**
+ * Apply a preset: write all its settings + mark it as active in one shot.
+ */
+export const applyPreset = async (
+  presetSettings: StorageSettings,
+  presetId: string,
+): Promise<void> => {
+  if (typeof chrome === 'undefined') return;
+  await chrome.storage.sync.set({ ...presetSettings, activePreset: presetId });
+};

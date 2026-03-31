@@ -3,9 +3,10 @@
 // import is completely eliminated from the production bundle.
 if (__DEV__) void import('./mock-chrome.js');
 import type { StorageSettings } from '../types/index.js';
-import { loadSettings, saveSettings } from '../storage.js';
+import { loadSettings, applyPreset } from '../storage.js';
 import { debug } from '../debug.js';
 import { generateCombinedCssRules } from '../css-mappings.js';
+import { getAvailablePresets, getPresetById, detectActivePreset } from '../presets.js';
 
 const ID_TO_SETTING_KEY: Record<string, keyof StorageSettings> = {
   'character-edge-style': 'characterEdgeStyle',
@@ -131,7 +132,11 @@ async function handleSave(): Promise<void> {
   try {
     const settings = collectSettings();
     debug.log(`Saving settings: ${JSON.stringify(settings)}`);
-    await saveSettings(settings);
+    // Single combined write: settings + clear activePreset (individual change → custom mode)
+    if (typeof chrome !== 'undefined') {
+      await chrome.storage.sync.set({ ...settings, activePreset: null });
+    }
+    updatePresetIndicator(settings);
     updatePreview();
 
     // Notify content scripts directly so live updates work even when
@@ -161,7 +166,7 @@ async function handleSave(): Promise<void> {
 }
 
 async function handleReset(): Promise<void> {
-  populateForm({
+  const defaults: StorageSettings = {
     characterEdgeStyle: 'auto',
     backgroundOpacity: 'auto',
     windowOpacity: 'auto',
@@ -171,8 +176,14 @@ async function handleReset(): Promise<void> {
     windowColor: 'auto',
     fontFamily: 'auto',
     fontSize: 'auto',
-  });
-  await handleSave();
+  };
+  populateForm(defaults);
+  // Single combined write: settings + clear activePreset
+  if (typeof chrome !== 'undefined') {
+    await chrome.storage.sync.set({ ...defaults, activePreset: null });
+  }
+  updatePresetIndicator(defaults);
+  updatePreview();
   showMessage('Saved', 'success');
 }
 
@@ -231,10 +242,121 @@ function setupCustomSelects(): void {
   });
 }
 
+function updatePresetIndicator(settings: Partial<StorageSettings>): void {
+  const presetSelect = document.getElementById('preset-select') as HTMLSelectElement | null;
+  if (!presetSelect) return;
+  // Fill missing keys with 'auto' for detection
+  const full: StorageSettings = {
+    characterEdgeStyle: 'auto',
+    backgroundOpacity: 'auto',
+    windowOpacity: 'auto',
+    fontColor: 'auto',
+    fontOpacity: 'auto',
+    backgroundColor: 'auto',
+    windowColor: 'auto',
+    fontFamily: 'auto',
+    fontSize: 'auto',
+    ...settings,
+  };
+  const detected = detectActivePreset(full, __DEV__);
+  presetSelect.value = detected ?? 'custom';
+}
+
+function buildPresetSelector(): void {
+  const form = document.getElementById('settings-form');
+  if (!form) return;
+
+  const wrapper = document.createElement('div');
+  wrapper.className = 'form-group preset-group';
+
+  const label = document.createElement('label');
+  label.setAttribute('for', 'preset-select');
+  label.textContent = 'Preset';
+
+  const select = document.createElement('select');
+  select.id = 'preset-select';
+  select.className = 'preset-select';
+
+  // "Custom" option (shown when no preset matches)
+  const customOpt = document.createElement('option');
+  customOpt.value = 'custom';
+  customOpt.textContent = 'Custom';
+  select.appendChild(customOpt);
+
+  const presets = getAvailablePresets(__DEV__);
+  let addedDevSeparator = false;
+
+  for (const preset of presets) {
+    if (preset.devOnly && !addedDevSeparator) {
+      const sep = document.createElement('option');
+      sep.disabled = true;
+      sep.textContent = '── Dev Presets ──';
+      select.appendChild(sep);
+      addedDevSeparator = true;
+    }
+    const opt = document.createElement('option');
+    opt.value = preset.id;
+    opt.textContent = preset.isRecommended ? `★ ${preset.name}` : preset.name;
+    select.appendChild(opt);
+  }
+
+  select.addEventListener('change', () => {
+    void handlePresetChange(select.value);
+  });
+
+  wrapper.appendChild(label);
+  wrapper.appendChild(select);
+
+  // Insert before the first .form-group in the form
+  const firstGroup = form.querySelector('.form-group');
+  if (firstGroup) {
+    form.insertBefore(wrapper, firstGroup);
+  } else {
+    form.prepend(wrapper);
+  }
+}
+
+async function handlePresetChange(presetId: string): Promise<void> {
+  if (presetId === 'custom') return;
+
+  const preset = getPresetById(presetId);
+  if (!preset) return;
+
+  try {
+    await applyPreset(preset.settings, preset.id);
+    populateForm(preset.settings);
+    updatePreview();
+    showMessage(`Applied "${preset.name}"`, 'success');
+
+    // Notify content scripts
+    try {
+      const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
+      if (tab?.id != null) {
+        await chrome.tabs
+          .sendMessage(tab.id, {
+            type: 'subtitleStylerPopupUpdate',
+            settings: preset.settings,
+          })
+          .catch(() => {
+            /* Tab may not have content script */
+          });
+      }
+    } catch {
+      // ignore
+    }
+  } catch (error) {
+    console.error('Failed to apply preset:', error);
+    showMessage('Failed to apply preset', 'error');
+  }
+}
+
 async function initializePopup(): Promise<void> {
   try {
     const settings = await loadSettings();
+
+    buildPresetSelector();
     populateForm(settings);
+    updatePresetIndicator(settings);
 
     setupCustomSelects();
 
