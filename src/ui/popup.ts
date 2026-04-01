@@ -3,10 +3,23 @@
 // import is completely eliminated from the production bundle.
 if (__DEV__) void import('./mock-chrome.js');
 import type { StorageSettings } from '../types/index.js';
-import { loadSettings, applyPreset } from '../storage.js';
+import { loadSettings, applyPreset, DEFAULTS } from '../storage.js';
 import { debug } from '../debug.js';
 import { generateCombinedCssRules } from '../css-mappings.js';
 import { getAvailablePresets, getPresetById, detectActivePreset } from '../presets.js';
+import { loadSiteOverride, saveSiteOverride, clearSiteOverride } from '../site-settings.js';
+import type { Platform } from '../platforms/index.js';
+
+/** Detected platform for the active tab (null when on a non-supported site). */
+let currentPlatform: Platform | null = null;
+/** Whether we're in per-site mode (true) or global mode (false). */
+let siteScope = false;
+
+const PLATFORM_DISPLAY_NAMES: Record<Platform, string> = {
+  youtube: 'YouTube',
+  nebula: 'Nebula',
+  dropout: 'Dropout',
+};
 
 const ID_TO_SETTING_KEY: Record<string, keyof StorageSettings> = {
   'character-edge-style': 'characterEdgeStyle',
@@ -132,10 +145,19 @@ async function handleSave(): Promise<void> {
   try {
     const settings = collectSettings();
     debug.log(`Saving settings: ${JSON.stringify(settings)}`);
-    // Single combined write: settings + clear activePreset (individual change → custom mode)
-    if (typeof chrome !== 'undefined') {
-      await chrome.storage.sync.set({ ...settings, activePreset: null });
+
+    const fullSettings: StorageSettings = { ...DEFAULTS, ...settings };
+
+    if (siteScope && currentPlatform) {
+      // Per-site mode: save to site overrides
+      await saveSiteOverride(currentPlatform, fullSettings, null);
+    } else {
+      // Global mode: save to chrome.storage.sync directly
+      if (typeof chrome !== 'undefined') {
+        await chrome.storage.sync.set({ ...settings, activePreset: null });
+      }
     }
+
     updatePresetIndicator(settings);
     updatePreview();
 
@@ -166,23 +188,27 @@ async function handleSave(): Promise<void> {
 }
 
 async function handleReset(): Promise<void> {
-  const defaults: StorageSettings = {
-    characterEdgeStyle: 'auto',
-    backgroundOpacity: 'auto',
-    windowOpacity: 'auto',
-    fontColor: 'auto',
-    fontOpacity: 'auto',
-    backgroundColor: 'auto',
-    windowColor: 'auto',
-    fontFamily: 'auto',
-    fontSize: 'auto',
-  };
+  const defaults: StorageSettings = { ...DEFAULTS };
   populateForm(defaults);
-  // Single combined write: settings + clear activePreset
-  if (typeof chrome !== 'undefined') {
-    await chrome.storage.sync.set({ ...defaults, activePreset: null });
+
+  if (siteScope && currentPlatform) {
+    // In per-site mode, clearing means removing the site override entirely
+    await clearSiteOverride(currentPlatform);
+    // Switch back to global mode since there's no more override
+    siteScope = false;
+    updateScopeUI();
+    // Re-load global settings into the form
+    const globalSettings = await loadSettings();
+    populateForm(globalSettings);
+    updatePresetIndicator(globalSettings);
+  } else {
+    // Global mode: reset to defaults
+    if (typeof chrome !== 'undefined') {
+      await chrome.storage.sync.set({ ...defaults, activePreset: null });
+    }
+    updatePresetIndicator(defaults);
   }
-  updatePresetIndicator(defaults);
+
   updatePreview();
   showMessage('Saved', 'success');
 }
@@ -323,7 +349,14 @@ async function handlePresetChange(presetId: string): Promise<void> {
   if (!preset) return;
 
   try {
-    await applyPreset(preset.settings, preset.id);
+    if (siteScope && currentPlatform) {
+      // Per-site mode: store preset in site override
+      await saveSiteOverride(currentPlatform, preset.settings, preset.id);
+    } else {
+      // Global mode: save as before
+      await applyPreset(preset.settings, preset.id);
+    }
+
     populateForm(preset.settings);
     updatePreview();
     showMessage(`Applied "${preset.name}"`, 'success');
@@ -350,11 +383,147 @@ async function handlePresetChange(presetId: string): Promise<void> {
   }
 }
 
+/**
+ * Detect the platform of the active tab from its URL.
+ */
+async function detectActiveTabPlatform(): Promise<Platform | null> {
+  if (typeof chrome === 'undefined') return null;
+  try {
+    const tabs = chrome.tabs as typeof chrome.tabs | undefined;
+    if (!tabs) return null;
+    const [tab] = await tabs.query({ active: true, currentWindow: true });
+    if (!tab?.url) return null;
+    const url = new URL(tab.url);
+    const hostname = url.hostname.toLowerCase();
+    if (hostname.includes('youtube.com')) return 'youtube';
+    if (hostname.includes('nebula.tv')) return 'nebula';
+    if (hostname.includes('vhx.tv') || hostname.includes('dropout.tv')) return 'dropout';
+  } catch {
+    // ignore — might not have tabs permission
+  }
+  return null;
+}
+
+/**
+ * Build the scope toggle UI that lets users switch between global and per-site settings.
+ */
+function buildScopeToggle(): void {
+  const form = document.getElementById('settings-form');
+  if (!form || !currentPlatform) return;
+
+  const wrapper = document.createElement('div');
+  wrapper.className = 'form-group scope-group';
+  wrapper.id = 'scope-toggle-group';
+
+  const label = document.createElement('label');
+  label.textContent = 'Apply to';
+
+  const toggleContainer = document.createElement('div');
+  toggleContainer.className = 'scope-toggle';
+
+  const globalBtn = document.createElement('button');
+  globalBtn.type = 'button';
+  globalBtn.id = 'scope-global';
+  globalBtn.className = 'scope-btn' + (siteScope ? '' : ' active');
+  globalBtn.textContent = 'All Sites';
+
+  const siteBtn = document.createElement('button');
+  siteBtn.type = 'button';
+  siteBtn.id = 'scope-site';
+  siteBtn.className = 'scope-btn' + (siteScope ? ' active' : '');
+  siteBtn.textContent = PLATFORM_DISPLAY_NAMES[currentPlatform];
+
+  globalBtn.addEventListener('click', () => {
+    if (!siteScope) return;
+    siteScope = false;
+    void switchScope();
+  });
+
+  siteBtn.addEventListener('click', () => {
+    if (siteScope) return;
+    siteScope = true;
+    void switchScope();
+  });
+
+  toggleContainer.appendChild(globalBtn);
+  toggleContainer.appendChild(siteBtn);
+
+  wrapper.appendChild(label);
+  wrapper.appendChild(toggleContainer);
+
+  // Insert before preset selector or first form-group
+  const presetGroup = form.querySelector('.preset-group');
+  const target = presetGroup ?? form.querySelector('.form-group');
+  if (target) {
+    form.insertBefore(wrapper, target);
+  } else {
+    form.prepend(wrapper);
+  }
+}
+
+/**
+ * Update the scope toggle button classes.
+ */
+function updateScopeUI(): void {
+  const globalBtn = document.getElementById('scope-global');
+  const siteBtn = document.getElementById('scope-site');
+  if (globalBtn) globalBtn.className = 'scope-btn' + (siteScope ? '' : ' active');
+  if (siteBtn) siteBtn.className = 'scope-btn' + (siteScope ? ' active' : '');
+}
+
+/**
+ * Switch between global and per-site mode: reload settings for the new scope.
+ */
+async function switchScope(): Promise<void> {
+  updateScopeUI();
+
+  if (siteScope && currentPlatform) {
+    // Load per-site override, or fall back to global
+    const override = await loadSiteOverride(currentPlatform);
+    if (override) {
+      populateForm(override.settings);
+      updatePresetIndicator(override.settings);
+    } else {
+      // No per-site override yet — start with a copy of global settings
+      const globalSettings = await loadSettings();
+      populateForm(globalSettings);
+      updatePresetIndicator(globalSettings);
+    }
+  } else {
+    // Global mode: load global settings
+    const globalSettings = await loadSettings();
+    populateForm(globalSettings);
+    updatePresetIndicator(globalSettings);
+  }
+
+  updatePreview();
+}
+
 async function initializePopup(): Promise<void> {
   try {
-    const settings = await loadSettings();
+    // Detect current platform from the active tab
+    currentPlatform = await detectActiveTabPlatform();
+
+    // Determine initial settings: check for per-site override first
+    let settings: StorageSettings;
+    if (currentPlatform) {
+      const override = await loadSiteOverride(currentPlatform);
+      if (override) {
+        siteScope = true;
+        settings = override.settings;
+      } else {
+        siteScope = false;
+        settings = await loadSettings();
+      }
+    } else {
+      siteScope = false;
+      settings = await loadSettings();
+    }
 
     buildPresetSelector();
+    if (currentPlatform) {
+      buildScopeToggle();
+    }
     populateForm(settings);
     updatePresetIndicator(settings);
 

@@ -406,3 +406,53 @@ button {
 .preset-select:focus {
   border-color: #4a9eff;
 }
+
+/* Scope toggle (global vs per-site) */
+.scope-group {
+  margin-bottom: 10px;
+}
+
+.scope-group label {
+  display: block;
+  font-size: 11px;
+  color: #888;
+  margin-bottom: 4px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.scope-toggle {
+  display: flex;
+  gap: 0;
+  border: 1px solid #444;
+  border-radius: 6px;
+  overflow: hidden;
+}
+
+.scope-btn {
+  flex: 1;
+  padding: 6px 10px;
+  background: #1e1e1e;
+  color: #888;
+  border: none;
+  font-size: 12px;
+  cursor: pointer;
+  transition:
+    background 0.15s,
+    color 0.15s;
+}
+
+.scope-btn:first-child {
+  border-right: 1px solid #444;
+}
+
+.scope-btn:hover {
+  background: #2a2a2a;
+  color: #ccc;
+}
+
+.scope-btn.active {
+  background: #2d4a7a;
+  color: #e0e0e0;
+  font-weight: 600;
+}

@@ -96,7 +96,7 @@ export class Settings {
   }
 }
 
-const DEFAULTS: StorageSettings = {
+export const DEFAULTS: StorageSettings = {
   characterEdgeStyle: 'auto',
   backgroundOpacity: 'auto',
   windowOpacity: 'auto',

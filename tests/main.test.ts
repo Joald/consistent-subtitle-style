@@ -4,6 +4,7 @@ import type { StorageSettings } from '../src/types/index.js';
 // Top-level mocks are hoisted
 vi.mock('../src/storage.js', () => ({
   loadSettings: vi.fn(),
+  loadActivePreset: vi.fn(),
   Settings: class {
     private settings: Record<string, unknown>;
     constructor(s: Record<string, unknown>) {
@@ -27,6 +28,10 @@ vi.mock('../src/storage.js', () => ({
       this.merge(r);
     }
   },
+}));
+
+vi.mock('../src/site-settings.js', () => ({
+  getEffectiveSettings: vi.fn(),
 }));
 
 vi.mock('../src/platforms/index.js', () => ({
@@ -56,11 +61,12 @@ describe('SubtitleStylerApp', () => {
     vi.resetModules();
     vi.clearAllMocks();
 
-    const { loadSettings } = await import('../src/storage.js');
+    const { loadSettings, loadActivePreset } = await import('../src/storage.js');
     const { detectPlatform, getPlatformConfig } = await import('../src/platforms/index.js');
     const { generateCombinedCssRules } = await import('../src/css-mappings.js');
+    const { getEffectiveSettings } = await import('../src/site-settings.js');
 
-    (loadSettings as Mock).mockResolvedValue({
+    const mockSettings = {
       fontColor: 'red',
       fontSize: '100%',
       characterEdgeStyle: 'auto',
@@ -70,7 +76,15 @@ describe('SubtitleStylerApp', () => {
       backgroundColor: 'auto',
       windowColor: 'auto',
       fontFamily: 'auto',
-    } as StorageSettings);
+    } as StorageSettings;
+
+    (loadSettings as Mock).mockResolvedValue(mockSettings);
+    (loadActivePreset as Mock).mockResolvedValue(null);
+    (getEffectiveSettings as Mock).mockResolvedValue({
+      settings: mockSettings,
+      activePreset: null,
+      isOverride: false,
+    });
 
     (detectPlatform as Mock).mockReturnValue('youtube');
     (getPlatformConfig as Mock).mockReturnValue({
