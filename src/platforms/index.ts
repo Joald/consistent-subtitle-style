@@ -1,34 +1,16 @@
-import type { PlatformConfig, StorageSettings } from '../types/index.js';
+import type { PlatformConfig } from '../types/index.js';
 import { youtube } from './youtube.js';
+import { nebula } from './nebula.js';
 import { dropout } from './dropout.js';
 import { primevideo } from './primevideo.js';
 import { max } from './max.js';
 
 export const PLATFORMS: Record<string, PlatformConfig> = {
   youtube,
+  nebula,
   dropout,
   primevideo,
   max,
-  nebula: {
-    name: 'Nebula',
-    baselineCss: {
-      subtitle: 'font-weight: bold !important;',
-    },
-    css: {
-      subtitleContainerSelector: '#video-player [data-subtitles-container]',
-      selectors: {
-        subtitle: '#video-player [data-subtitles-container] > div > div > div',
-        background: '#video-player [data-subtitles-container] > div > div > div',
-        window: '#video-player [data-subtitles-container] > div > div',
-      },
-    },
-    detectNativeCapabilities(): boolean {
-      return false;
-    },
-    getCurrentNativeSettings(): Partial<StorageSettings> | null {
-      return null;
-    },
-  },
 };
 
 export type Platform = 'youtube' | 'nebula' | 'dropout' | 'primevideo' | 'max';
