@@ -74,13 +74,13 @@ Uses CSS injection targeting Max's `CaptionWindow`, `TextCue`, and `CueBoxContai
 npm install          # Install dependencies
 npm run build        # Development build
 npm run build:prod   # Production build
-npm run test         # Run unit tests (174 tests)
+npm run test         # Run unit tests (188 tests)
 npm run ci           # Full CI: format + lint + typecheck + test + build
 ```
 
 ### Testing
 
-- **Unit tests**: 174 tests across 13 test files (Vitest)
+- **Unit tests**: 188 tests across 14 test files (Vitest)
 - **E2E tests**: 62 tests across YouTube, Nebula, and Dropout (Puppeteer)
 
 ```bash
@@ -101,6 +101,7 @@ src/
 ├── site-settings.ts # Per-site settings CRUD
 ├── platforms/       # Platform-specific handlers
 │   ├── index.ts     # Platform detection and config registry
+│   ├── nebula.ts    # Nebula CSS selectors
 │   ├── youtube.ts   # YouTube native API integration
 │   ├── dropout.ts   # Dropout/VHX/Vimeo hybrid handler
 │   ├── primevideo.ts# Prime Video CSS selectors

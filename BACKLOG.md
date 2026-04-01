@@ -16,6 +16,7 @@
 - [x] Add Prime Video subtitle support — CSS-only approach with 11 regional Amazon domains, 16 unit tests
 - [x] Add HBO Max subtitle support — CSS-only approach with CaptionWindow/TextCue/CueBoxContainer selectors, max.com + hbomax.com domains, 15 unit tests
 - [x] Update README with all platform support
+- [x] Nebula unit tests + extract to own module (14 tests, consistent with other platforms)
 - [ ] Chrome Web Store submission
 
 ## Done
