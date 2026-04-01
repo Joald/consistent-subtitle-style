@@ -1,7 +1,8 @@
-import { loadSettings, Settings } from './storage.js';
+import { loadSettings, Settings, loadActivePreset } from './storage.js';
 import { detectPlatform, getPlatformConfig } from './platforms/index.js';
 import { debug } from './debug.js';
 import { CSS_SETTING_MAPPINGS, generateCombinedCssRules } from './css-mappings.js';
+import { getEffectiveSettings } from './site-settings.js';
 import type {
   StorageSettings,
   PlatformConfig,
@@ -235,6 +236,17 @@ class SubtitleStylerApp {
 
       this.currentSettings = await loadSettings();
       this.settings = new Settings(this.currentSettings);
+
+      // Check for per-site override; use it if available, else use global settings.
+      const effective = await getEffectiveSettings(
+        this.currentPlatform,
+        () => Promise.resolve(this.currentSettings),
+        loadActivePreset,
+      );
+      if (effective.isOverride) {
+        this.currentSettings = effective.settings;
+        this.settings = new Settings(this.currentSettings);
+      }
 
       this.applyStyles();
 
