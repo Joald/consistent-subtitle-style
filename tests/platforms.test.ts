@@ -124,6 +124,27 @@ describe('platforms index', () => {
       expect(detectPlatform()).toBe('crunchyroll');
     });
 
+    // Disney+
+    it('detects disneyplus.com', () => {
+      vi.stubGlobal('location', { hostname: 'www.disneyplus.com', pathname: '/' });
+      expect(detectPlatform()).toBe('disneyplus');
+    });
+
+    it('detects disneyplus.com without www', () => {
+      vi.stubGlobal('location', { hostname: 'disneyplus.com', pathname: '/' });
+      expect(detectPlatform()).toBe('disneyplus');
+    });
+
+    it('detects regional Disney+ subdomain', () => {
+      vi.stubGlobal('location', { hostname: 'en-gb.disneyplus.com', pathname: '/' });
+      expect(detectPlatform()).toBe('disneyplus');
+    });
+
+    it('does not detect disney.com as disneyplus', () => {
+      vi.stubGlobal('location', { hostname: 'www.disney.com', pathname: '/' });
+      expect(detectPlatform()).not.toBe('disneyplus');
+    });
+
     // Unknown
     it('returns unknown for other hostnames', () => {
       vi.stubGlobal('location', { hostname: 'google.com' });
@@ -144,6 +165,7 @@ describe('platforms index', () => {
       expect(getPlatformConfig('primevideo')?.name).toBe('Prime Video');
       expect(getPlatformConfig('max')?.name).toBe('Max');
       expect(getPlatformConfig('crunchyroll')?.name).toBe('Crunchyroll');
+      expect(getPlatformConfig('disneyplus')?.name).toBe('Disney+');
     });
 
     it('returns null for unknown platform', () => {
@@ -156,7 +178,13 @@ describe('platforms index', () => {
     });
 
     it('css-only platforms have css config but no native settings', () => {
-      for (const platform of ['nebula', 'primevideo', 'max', 'crunchyroll'] as const) {
+      for (const platform of [
+        'nebula',
+        'primevideo',
+        'max',
+        'crunchyroll',
+        'disneyplus',
+      ] as const) {
         const config = getPlatformConfig(platform);
         expect(config?.css).toBeDefined();
         expect(config?.nativeSettings).toBeUndefined();

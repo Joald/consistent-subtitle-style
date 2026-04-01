@@ -22,6 +22,7 @@ const PLATFORM_DISPLAY_NAMES: Record<Platform, string> = {
   primevideo: 'Prime Video',
   max: 'Max',
   crunchyroll: 'Crunchyroll',
+  disneyplus: 'Disney+',
 };
 
 const ID_TO_SETTING_KEY: Record<string, keyof StorageSettings> = {

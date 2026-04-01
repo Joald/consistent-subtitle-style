@@ -31,6 +31,8 @@ class SubtitleStylerApp {
   private platformConfig: PlatformConfig | null = null;
   private applicationLog: ApplicationLog = {};
   private styleElement: HTMLStyleElement | null = null;
+  private shadowStyleElement: HTMLStyleElement | null = null;
+  private shadowHost: Element | null = null;
 
   constructor() {
     this.setupDebug();
@@ -41,23 +43,44 @@ class SubtitleStylerApp {
   private setupMutationObserver(): void {
     let timeout: number | null = null;
     const observer = new MutationObserver((mutations) => {
-      if (!this.platformConfig?.nativeSettings) return;
+      // Only watch for DOM changes on platforms that need re-application:
+      // - Platforms with native settings (need to re-apply when new player appears)
+      // - Platforms with shadow DOM hosts (need to inject CSS into new shadow roots)
+      const hasNative = !!this.platformConfig?.nativeSettings;
+      const hasShadow = !!this.platformConfig?.css?.shadowHost;
+      if (!hasNative && !hasShadow) return;
 
       let shouldReapply = false;
+
       for (const mutation of mutations) {
         for (const node of mutation.addedNodes) {
           if (!(node instanceof HTMLElement)) continue;
 
+          // Check for video player elements (for native settings platforms)
           if (
-            node.tagName === 'VIDEO' ||
-            node.querySelector('video') ||
-            node.classList.contains('html5-video-player') ||
-            node.classList.contains('vp-player') ||
-            node.classList.contains('vjs-player') ||
-            node.querySelector('.html5-video-player, .vp-player, .vjs-player')
+            hasNative &&
+            (node.tagName === 'VIDEO' ||
+              node.querySelector('video') ||
+              node.classList.contains('html5-video-player') ||
+              node.classList.contains('vp-player') ||
+              node.classList.contains('vjs-player') ||
+              node.querySelector('.html5-video-player, .vp-player, .vjs-player'))
           ) {
             shouldReapply = true;
             break;
+          }
+
+          // Check for shadow host elements (e.g. disney-web-player)
+          if (hasShadow) {
+            const shadowHostTag = this.platformConfig?.css?.shadowHost;
+            if (
+              shadowHostTag &&
+              (node.tagName.toLowerCase() === shadowHostTag.toLowerCase() ||
+                node.querySelector(shadowHostTag))
+            ) {
+              shouldReapply = true;
+              break;
+            }
           }
         }
         if (shouldReapply) break;
@@ -66,7 +89,7 @@ class SubtitleStylerApp {
       if (shouldReapply) {
         if (timeout) window.clearTimeout(timeout);
         timeout = window.setTimeout(() => {
-          debug.log('New player detected via MutationObserver, re-applying styles');
+          debug.log('New player or shadow host detected via MutationObserver, re-applying styles');
           this.applyStyles();
           timeout = null;
         }, 500);
@@ -212,12 +235,46 @@ class SubtitleStylerApp {
   }
 
   private injectCssRules(rules: string[]): void {
+    const cssText = rules.join('\n');
+
+    // Always inject into document head for non-shadow-DOM elements
     if (!this.styleElement) {
       this.styleElement = document.createElement('style');
       this.styleElement.id = 'subtitle-styler-dynamic-styles';
       document.head.appendChild(this.styleElement);
     }
-    this.styleElement.textContent = rules.join('\n');
+    this.styleElement.textContent = cssText;
+
+    // If the platform uses a shadow DOM host, also inject into the shadow root
+    if (this.platformConfig?.css?.shadowHost) {
+      this.injectIntoShadowRoot(cssText);
+    }
+  }
+
+  /**
+   * Injects CSS rules into the shadow root of the platform's shadow host element.
+   * Disney+ (and potentially other platforms) render subtitles inside a custom
+   * element's Shadow DOM, so regular document-level styles can't reach them.
+   */
+  private injectIntoShadowRoot(cssText: string): void {
+    const shadowHostTag = this.platformConfig?.css?.shadowHost;
+    if (!shadowHostTag) return;
+
+    const hostElement = document.querySelector(shadowHostTag);
+    if (!hostElement?.shadowRoot) {
+      // Shadow host not yet in DOM or has no shadow root — will retry on next
+      // MutationObserver tick or applyStyles call.
+      return;
+    }
+
+    this.shadowHost = hostElement;
+
+    if (this.shadowStyleElement?.parentNode !== hostElement.shadowRoot) {
+      this.shadowStyleElement = document.createElement('style');
+      this.shadowStyleElement.id = 'subtitle-styler-shadow-styles';
+      hostElement.shadowRoot.appendChild(this.shadowStyleElement);
+    }
+    this.shadowStyleElement.textContent = cssText;
   }
 
   public async initialize(): Promise<void> {
