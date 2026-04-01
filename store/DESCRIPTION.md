@@ -2,7 +2,7 @@
 
 ## Short Description (132 chars max)
 
-Customize subtitle styles across YouTube, Nebula, Dropout, Prime Video, Max, and Crunchyroll. Persistent per-site settings.
+Customize subtitle styles across YouTube, Nebula, Dropout, Prime Video, Max, Crunchyroll, and Disney+. Persistent per-site settings.
 
 ## Detailed Description
 
@@ -15,6 +15,7 @@ Consistent Subtitle Style gives you full control over how subtitles look on your
 • Prime Video — CSS injection across 11 regional Amazon domains
 • Max (HBO Max) — CSS injection (max.com + hbomax.com)
 • Crunchyroll — CSS injection (Bitmovin player)
+• Disney+ — CSS injection + Shadow DOM (disney-web-player custom element)
 
 🎨 9 CUSTOMIZABLE PROPERTIES
 • Font color, font family, font size, font opacity

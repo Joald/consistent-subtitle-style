@@ -5,6 +5,7 @@ import { dropout } from './dropout.js';
 import { primevideo } from './primevideo.js';
 import { max } from './max.js';
 import { crunchyroll } from './crunchyroll.js';
+import { disneyplus } from './disneyplus.js';
 
 export const PLATFORMS: Record<string, PlatformConfig> = {
   youtube,
@@ -13,9 +14,17 @@ export const PLATFORMS: Record<string, PlatformConfig> = {
   primevideo,
   max,
   crunchyroll,
+  disneyplus,
 };
 
-export type Platform = 'youtube' | 'nebula' | 'dropout' | 'primevideo' | 'max' | 'crunchyroll';
+export type Platform =
+  | 'youtube'
+  | 'nebula'
+  | 'dropout'
+  | 'primevideo'
+  | 'max'
+  | 'crunchyroll'
+  | 'disneyplus';
 
 export function detectPlatform(): Platform | 'unknown' {
   const hostname = window.location.hostname.toLowerCase();
@@ -31,6 +40,7 @@ export function detectPlatform(): Platform | 'unknown' {
   if (hostname === 'max.com' || hostname.endsWith('.max.com') || hostname.includes('hbomax.com'))
     return 'max';
   if (hostname.includes('crunchyroll.com')) return 'crunchyroll';
+  if (hostname.includes('disneyplus.com')) return 'disneyplus';
 
   return 'unknown';
 }

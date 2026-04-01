@@ -61,6 +61,12 @@ export interface CssConfig {
     background: string;
     window: string;
   };
+  /**
+   * Optional custom-element tag whose Shadow DOM may contain the subtitle
+   * elements. When set, the app will also inject CSS rules into the shadow
+   * root so that selectors can match elements inside the shadow boundary.
+   */
+  shadowHost?: string;
 }
 
 export interface PlatformConfig {
@@ -79,7 +85,14 @@ export interface PlatformConfig {
   applyNativeSetting?(setting: keyof StorageSettings, value: string): boolean;
 }
 
-export type Platform = 'youtube' | 'nebula' | 'dropout' | 'primevideo' | 'max' | 'crunchyroll';
+export type Platform =
+  | 'youtube'
+  | 'nebula'
+  | 'dropout'
+  | 'primevideo'
+  | 'max'
+  | 'crunchyroll'
+  | 'disneyplus';
 
 export type PlatformRegistry = Record<string, PlatformConfig>;
 

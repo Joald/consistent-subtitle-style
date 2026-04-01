@@ -4,7 +4,7 @@
 
 ## Overview
 
-A Chrome extension that applies persistent, customizable subtitle styles across streaming platforms. Features a hybrid styling approach using native APIs where available (YouTube) with CSS injection fallback for other platforms. Currently supports **YouTube**, **Nebula**, **Dropout**, **Prime Video**, **Max (HBO Max)**, and **Crunchyroll**.
+A Chrome extension that applies persistent, customizable subtitle styles across streaming platforms. Features a hybrid styling approach using native APIs where available (YouTube) with CSS injection fallback for other platforms. Currently supports **YouTube**, **Nebula**, **Dropout**, **Prime Video**, **Max (HBO Max)**, **Crunchyroll**, and **Disney+**.
 
 ## Features
 
@@ -48,6 +48,7 @@ A Chrome extension that applies persistent, customizable subtitle styles across 
 | Prime Video   | ✅     | CSS injection (11 regional Amazon domains)           |
 | Max (HBO Max) | ✅     | CSS injection (max.com + hbomax.com)                 |
 | Crunchyroll   | ✅     | CSS injection (Bitmovin player)                      |
+| Disney+       | ✅     | CSS injection + Shadow DOM (disney-web-player)       |
 
 ### Dropout / VHX
 
@@ -73,19 +74,23 @@ Uses CSS injection targeting Max's `CaptionWindow`, `TextCue`, and `CueBoxContai
 
 Uses CSS injection targeting Crunchyroll's Bitmovin player subtitle selectors (`bmpui-ui-subtitle-label` and `bmpui-ui-subtitle-overlay`). CSS-only approach — no native API integration needed.
 
+### Disney+
+
+Uses CSS injection targeting Disney+'s subtitle renderers (`dss-subtitle-renderer-cue` and `hive-subtitle-renderer-cue`). Disney+ renders its player inside a `<disney-web-player>` custom element with Shadow DOM, so the extension injects styles into both the document and the shadow root. A MutationObserver watches for the shadow host element to appear and re-injects styles when the player loads.
+
 ## Development
 
 ```bash
 npm install          # Install dependencies
 npm run build        # Development build
 npm run build:prod   # Production build
-npm run test         # Run unit tests (188 tests)
+npm run test         # Run unit tests (254 tests)
 npm run ci           # Full CI: format + lint + typecheck + test + build
 ```
 
 ### Testing
 
-- **Unit tests**: 188 tests across 14 test files (Vitest)
+- **Unit tests**: 254 tests across 16 test files (Vitest)
 - **E2E tests**: 62 tests across YouTube, Nebula, and Dropout (Puppeteer)
 
 ```bash
@@ -111,7 +116,8 @@ src/
 │   ├── dropout.ts   # Dropout/VHX/Vimeo hybrid handler
 │   ├── primevideo.ts# Prime Video CSS selectors
 │   ├── max.ts       # Max (HBO Max) CSS selectors
-│   └── crunchyroll.ts# Crunchyroll Bitmovin CSS selectors
+│   ├── crunchyroll.ts# Crunchyroll Bitmovin CSS selectors
+│   └── disneyplus.ts# Disney+ CSS selectors + Shadow DOM
 ├── types/           # TypeScript type definitions
 └── ui/
     ├── popup.ts     # Popup UI logic (settings, presets, per-site)
