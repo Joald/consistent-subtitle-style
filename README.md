@@ -4,7 +4,7 @@
 
 ## Overview
 
-A Chrome extension that applies persistent, customizable subtitle styles across streaming platforms. Features a hybrid styling approach using native APIs where available (YouTube) with CSS injection fallback for other platforms. Currently supports **YouTube**, **Nebula**, **Dropout**, **Prime Video**, and **Max (HBO Max)**.
+A Chrome extension that applies persistent, customizable subtitle styles across streaming platforms. Features a hybrid styling approach using native APIs where available (YouTube) with CSS injection fallback for other platforms. Currently supports **YouTube**, **Nebula**, **Dropout**, **Prime Video**, **Max (HBO Max)**, and **Crunchyroll**.
 
 ## Features
 
@@ -47,6 +47,7 @@ A Chrome extension that applies persistent, customizable subtitle styles across 
 | Dropout       | ✅     | Hybrid (Vimeo Player + inline styles + localStorage) |
 | Prime Video   | ✅     | CSS injection (11 regional Amazon domains)           |
 | Max (HBO Max) | ✅     | CSS injection (max.com + hbomax.com)                 |
+| Crunchyroll   | ✅     | CSS injection (Bitmovin player)                      |
 
 ### Dropout / VHX
 
@@ -67,6 +68,10 @@ Uses CSS injection targeting Amazon's `atvwebplayersdk` subtitle selectors. Supp
 ### Max (HBO Max)
 
 Uses CSS injection targeting Max's `CaptionWindow`, `TextCue`, and `CueBoxContainer` selectors. Supports both max.com and legacy hbomax.com domains.
+
+### Crunchyroll
+
+Uses CSS injection targeting Crunchyroll's Bitmovin player subtitle selectors (`bmpui-ui-subtitle-label` and `bmpui-ui-subtitle-overlay`). CSS-only approach — no native API integration needed.
 
 ## Development
 
@@ -105,7 +110,8 @@ src/
 │   ├── youtube.ts   # YouTube native API integration
 │   ├── dropout.ts   # Dropout/VHX/Vimeo hybrid handler
 │   ├── primevideo.ts# Prime Video CSS selectors
-│   └── max.ts       # Max (HBO Max) CSS selectors
+│   ├── max.ts       # Max (HBO Max) CSS selectors
+│   └── crunchyroll.ts# Crunchyroll Bitmovin CSS selectors
 ├── types/           # TypeScript type definitions
 └── ui/
     ├── popup.ts     # Popup UI logic (settings, presets, per-site)
