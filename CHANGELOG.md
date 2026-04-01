@@ -28,6 +28,10 @@
 - `store/CHECKLIST.md` — submission checklist
 - `store/SCREENSHOTS.md` — screenshot requirements
 
+### CI/CD
+
+- GitHub Actions CI workflow prepared (`store/ci-workflow.yml`) — runs lint, typecheck, unit tests, and production build on push/PR. Pending push (PAT lacks `workflow` scope — Jacek needs to commit from his machine or update PAT).
+
 ### Stats
 
 - **254 unit tests** across 16 test files (up from 62 E2E tests at v1.0)
