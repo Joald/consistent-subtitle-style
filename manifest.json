@@ -22,7 +22,19 @@
         "*://*.nebula.tv/*",
         "*://*.dropout.tv/*",
         "*://embed.vhx.tv/*",
-        "*://*.vhx.tv/*"
+        "*://*.vhx.tv/*",
+        "*://*.primevideo.com/*",
+        "*://*.amazon.com/gp/video/*",
+        "*://*.amazon.co.uk/gp/video/*",
+        "*://*.amazon.de/gp/video/*",
+        "*://*.amazon.co.jp/gp/video/*",
+        "*://*.amazon.fr/gp/video/*",
+        "*://*.amazon.it/gp/video/*",
+        "*://*.amazon.es/gp/video/*",
+        "*://*.amazon.in/gp/video/*",
+        "*://*.amazon.ca/gp/video/*",
+        "*://*.amazon.com.au/gp/video/*",
+        "*://*.amazon.com.br/gp/video/*"
       ],
       "run_at": "document_idle",
       "all_frames": true
@@ -36,7 +48,19 @@
         "*://*.nebula.tv/*",
         "*://*.dropout.tv/*",
         "*://embed.vhx.tv/*",
-        "*://*.vhx.tv/*"
+        "*://*.vhx.tv/*",
+        "*://*.primevideo.com/*",
+        "*://*.amazon.com/*",
+        "*://*.amazon.co.uk/*",
+        "*://*.amazon.de/*",
+        "*://*.amazon.co.jp/*",
+        "*://*.amazon.fr/*",
+        "*://*.amazon.it/*",
+        "*://*.amazon.es/*",
+        "*://*.amazon.in/*",
+        "*://*.amazon.ca/*",
+        "*://*.amazon.com.au/*",
+        "*://*.amazon.com.br/*"
       ]
     }
   ],
