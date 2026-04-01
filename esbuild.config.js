@@ -90,8 +90,12 @@ async function build() {
     // Copy static files with unique version to force new extension ID
     await copyStaticFiles();
 
-    // Generate PNGs from HTML
-    await generatePngs();
+    // Generate PNGs from HTML (non-fatal — may fail without Puppeteer/Chrome)
+    try {
+      await generatePngs();
+    } catch (e) {
+      console.warn('PNG generation skipped:', e.message);
+    }
 
     console.log('Build completed successfully!');
 
@@ -116,7 +120,11 @@ async function build() {
             setup(build) {
               build.onEnd(async () => {
                 await copyStaticFiles();
-                await generatePngs();
+                try {
+                  await generatePngs();
+                } catch (e) {
+                  console.warn('PNG generation skipped:', e.message);
+                }
               });
             },
           },

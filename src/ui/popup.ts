@@ -19,6 +19,7 @@ const PLATFORM_DISPLAY_NAMES: Record<Platform, string> = {
   youtube: 'YouTube',
   nebula: 'Nebula',
   dropout: 'Dropout',
+  primevideo: 'Prime Video',
 };
 
 const ID_TO_SETTING_KEY: Record<string, keyof StorageSettings> = {
