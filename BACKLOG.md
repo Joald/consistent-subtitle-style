@@ -7,7 +7,7 @@
 
 ## Medium Priority
 
-- [ ] Nebula font-family E2E flake — timing issue, monitoring
+- [x] Nebula font-family E2E flake — fixed: popup tab was closing before async save completed
 - [x] Preset system — implemented with 3 production presets (Recommended, Classic, Minimal) + 6 dev presets. Popup dropdown, auto-detection, activePreset tracking. 17 unit tests.
 - [x] Per-site settings — implemented with scope toggle UI (All Sites / platform), CRUD for per-platform overrides, 17 unit tests, content script integration
 
@@ -15,7 +15,7 @@
 
 - [x] Add Prime Video subtitle support — CSS-only approach with 11 regional Amazon domains, 16 unit tests
 - [x] Add HBO Max subtitle support — CSS-only approach with CaptionWindow/TextCue/CueBoxContainer selectors, max.com + hbomax.com domains, 15 unit tests
-- [x] Update README with Dropout support details
+- [x] Update README with all platform support
 - [ ] Chrome Web Store submission
 
 ## Done
