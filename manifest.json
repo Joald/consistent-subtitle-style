@@ -34,7 +34,9 @@
         "*://*.amazon.in/gp/video/*",
         "*://*.amazon.ca/gp/video/*",
         "*://*.amazon.com.au/gp/video/*",
-        "*://*.amazon.com.br/gp/video/*"
+        "*://*.amazon.com.br/gp/video/*",
+        "*://*.max.com/*",
+        "*://*.hbomax.com/*"
       ],
       "run_at": "document_idle",
       "all_frames": true
@@ -60,7 +62,9 @@
         "*://*.amazon.in/*",
         "*://*.amazon.ca/*",
         "*://*.amazon.com.au/*",
-        "*://*.amazon.com.br/*"
+        "*://*.amazon.com.br/*",
+        "*://*.max.com/*",
+        "*://*.hbomax.com/*"
       ]
     }
   ],

@@ -20,6 +20,7 @@ const PLATFORM_DISPLAY_NAMES: Record<Platform, string> = {
   nebula: 'Nebula',
   dropout: 'Dropout',
   primevideo: 'Prime Video',
+  max: 'Max',
 };
 
 const ID_TO_SETTING_KEY: Record<string, keyof StorageSettings> = {
@@ -399,6 +400,17 @@ async function detectActiveTabPlatform(): Promise<Platform | null> {
     if (hostname.includes('youtube.com')) return 'youtube';
     if (hostname.includes('nebula.tv')) return 'nebula';
     if (hostname.includes('vhx.tv') || hostname.includes('dropout.tv')) return 'dropout';
+    if (
+      hostname.includes('primevideo.com') ||
+      (hostname.includes('amazon.') && url.pathname.startsWith('/gp/video'))
+    )
+      return 'primevideo';
+    if (
+      hostname === 'max.com' ||
+      hostname.endsWith('.max.com') ||
+      hostname.includes('hbomax.com')
+    )
+      return 'max';
   } catch {
     // ignore — might not have tabs permission
   }
