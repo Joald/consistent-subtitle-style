@@ -11,6 +11,10 @@
 - [x] Preset system — implemented with 3 production presets (Recommended, Classic, Minimal) + 6 dev presets. Popup dropdown, auto-detection, activePreset tracking. 17 unit tests.
 - [x] Per-site settings — implemented with scope toggle UI (All Sites / platform), CRUD for per-platform overrides, 17 unit tests, content script integration
 
+## Pending (Blocked on PAT Scope)
+
+- [ ] GitHub Actions CI workflow — file ready at `store/ci-workflow.yml`, needs PAT with `workflow` scope or manual push from Jacek. Copy to `.github/workflows/ci.yml`.
+
 ## Low Priority
 
 - [x] Add Prime Video subtitle support — CSS-only approach with 11 regional Amazon domains, 16 unit tests
