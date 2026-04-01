@@ -79,7 +79,7 @@ export interface PlatformConfig {
   applyNativeSetting?(setting: keyof StorageSettings, value: string): boolean;
 }
 
-export type Platform = 'youtube' | 'nebula' | 'dropout' | 'primevideo' | 'max';
+export type Platform = 'youtube' | 'nebula' | 'dropout' | 'primevideo' | 'max' | 'crunchyroll';
 
 export type PlatformRegistry = Record<string, PlatformConfig>;
 
