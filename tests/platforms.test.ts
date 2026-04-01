@@ -4,29 +4,170 @@ import { youtube } from '../src/platforms/youtube.js';
 import type { YouTubePlayerElement } from '../src/types/index.js';
 
 describe('platforms index', () => {
-  it('detects youtube properly', () => {
-    vi.stubGlobal('location', { hostname: 'www.youtube.com' });
-    expect(detectPlatform()).toBe('youtube');
+  describe('detectPlatform', () => {
+    // YouTube
+    it('detects youtube properly', () => {
+      vi.stubGlobal('location', { hostname: 'www.youtube.com' });
+      expect(detectPlatform()).toBe('youtube');
+    });
+
+    it('detects youtube without www prefix', () => {
+      vi.stubGlobal('location', { hostname: 'youtube.com' });
+      expect(detectPlatform()).toBe('youtube');
+    });
+
+    it('detects youtube music subdomain', () => {
+      vi.stubGlobal('location', { hostname: 'music.youtube.com' });
+      expect(detectPlatform()).toBe('youtube');
+    });
+
+    // Nebula
+    it('detects nebula properly', () => {
+      vi.stubGlobal('location', { hostname: 'nebula.tv' });
+      expect(detectPlatform()).toBe('nebula');
+    });
+
+    it('detects nebula with subdomain', () => {
+      vi.stubGlobal('location', { hostname: 'www.nebula.tv' });
+      expect(detectPlatform()).toBe('nebula');
+    });
+
+    // Dropout
+    it('detects dropout.tv', () => {
+      vi.stubGlobal('location', { hostname: 'www.dropout.tv' });
+      expect(detectPlatform()).toBe('dropout');
+    });
+
+    it('detects dropout via vhx.tv embed', () => {
+      vi.stubGlobal('location', { hostname: 'embed.vhx.tv' });
+      expect(detectPlatform()).toBe('dropout');
+    });
+
+    it('detects dropout via vhx.tv subdomain', () => {
+      vi.stubGlobal('location', { hostname: 'player.vhx.tv' });
+      expect(detectPlatform()).toBe('dropout');
+    });
+
+    // Prime Video
+    it('detects primevideo.com', () => {
+      vi.stubGlobal('location', { hostname: 'www.primevideo.com', pathname: '/watch' });
+      expect(detectPlatform()).toBe('primevideo');
+    });
+
+    it('detects amazon.com/gp/video', () => {
+      vi.stubGlobal('location', { hostname: 'www.amazon.com', pathname: '/gp/video/detail/123' });
+      expect(detectPlatform()).toBe('primevideo');
+    });
+
+    it('detects amazon.co.uk/gp/video', () => {
+      vi.stubGlobal('location', {
+        hostname: 'www.amazon.co.uk',
+        pathname: '/gp/video/detail/456',
+      });
+      expect(detectPlatform()).toBe('primevideo');
+    });
+
+    it('detects amazon.de/gp/video', () => {
+      vi.stubGlobal('location', { hostname: 'www.amazon.de', pathname: '/gp/video/offers' });
+      expect(detectPlatform()).toBe('primevideo');
+    });
+
+    it('detects amazon.co.jp/gp/video', () => {
+      vi.stubGlobal('location', { hostname: 'www.amazon.co.jp', pathname: '/gp/video/detail' });
+      expect(detectPlatform()).toBe('primevideo');
+    });
+
+    it('does not detect amazon.com without /gp/video path', () => {
+      vi.stubGlobal('location', { hostname: 'www.amazon.com', pathname: '/dp/B08N5WRWNW' });
+      expect(detectPlatform()).toBe('unknown');
+    });
+
+    // Max (HBO Max)
+    it('detects max.com', () => {
+      vi.stubGlobal('location', { hostname: 'max.com' });
+      expect(detectPlatform()).toBe('max');
+    });
+
+    it('detects play.max.com subdomain', () => {
+      vi.stubGlobal('location', { hostname: 'play.max.com' });
+      expect(detectPlatform()).toBe('max');
+    });
+
+    it('detects www.max.com subdomain', () => {
+      vi.stubGlobal('location', { hostname: 'www.max.com' });
+      expect(detectPlatform()).toBe('max');
+    });
+
+    it('detects legacy hbomax.com', () => {
+      vi.stubGlobal('location', { hostname: 'www.hbomax.com' });
+      expect(detectPlatform()).toBe('max');
+    });
+
+    it('does not detect maxfoo.com as max', () => {
+      vi.stubGlobal('location', { hostname: 'maxfoo.com' });
+      expect(detectPlatform()).toBe('unknown');
+    });
+
+    // Crunchyroll
+    it('detects crunchyroll.com', () => {
+      vi.stubGlobal('location', { hostname: 'www.crunchyroll.com' });
+      expect(detectPlatform()).toBe('crunchyroll');
+    });
+
+    it('detects crunchyroll.com without www', () => {
+      vi.stubGlobal('location', { hostname: 'crunchyroll.com' });
+      expect(detectPlatform()).toBe('crunchyroll');
+    });
+
+    it('detects regional crunchyroll subdomain', () => {
+      vi.stubGlobal('location', { hostname: 'beta.crunchyroll.com' });
+      expect(detectPlatform()).toBe('crunchyroll');
+    });
+
+    // Unknown
+    it('returns unknown for other hostnames', () => {
+      vi.stubGlobal('location', { hostname: 'google.com' });
+      expect(detectPlatform()).toBe('unknown');
+    });
+
+    it('returns unknown for empty hostname', () => {
+      vi.stubGlobal('location', { hostname: '' });
+      expect(detectPlatform()).toBe('unknown');
+    });
   });
 
-  it('detects nebula properly', () => {
-    vi.stubGlobal('location', { hostname: 'nebula.tv' });
-    expect(detectPlatform()).toBe('nebula');
-  });
+  describe('getPlatformConfig', () => {
+    it('returns correct config for all platforms', () => {
+      expect(getPlatformConfig('youtube')?.name).toBe('YouTube');
+      expect(getPlatformConfig('nebula')?.name).toBe('Nebula');
+      expect(getPlatformConfig('dropout')?.name).toBe('Dropout');
+      expect(getPlatformConfig('primevideo')?.name).toBe('Prime Video');
+      expect(getPlatformConfig('max')?.name).toBe('Max');
+      expect(getPlatformConfig('crunchyroll')?.name).toBe('Crunchyroll');
+    });
 
-  it('returns unknown for other hostnames', () => {
-    vi.stubGlobal('location', { hostname: 'google.com' });
-    expect(detectPlatform()).toBe('unknown');
-  });
+    it('returns null for unknown platform', () => {
+      expect(getPlatformConfig('unknown')).toBeNull();
+    });
 
-  it('returns correct config for platform', () => {
-    const config = getPlatformConfig('youtube');
-    expect(config?.name).toBe('YouTube');
+    it('youtube has native settings', () => {
+      const config = getPlatformConfig('youtube');
+      expect(config?.nativeSettings).toBeDefined();
+    });
 
-    const nebulaConfig = getPlatformConfig('nebula');
-    expect(nebulaConfig?.name).toBe('Nebula');
+    it('css-only platforms have css config but no native settings', () => {
+      for (const platform of ['nebula', 'primevideo', 'max', 'crunchyroll'] as const) {
+        const config = getPlatformConfig(platform);
+        expect(config?.css).toBeDefined();
+        expect(config?.nativeSettings).toBeUndefined();
+      }
+    });
 
-    expect(getPlatformConfig('unknown')).toBeNull();
+    it('dropout has both css and native settings', () => {
+      const config = getPlatformConfig('dropout');
+      expect(config?.css).toBeDefined();
+      expect(config?.nativeSettings).toBeDefined();
+    });
   });
 });
 
