@@ -405,11 +405,7 @@ async function detectActiveTabPlatform(): Promise<Platform | null> {
       (hostname.includes('amazon.') && url.pathname.startsWith('/gp/video'))
     )
       return 'primevideo';
-    if (
-      hostname === 'max.com' ||
-      hostname.endsWith('.max.com') ||
-      hostname.includes('hbomax.com')
-    )
+    if (hostname === 'max.com' || hostname.endsWith('.max.com') || hostname.includes('hbomax.com'))
       return 'max';
   } catch {
     // ignore — might not have tabs permission
