@@ -4,7 +4,15 @@
 
 ## Overview
 
-This Chrome extension provides persistent subtitle styling across streaming platforms with TypeScript-based architecture. Features hybrid styling approach using native YouTube API with CSS fallback for platforms that don't offer native support. Supports YouTube, Nebula, and Dropout.
+A Chrome extension that applies persistent, customizable subtitle styles across streaming platforms. Features a hybrid styling approach using native APIs where available (YouTube) with CSS injection fallback for other platforms. Currently supports **YouTube**, **Nebula**, **Dropout**, **Prime Video**, and **Max (HBO Max)**.
+
+## Features
+
+- **9 customizable style properties**: font color, font family, font size, font opacity, background color, background opacity, window color, window opacity, and character edge style
+- **Per-site settings**: apply different styles to different platforms (or use one global style everywhere)
+- **Preset system**: 3 built-in presets (Recommended, Classic, Minimal) for quick setup
+- **Live preview**: see style changes in the popup before they're applied
+- **Instant updates**: style changes apply immediately without reloading the page
 
 ## Quick Start
 
@@ -26,20 +34,19 @@ This Chrome extension provides persistent subtitle styling across streaming plat
 
 1. Navigate to any supported streaming service
 2. Click the extension icon to open settings
-3. Customize your subtitle styles
+3. Customize your subtitle styles (or pick a preset)
 4. Styles persist across all videos and platforms
-
-### Quick Test
-
-Navigate to any streaming video with subtitles enabled and verify your custom styles are applied automatically.
+5. Use the scope toggle to apply settings globally or per-site
 
 ## Supported Platforms
 
-| Platform | Status | Support Type                                         |
-| -------- | ------ | ---------------------------------------------------- |
-| YouTube  | ✅     | Native API                                           |
-| Nebula   | ✅     | CSS Only                                             |
-| Dropout  | ✅     | Hybrid (Vimeo Player + Inline Styles + localStorage) |
+| Platform      | Status | Support Type                                         |
+| ------------- | ------ | ---------------------------------------------------- |
+| YouTube       | ✅     | Native API                                           |
+| Nebula        | ✅     | CSS injection                                        |
+| Dropout       | ✅     | Hybrid (Vimeo Player + inline styles + localStorage) |
+| Prime Video   | ✅     | CSS injection (11 regional Amazon domains)           |
+| Max (HBO Max) | ✅     | CSS injection (max.com + hbomax.com)                 |
 
 ### Dropout / VHX
 
@@ -53,10 +60,53 @@ Dropout uses a Vimeo OTT player embedded in a cross-origin iframe (`embed.vhx.tv
 
 4. **`broadcastChanges`** — Since the parent page (`dropout.tv`) receives `chrome.storage.onChanged` events but the Vimeo iframe does not, the extension's injection script on the parent page forwards setting changes into the iframe via `postMessage`.
 
-**Supported style properties:** font color, font opacity, background color/opacity, window color/opacity, character edge style (shadow, raised, depressed, outline), font family (7 variants), and font size (50%–400%).
+### Prime Video
 
-**Caveats:**
+Uses CSS injection targeting Amazon's `atvwebplayersdk` subtitle selectors. Supports 11 regional Amazon domains (.com, .co.uk, .de, .co.jp, .fr, .it, .es, .in, .ca, .com.au, .com.br).
 
-- Caption style classes use CSS Modules (hashed names), so selectors match on stable prefixes like `[class*="CaptionsRenderer_module_captionsLine"]` rather than exact class names.
-- Font size scaling is relative to the Vimeo player's base font size (~49px at 1080p), which may differ at other resolutions.
-- The first style application may use a `postMessage` fallback adapter if the player hasn't fully initialized; a retry fires after 1.5s to use the real API once available.
+### Max (HBO Max)
+
+Uses CSS injection targeting Max's `CaptionWindow`, `TextCue`, and `CueBoxContainer` selectors. Supports both max.com and legacy hbomax.com domains.
+
+## Development
+
+```bash
+npm install          # Install dependencies
+npm run build        # Development build
+npm run build:prod   # Production build
+npm run test         # Run unit tests (174 tests)
+npm run ci           # Full CI: format + lint + typecheck + test + build
+```
+
+### Testing
+
+- **Unit tests**: 174 tests across 13 test files (Vitest)
+- **E2E tests**: 62 tests across YouTube, Nebula, and Dropout (Puppeteer)
+
+```bash
+npm run test         # Unit tests
+bun e2e/run.sh       # E2E tests (requires Chrome)
+```
+
+## Architecture
+
+```
+src/
+├── main.ts          # Content script: style application engine
+├── injection.ts     # Content script: bridge between extension and page
+├── bridge.ts        # Injected into page: fake chrome.storage API
+├── background.ts    # Service worker: dynamic content script registration
+├── css-mappings.ts  # CSS property/value mappings for all settings
+├── storage.ts       # Settings persistence (chrome.storage.sync)
+├── site-settings.ts # Per-site settings CRUD
+├── platforms/       # Platform-specific handlers
+│   ├── index.ts     # Platform detection and config registry
+│   ├── youtube.ts   # YouTube native API integration
+│   ├── dropout.ts   # Dropout/VHX/Vimeo hybrid handler
+│   ├── primevideo.ts# Prime Video CSS selectors
+│   └── max.ts       # Max (HBO Max) CSS selectors
+├── types/           # TypeScript type definitions
+└── ui/
+    ├── popup.ts     # Popup UI logic (settings, presets, per-site)
+    └── styles.css   # Popup styles (dark theme)
+```
