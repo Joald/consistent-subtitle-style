@@ -14,12 +14,13 @@
 ## Low Priority
 
 - [x] Add Prime Video subtitle support — CSS-only approach with 11 regional Amazon domains, 16 unit tests
-- [ ] Add HBO Max subtitle support
+- [x] Add HBO Max subtitle support — CSS-only approach with CaptionWindow/TextCue/CueBoxContainer selectors, max.com + hbomax.com domains, 15 unit tests
 - [x] Update README with Dropout support details
 - [ ] Chrome Web Store submission
 
 ## Done
 
+- [x] Max (HBO Max) subtitle support (CSS-only, CaptionWindow/TextCue/CueBoxContainer selectors, max.com + hbomax.com, 15 unit tests, 174 total tests green)
 - [x] Prime Video subtitle support (CSS-only, atvwebplayersdk selectors, 11 regional domains, 16 unit tests, 159 total tests green)
 - [x] Per-site settings (scope toggle UI, per-platform overrides in chrome.storage.sync, 17 unit tests, 143 total tests green)
 - [x] Preset system (Recommended, Classic, Minimal + 6 dev presets, popup dropdown, 17 unit tests)
