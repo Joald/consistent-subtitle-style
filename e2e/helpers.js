@@ -143,12 +143,37 @@ const STORAGE_KEY_TO_DATA_ID = {
 // ── Popup-based storage manipulation ─────────────────────────────────────────
 
 /**
+ * Wait for the popup's "Saved!" confirmation message to appear.
+ * This ensures chrome.storage.sync.set() has completed before we close
+ * the popup tab.
+ *
+ * @param {Page} popupPage - Puppeteer page for the popup
+ * @param {number} timeoutMs - Maximum wait time
+ * @returns {Promise<boolean>} true if saved confirmation appeared
+ */
+async function waitForSaveConfirmation(popupPage, timeoutMs = 5_000) {
+  const deadline = Date.now() + timeoutMs;
+  while (Date.now() < deadline) {
+    const saved = await popupPage.evaluate(() => {
+      const msg = document.getElementById('message');
+      return msg?.textContent?.includes('Saved') && msg?.classList?.contains('show');
+    });
+    if (saved) return true;
+    await sleep(100);
+  }
+  return false;
+}
+
+/**
  * Change extension settings by interacting with the popup UI.
  *
  * Opens chrome-extension://{extId}/index.html in a new tab, clicks the
  * appropriate dropdown options, which triggers handleSave() in popup.ts.
  * This saves to chrome.storage.sync AND sends chrome.tabs.sendMessage
  * to content scripts for live updates.
+ *
+ * Waits for the "Saved!" confirmation to appear before closing the tab,
+ * ensuring the async chrome.storage.sync.set() has completed.
  *
  * Does NOT require the service worker to be alive.
  *
@@ -201,8 +226,17 @@ export async function setStorageViaPopup(browser, extId, settings) {
       }
     }
 
-    // Give the popup a moment to save all settings
-    await sleep(500);
+    // Wait for the "Saved!" confirmation instead of a blind timeout.
+    // This ensures chrome.storage.sync.set() has completed before we
+    // close the popup tab — fixing the intermittent font-family flake
+    // where the tab was closed before the async save finished.
+    const confirmed = await waitForSaveConfirmation(popupPage);
+    if (!confirmed) {
+      // Fallback: give extra time if the confirmation didn't appear
+      console.warn('  ⚠️  Save confirmation not detected, waiting additional 1s');
+      await sleep(1000);
+    }
+
     return true;
   } catch (e) {
     console.warn(`  ⚠️  Popup interaction failed: ${e.message}`);
@@ -231,7 +265,12 @@ export async function resetStorageViaPopup(browser, extId) {
       if (resetBtn) resetBtn.click();
     });
 
-    await sleep(1000);
+    // Wait for "Saved!" confirmation after reset too
+    const confirmed = await waitForSaveConfirmation(popupPage);
+    if (!confirmed) {
+      await sleep(1000);
+    }
+
     return true;
   } catch (e) {
     console.warn(`  ⚠️  Reset via popup failed: ${e.message}`);
