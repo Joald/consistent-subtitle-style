@@ -21,6 +21,7 @@ const PLATFORM_DISPLAY_NAMES: Record<Platform, string> = {
   dropout: 'Dropout',
   primevideo: 'Prime Video',
   max: 'Max',
+  crunchyroll: 'Crunchyroll',
 };
 
 const ID_TO_SETTING_KEY: Record<string, keyof StorageSettings> = {
