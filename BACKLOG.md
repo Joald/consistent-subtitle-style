@@ -15,12 +15,14 @@
 
 - [x] Add Prime Video subtitle support — CSS-only approach with 11 regional Amazon domains, 16 unit tests
 - [x] Add HBO Max subtitle support — CSS-only approach with CaptionWindow/TextCue/CueBoxContainer selectors, max.com + hbomax.com domains, 15 unit tests
+- [x] Add Crunchyroll subtitle support — CSS-only approach with Bitmovin player selectors, 15 unit tests
 - [x] Update README with all platform support
 - [x] Nebula unit tests + extract to own module (14 tests, consistent with other platforms)
 - [ ] Chrome Web Store submission
 
 ## Done
 
+- [x] Crunchyroll subtitle support (CSS-only, Bitmovin player bmpui-ui-subtitle-label/overlay selectors, 15 unit tests, 203 total tests green)
 - [x] Max (HBO Max) subtitle support (CSS-only, CaptionWindow/TextCue/CueBoxContainer selectors, max.com + hbomax.com, 15 unit tests, 174 total tests green)
 - [x] Prime Video subtitle support (CSS-only, atvwebplayersdk selectors, 11 regional domains, 16 unit tests, 159 total tests green)
 - [x] Per-site settings (scope toggle UI, per-platform overrides in chrome.storage.sync, 17 unit tests, 143 total tests green)
