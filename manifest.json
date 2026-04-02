@@ -72,7 +72,9 @@
         "*://*.hbomax.com/*",
         "*://*.crunchyroll.com/*",
         "*://*.disneyplus.com/*",
-        "*://*.netflix.com/*"
+        "*://*.netflix.com/*",
+        "*://*.vimeo.com/*",
+        "*://player.vimeo.com/*"
       ]
     }
   ],
