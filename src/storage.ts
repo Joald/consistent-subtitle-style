@@ -55,7 +55,10 @@ export function isValidValue<K extends keyof StorageSettings>(
   key: K,
   value: string,
 ): value is StorageSettings[K] {
-  return VALID_SETTINGS[key].includes(value);
+  const allowed = VALID_SETTINGS[key];
+  // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition -- defensive check for unknown keys at runtime
+  if (!allowed) return false;
+  return allowed.includes(value);
 }
 
 export class Settings {
