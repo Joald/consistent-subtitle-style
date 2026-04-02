@@ -1,0 +1,11 @@
+dist/
+node_modules/
+*.mp4
+*.png
+*.jpg
+*.webp
+*.woff2
+store/
+e2e/
+docs/
+CHANGELOG.md
