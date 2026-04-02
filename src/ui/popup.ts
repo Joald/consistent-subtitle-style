@@ -24,6 +24,7 @@ const PLATFORM_DISPLAY_NAMES: Record<Platform, string> = {
   crunchyroll: 'Crunchyroll',
   disneyplus: 'Disney+',
   netflix: 'Netflix',
+  vimeo: 'Vimeo',
 };
 
 const ID_TO_SETTING_KEY: Record<string, keyof StorageSettings> = {
@@ -413,6 +414,7 @@ async function detectActiveTabPlatform(): Promise<Platform | null> {
     if (hostname.includes('crunchyroll.com')) return 'crunchyroll';
     if (hostname.includes('disneyplus.com')) return 'disneyplus';
     if (hostname.includes('netflix.com')) return 'netflix';
+    if (hostname.includes('vimeo.com')) return 'vimeo';
   } catch {
     // ignore — might not have tabs permission
   }

@@ -9,6 +9,7 @@
 - **Crunchyroll**: CSS-only subtitle support via Bitmovin player (`bmpui-ui-subtitle-label`/`bmpui-ui-subtitle-overlay`) selectors. 15 unit tests.
 - **Disney+**: CSS injection + Shadow DOM support via `disney-web-player` custom element. Dual subtitle renderers (`dss-subtitle-renderer-cue`, `hive-subtitle-renderer-cue`). 22 unit tests.
 - **Netflix**: CSS injection targeting Cadmium player `.player-timedtext` containers and `.player-timedtext-text-container span` for text styling. 18 unit tests.
+- **Vimeo**: CSS injection targeting `.vp-captions` container and inner `<span>` for background. Supports `vimeo.com` and `player.vimeo.com` (embedded player). 20 unit tests.
 
 ### New Features
 
@@ -36,8 +37,8 @@
 
 ### Stats
 
-- **430 unit tests** across 18 test files (up from 62 E2E tests at v1.0)
-- **8 supported platforms**: YouTube, Nebula, Dropout, Prime Video, Max, Crunchyroll, Disney+, Netflix
+- **450 unit tests** across 19 test files (up from 62 E2E tests at v1.0)
+- **9 supported platforms**: YouTube, Nebula, Dropout, Prime Video, Max, Crunchyroll, Disney+, Netflix, Vimeo
 - **Zero network requests** — all processing is local
 
 ## 1.0.1 - Style Refinements & Bug Fixes

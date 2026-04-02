@@ -22,6 +22,8 @@
 - [x] Add Crunchyroll subtitle support — CSS-only approach with Bitmovin player selectors, 15 unit tests
 - [x] Add Disney+ subtitle support — CSS injection + Shadow DOM via disney-web-player custom element, dual renderers, 22 unit tests
 - [x] Add Netflix subtitle support — CSS injection targeting Cadmium player-timedtext containers, 18 unit tests
+- [x] Add Vimeo subtitle support — CSS injection targeting vp-captions container, vimeo.com + player.vimeo.com, 20 unit tests
+- [x] Add comprehensive YouTube unit tests (71 tests: detection, config, applySetting, native settings, getCurrentValue)
 - [x] Update README with all platform support
 - [x] Nebula unit tests + extract to own module (14 tests, consistent with other platforms)
 - [ ] Chrome Web Store submission
