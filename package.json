@@ -12,7 +12,7 @@
     "clean": "rimraf dist",
     "typecheck": "tsc --noEmit",
     "dev": "npm run watch",
-    "lint": "eslint --format json . > /dev/null",
+    "lint": "eslint .",
     "format": "prettier --write .",
     "test": "vitest run",
     "test:watch": "vitest",
