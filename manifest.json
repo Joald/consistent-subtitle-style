@@ -38,7 +38,8 @@
         "*://*.max.com/*",
         "*://*.hbomax.com/*",
         "*://*.crunchyroll.com/*",
-        "*://*.disneyplus.com/*"
+        "*://*.disneyplus.com/*",
+        "*://*.netflix.com/*"
       ],
       "run_at": "document_idle",
       "all_frames": true
@@ -67,7 +68,9 @@
         "*://*.amazon.com.br/*",
         "*://*.max.com/*",
         "*://*.hbomax.com/*",
-        "*://*.crunchyroll.com/*"
+        "*://*.crunchyroll.com/*",
+        "*://*.disneyplus.com/*",
+        "*://*.netflix.com/*"
       ]
     }
   ],

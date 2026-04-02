@@ -6,6 +6,7 @@ import { primevideo } from './primevideo.js';
 import { max } from './max.js';
 import { crunchyroll } from './crunchyroll.js';
 import { disneyplus } from './disneyplus.js';
+import { netflix } from './netflix.js';
 
 export const PLATFORMS: Record<string, PlatformConfig> = {
   youtube,
@@ -15,6 +16,7 @@ export const PLATFORMS: Record<string, PlatformConfig> = {
   max,
   crunchyroll,
   disneyplus,
+  netflix,
 };
 
 export type Platform =
@@ -24,7 +26,8 @@ export type Platform =
   | 'primevideo'
   | 'max'
   | 'crunchyroll'
-  | 'disneyplus';
+  | 'disneyplus'
+  | 'netflix';
 
 export function detectPlatform(): Platform | 'unknown' {
   const hostname = window.location.hostname.toLowerCase();
@@ -41,6 +44,7 @@ export function detectPlatform(): Platform | 'unknown' {
     return 'max';
   if (hostname.includes('crunchyroll.com')) return 'crunchyroll';
   if (hostname.includes('disneyplus.com')) return 'disneyplus';
+  if (hostname.includes('netflix.com')) return 'netflix';
 
   return 'unknown';
 }

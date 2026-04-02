@@ -155,6 +155,17 @@ describe('platforms index', () => {
       vi.stubGlobal('location', { hostname: '' });
       expect(detectPlatform()).toBe('unknown');
     });
+
+    // Netflix
+    it('detects netflix.com', () => {
+      vi.stubGlobal('location', { hostname: 'www.netflix.com', pathname: '/' });
+      expect(detectPlatform()).toBe('netflix');
+    });
+
+    it('detects netflix.com without www', () => {
+      vi.stubGlobal('location', { hostname: 'netflix.com', pathname: '/' });
+      expect(detectPlatform()).toBe('netflix');
+    });
   });
 
   describe('getPlatformConfig', () => {
@@ -166,6 +177,7 @@ describe('platforms index', () => {
       expect(getPlatformConfig('max')?.name).toBe('Max');
       expect(getPlatformConfig('crunchyroll')?.name).toBe('Crunchyroll');
       expect(getPlatformConfig('disneyplus')?.name).toBe('Disney+');
+      expect(getPlatformConfig('netflix')?.name).toBe('Netflix');
     });
 
     it('returns null for unknown platform', () => {
@@ -184,6 +196,7 @@ describe('platforms index', () => {
         'max',
         'crunchyroll',
         'disneyplus',
+        'netflix',
       ] as const) {
         const config = getPlatformConfig(platform);
         expect(config?.css).toBeDefined();
