@@ -4,7 +4,7 @@
 
 ## Overview
 
-A Chrome extension that applies persistent, customizable subtitle styles across streaming platforms. Features a hybrid styling approach using native APIs where available (YouTube) with CSS injection fallback for other platforms. Currently supports **YouTube**, **Nebula**, **Dropout**, **Prime Video**, **Max (HBO Max)**, **Crunchyroll**, **Disney+**, and **Netflix**.
+A Chrome extension that applies persistent, customizable subtitle styles across streaming platforms. Features a hybrid styling approach using native APIs where available (YouTube) with CSS injection fallback for other platforms. Currently supports **YouTube**, **Nebula**, **Dropout**, **Prime Video**, **Max (HBO Max)**, **Crunchyroll**, **Disney+**, **Netflix**, and **Vimeo**.
 
 ## Features
 
@@ -50,6 +50,7 @@ A Chrome extension that applies persistent, customizable subtitle styles across 
 | Crunchyroll   | ✅     | CSS injection (Bitmovin player)                      |
 | Disney+       | ✅     | CSS injection + Shadow DOM (disney-web-player)       |
 | Netflix       | ✅     | CSS injection (Cadmium player-timedtext)             |
+| Vimeo         | ✅     | CSS injection (vp-captions, embedded player)         |
 
 ### Dropout / VHX
 
