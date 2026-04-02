@@ -20,6 +20,7 @@
 
 - **Nebula extraction**: Nebula platform extracted to its own module (`src/platforms/nebula.ts`) with 14 dedicated unit tests.
 - **Platform detection tests**: Comprehensive detection tests for all 6 platforms including edge cases (regional domains, legacy domains, subdomain variants). 25 new tests.
+- **CSS mappings tests**: Comprehensive tests for `generateCssRule` and `generateCombinedCssRules` — all color values, font families, edge styles, color+opacity combos, cross-appliesTo filtering, edge cases. 85 new tests.
 - **E2E stability**: Fixed Nebula font-family E2E flake — popup tab was closing before async save completed. Now waits for "Saved!" confirmation.
 
 ### Chrome Web Store Prep
@@ -35,7 +36,7 @@
 
 ### Stats
 
-- **345 unit tests** across 18 test files (up from 62 E2E tests at v1.0)
+- **430 unit tests** across 18 test files (up from 62 E2E tests at v1.0)
 - **8 supported platforms**: YouTube, Nebula, Dropout, Prime Video, Max, Crunchyroll, Disney+, Netflix
 - **Zero network requests** — all processing is local
 
