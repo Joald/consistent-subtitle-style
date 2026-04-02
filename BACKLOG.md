@@ -2,6 +2,7 @@
 
 ## High Priority
 
+- [x] **Dropout opacity bug** — fixed: opacity percentages (0–100) now converted to CSS alpha (0–1). Color+opacity always applied together so changing color preserves opacity. 17 new tests, 626 total. Commit: `6061e01`
 - [ ] Dropout live update — manual verification needed (waiting for Jacek's test)
 - [ ] Merge fix/dropout-live-settings → main (blocked on manual test)
 
