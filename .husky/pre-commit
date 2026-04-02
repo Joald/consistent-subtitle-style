@@ -1,1 +1,1 @@
-npm run format && git add -u && npm run ci
+npm run ci
