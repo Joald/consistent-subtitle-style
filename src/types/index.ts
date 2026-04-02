@@ -92,7 +92,8 @@ export type Platform =
   | 'primevideo'
   | 'max'
   | 'crunchyroll'
-  | 'disneyplus';
+  | 'disneyplus'
+  | 'netflix';
 
 export type PlatformRegistry = Record<string, PlatformConfig>;
 

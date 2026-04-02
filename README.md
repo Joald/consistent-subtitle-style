@@ -4,7 +4,7 @@
 
 ## Overview
 
-A Chrome extension that applies persistent, customizable subtitle styles across streaming platforms. Features a hybrid styling approach using native APIs where available (YouTube) with CSS injection fallback for other platforms. Currently supports **YouTube**, **Nebula**, **Dropout**, **Prime Video**, **Max (HBO Max)**, **Crunchyroll**, and **Disney+**.
+A Chrome extension that applies persistent, customizable subtitle styles across streaming platforms. Features a hybrid styling approach using native APIs where available (YouTube) with CSS injection fallback for other platforms. Currently supports **YouTube**, **Nebula**, **Dropout**, **Prime Video**, **Max (HBO Max)**, **Crunchyroll**, **Disney+**, and **Netflix**.
 
 ## Features
 
@@ -49,6 +49,7 @@ A Chrome extension that applies persistent, customizable subtitle styles across 
 | Max (HBO Max) | ✅     | CSS injection (max.com + hbomax.com)                 |
 | Crunchyroll   | ✅     | CSS injection (Bitmovin player)                      |
 | Disney+       | ✅     | CSS injection + Shadow DOM (disney-web-player)       |
+| Netflix       | ✅     | CSS injection (Cadmium player-timedtext)             |
 
 ### Dropout / VHX
 
@@ -77,6 +78,10 @@ Uses CSS injection targeting Crunchyroll's Bitmovin player subtitle selectors (`
 ### Disney+
 
 Uses CSS injection targeting Disney+'s subtitle renderers (`dss-subtitle-renderer-cue` and `hive-subtitle-renderer-cue`). Disney+ renders its player inside a `<disney-web-player>` custom element with Shadow DOM, so the extension injects styles into both the document and the shadow root. A MutationObserver watches for the shadow host element to appear and re-injects styles when the player loads.
+
+### Netflix
+
+Uses CSS injection targeting Netflix's Cadmium player subtitle elements (`player-timedtext-text-container` for text containers and `player-timedtext` for the overlay). Netflix applies heavy inline styles to subtitles, but CSS rules with `!important` override them. Note: image-based subtitles (used for some languages like Japanese) are rendered as SVG bitmaps and cannot be restyled with CSS.
 
 ## Development
 
@@ -117,7 +122,8 @@ src/
 │   ├── primevideo.ts# Prime Video CSS selectors
 │   ├── max.ts       # Max (HBO Max) CSS selectors
 │   ├── crunchyroll.ts# Crunchyroll Bitmovin CSS selectors
-│   └── disneyplus.ts# Disney+ CSS selectors + Shadow DOM
+│   ├── disneyplus.ts# Disney+ CSS selectors + Shadow DOM
+│   └── netflix.ts   # Netflix Cadmium player-timedtext selectors
 ├── types/           # TypeScript type definitions
 └── ui/
     ├── popup.ts     # Popup UI logic (settings, presets, per-site)

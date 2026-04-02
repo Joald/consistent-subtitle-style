@@ -23,6 +23,7 @@ const PLATFORM_DISPLAY_NAMES: Record<Platform, string> = {
   max: 'Max',
   crunchyroll: 'Crunchyroll',
   disneyplus: 'Disney+',
+  netflix: 'Netflix',
 };
 
 const ID_TO_SETTING_KEY: Record<string, keyof StorageSettings> = {
@@ -409,6 +410,9 @@ async function detectActiveTabPlatform(): Promise<Platform | null> {
       return 'primevideo';
     if (hostname === 'max.com' || hostname.endsWith('.max.com') || hostname.includes('hbomax.com'))
       return 'max';
+    if (hostname.includes('crunchyroll.com')) return 'crunchyroll';
+    if (hostname.includes('disneyplus.com')) return 'disneyplus';
+    if (hostname.includes('netflix.com')) return 'netflix';
   } catch {
     // ignore — might not have tabs permission
   }
