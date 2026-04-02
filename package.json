@@ -12,7 +12,7 @@
     "clean": "rimraf dist",
     "typecheck": "tsc --noEmit",
     "dev": "npm run watch",
-    "lint": "node --require ./scripts/eslint-polyfill.cjs ./node_modules/.bin/eslint .",
+    "lint": "node --require ./scripts/eslint-polyfill.cjs ./node_modules/eslint/bin/eslint.js .",
     "format": "prettier --write .",
     "test": "vitest run",
     "test:watch": "vitest",
