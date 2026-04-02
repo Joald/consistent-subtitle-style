@@ -521,9 +521,11 @@ describe('css-mappings', () => {
           fontFamily: 'proportional-sans-serif',
         };
         const result = generateCombinedCssRules('subtitle', settings);
-        expect(result).toHaveLength(1);
+        // font-family + font-variant: normal = 2 rules
+        expect(result).toHaveLength(2);
         expect(result[0]).toContain('font-family:');
         expect(result[0]).toContain('Roboto');
+        expect(result[1]).toBe('font-variant: normal !important;');
       });
 
       it('generates font size rule', () => {
@@ -570,8 +572,8 @@ describe('css-mappings', () => {
           fontSize: '200%',
         };
         const result = generateCombinedCssRules('subtitle', settings);
-        // Should have: color rule + textShadow + fontFamily + fontSize = 4 rules
-        expect(result).toHaveLength(4);
+        // Should have: color rule + textShadow + fontFamily + font-variant: normal + fontSize = 5 rules
+        expect(result).toHaveLength(5);
 
         const joined = result.join(' ');
         expect(joined).toContain('color: #ff0 !important;');
@@ -705,6 +707,59 @@ describe('css-mappings', () => {
         result.forEach((rule) => {
           expect(rule).toMatch(/!important;$/);
         });
+      });
+    });
+
+    describe('small-caps font-variant handling', () => {
+      it('emits font-variant: small-caps when fontFamily is small-caps', () => {
+        const settings: Partial<Record<keyof StorageSettings, string>> = {
+          fontFamily: 'small-caps',
+        };
+        const result = generateCombinedCssRules('subtitle', settings);
+        const joined = result.join(' ');
+        expect(joined).toContain('font-variant: small-caps !important;');
+      });
+
+      it('emits font-family rule alongside font-variant for small-caps', () => {
+        const settings: Partial<Record<keyof StorageSettings, string>> = {
+          fontFamily: 'small-caps',
+        };
+        const result = generateCombinedCssRules('subtitle', settings);
+        const joined = result.join(' ');
+        expect(joined).toContain('font-family:');
+        expect(joined).toContain('Roboto');
+      });
+
+      it('emits font-variant: normal for non-small-caps fonts to reset any prior small-caps', () => {
+        const settings: Partial<Record<keyof StorageSettings, string>> = {
+          fontFamily: 'casual',
+        };
+        const result = generateCombinedCssRules('subtitle', settings);
+        const joined = result.join(' ');
+        expect(joined).toContain('font-variant: normal !important;');
+      });
+
+      it('does NOT emit font-variant when fontFamily is auto', () => {
+        const settings: Partial<Record<keyof StorageSettings, string>> = {
+          fontColor: 'white',
+        };
+        const result = generateCombinedCssRules('subtitle', settings);
+        const joined = result.join(' ');
+        expect(joined).not.toContain('font-variant');
+      });
+
+      it('combines small-caps font-variant with other subtitle settings', () => {
+        const settings: Partial<Record<keyof StorageSettings, string>> = {
+          fontFamily: 'small-caps',
+          fontColor: 'yellow',
+          characterEdgeStyle: 'outline',
+        };
+        const result = generateCombinedCssRules('subtitle', settings);
+        const joined = result.join(' ');
+        expect(joined).toContain('font-variant: small-caps !important;');
+        expect(joined).toContain('font-family:');
+        expect(joined).toContain('text-shadow:');
+        expect(joined).toContain('color:');
       });
     });
   });
