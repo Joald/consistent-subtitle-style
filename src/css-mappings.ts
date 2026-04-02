@@ -203,6 +203,17 @@ export function generateCombinedCssRules(
     if (mapping.appliesTo === appliesTo && value) {
       const rule = generateCssRule(mapping, value);
       if (rule) rules.push(rule);
+
+      // When fontFamily is set to a non-auto value, handle font-variant:
+      // - 'small-caps' needs font-variant: small-caps alongside the font-family
+      // - Other fonts need font-variant: normal to reset any prior small-caps
+      if (sKey === 'fontFamily' && value !== 'auto') {
+        if (value === 'small-caps') {
+          rules.push('font-variant: small-caps !important;');
+        } else {
+          rules.push('font-variant: normal !important;');
+        }
+      }
     }
   }
 
