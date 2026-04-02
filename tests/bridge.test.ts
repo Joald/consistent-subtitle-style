@@ -176,4 +176,170 @@ describe('bridge.ts module', () => {
       expect(callbackSpy).toHaveBeenCalledWith(mockChanges);
     });
   });
+
+  describe('edge cases', () => {
+    it('ignores responses with mismatched requestId for get', async () => {
+      await loadBridge();
+      vi.useFakeTimers();
+
+      const getPromise = window.chrome.storage.sync.get({});
+
+      const messageHandler = addEventListenerSpy.mock.calls.find(
+        (c: unknown[]) => c[0] === 'message',
+      )?.[1] as EventListener;
+
+      // Send response with wrong requestId — should not resolve
+      messageHandler({
+        data: {
+          type: 'subtitleStylerResponse',
+          requestId: 99999,
+          data: { wrong: true },
+        },
+      } as unknown as MessageEvent);
+
+      // Still pending — advance to timeout
+      vi.advanceTimersByTime(5000);
+      const result = await getPromise;
+      expect(result).toEqual({}); // Timeout fallback, not wrong data
+
+      vi.useRealTimers();
+    });
+
+    it('ignores responses with mismatched requestId for set', async () => {
+      await loadBridge();
+      vi.useFakeTimers();
+
+      const setPromise = window.chrome.storage.sync.set({ a: 'b' });
+
+      const messageHandler = addEventListenerSpy.mock.calls.find(
+        (c: unknown[]) => c[0] === 'message',
+      )?.[1] as EventListener;
+
+      // Wrong requestId
+      messageHandler({
+        data: {
+          type: 'subtitleStylerResponse',
+          requestId: 99999,
+        },
+      } as unknown as MessageEvent);
+
+      vi.advanceTimersByTime(5000);
+      await expect(setPromise).resolves.toBeUndefined();
+
+      vi.useRealTimers();
+    });
+
+    it('ignores messages with wrong type', async () => {
+      await loadBridge();
+      vi.useFakeTimers();
+
+      const getPromise = window.chrome.storage.sync.get({});
+
+      const firstCall = postMessageSpy.mock.calls[0];
+      if (!firstCall) throw new Error('postMessage not called');
+      const callArgs = firstCall[0] as { requestId: number };
+      const reqId = callArgs.requestId;
+
+      const messageHandler = addEventListenerSpy.mock.calls.find(
+        (c: unknown[]) => c[0] === 'message',
+      )?.[1] as EventListener;
+
+      // Wrong message type — should not resolve
+      messageHandler({
+        data: {
+          type: 'wrongType',
+          requestId: reqId,
+          data: { bad: true },
+        },
+      } as unknown as MessageEvent);
+
+      vi.advanceTimersByTime(5000);
+      const result = await getPromise;
+      expect(result).toEqual({});
+
+      vi.useRealTimers();
+    });
+
+    it('get resolves with empty object when response data is null/undefined', async () => {
+      await loadBridge();
+
+      const getPromise = window.chrome.storage.sync.get({});
+
+      const firstCall = postMessageSpy.mock.calls[0];
+      if (!firstCall) throw new Error('postMessage not called');
+      const callArgs = firstCall[0] as { requestId: number };
+      const reqId = callArgs.requestId;
+
+      const messageHandler = addEventListenerSpy.mock.calls.find(
+        (c: unknown[]) => c[0] === 'message',
+      )?.[1] as EventListener;
+
+      // Response with no data field
+      messageHandler({
+        data: {
+          type: 'subtitleStylerResponse',
+          requestId: reqId,
+          data: undefined,
+        },
+      } as unknown as MessageEvent);
+
+      const result = await getPromise;
+      expect(result).toEqual({});
+    });
+
+    it('onChanged callback receives empty object when data is undefined', async () => {
+      await loadBridge();
+
+      const callback = vi.fn();
+      window.chrome.storage.onChanged.addListener(callback);
+
+      const messageHandler = addEventListenerSpy.mock.calls.find(
+        (c: unknown[]) => c[0] === 'message',
+      )?.[1] as EventListener;
+
+      messageHandler({
+        data: {
+          type: 'subtitleStylerChanged',
+          data: undefined,
+        },
+      } as unknown as MessageEvent);
+
+      expect(callback).toHaveBeenCalledWith({});
+    });
+
+    it('does not clobber existing window.chrome properties', async () => {
+      // Set up partial chrome object before loading bridge
+      const existingProp = { test: true };
+      (window as unknown as Record<string, unknown>)['chrome'] = {
+        someExistingProp: existingProp,
+      };
+
+      await loadBridge();
+
+      const win = window as unknown as Record<string, Record<string, unknown>>;
+      expect(win['chrome']?.['someExistingProp']).toBe(existingProp);
+      expect(window.chrome.storage).toBeDefined();
+    });
+
+    it('increments requestId for sequential calls', async () => {
+      await loadBridge();
+      vi.useFakeTimers();
+
+      // Make two get calls
+      const p1 = window.chrome.storage.sync.get({});
+      const p2 = window.chrome.storage.sync.get({});
+
+      const calls = postMessageSpy.mock.calls;
+      const id1 = (calls[0]?.[0] as { requestId: number }).requestId;
+      const id2 = (calls[1]?.[0] as { requestId: number }).requestId;
+      expect(id2).toBeGreaterThan(id1);
+
+      // Clean up — let timeouts resolve
+      vi.advanceTimersByTime(5000);
+      await p1;
+      await p2;
+
+      vi.useRealTimers();
+    });
+  });
 });

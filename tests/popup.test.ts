@@ -1,4 +1,4 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import fs from 'fs';
 import path from 'path';
 
@@ -64,12 +64,12 @@ describe('Popup UI Integration', () => {
       query: vi.fn().mockResolvedValue([{ id: 42, url }]),
       sendMessage: vi.fn().mockResolvedValue(undefined),
     };
-    (chrome as unknown as Record<string, unknown>).tabs = tabsMock;
+    (chrome as unknown as Record<string, unknown>)['tabs'] = tabsMock;
   }
 
   /** Clear the chrome.tabs mock (simulating no tab access). */
   function clearTabsMock(): void {
-    delete (chrome as unknown as Record<string, unknown>).tabs;
+    delete (chrome as unknown as Record<string, unknown>)['tabs'];
   }
 
   it('initializes popup and loads settings properly', async () => {
@@ -247,9 +247,9 @@ describe('Popup UI Integration', () => {
         string,
         unknown
       >;
-      expect(callArg.fontColor).toBe('white');
-      expect(callArg.backgroundColor).toBe('black');
-      expect(callArg.activePreset).toBe('classic');
+      expect(callArg['fontColor']).toBe('white');
+      expect(callArg['backgroundColor']).toBe('black');
+      expect(callArg['activePreset']).toBe('classic');
     });
 
     it('does nothing when "custom" is selected', async () => {
@@ -435,7 +435,7 @@ describe('Popup UI Integration', () => {
       await triggerInit();
 
       const selectContainer = document.querySelector<HTMLElement>('[data-id="font-color"]');
-      const trigger = selectContainer!.querySelector('.select-trigger') as HTMLElement;
+      const trigger = selectContainer!.querySelector<HTMLElement>('.select-trigger')!;
 
       trigger.click();
 
@@ -449,12 +449,12 @@ describe('Popup UI Integration', () => {
       const fontSizeSelect = document.querySelector<HTMLElement>('[data-id="font-size"]');
 
       // Open font-color
-      const colorTrigger = fontColorSelect!.querySelector('.select-trigger') as HTMLElement;
+      const colorTrigger = fontColorSelect!.querySelector<HTMLElement>('.select-trigger')!;
       colorTrigger.click();
       expect(fontColorSelect!.classList.contains('open')).toBe(true);
 
       // Open font-size → should close font-color
-      const sizeTrigger = fontSizeSelect!.querySelector('.select-trigger') as HTMLElement;
+      const sizeTrigger = fontSizeSelect!.querySelector<HTMLElement>('.select-trigger')!;
       sizeTrigger.click();
       expect(fontSizeSelect!.classList.contains('open')).toBe(true);
       expect(fontColorSelect!.classList.contains('open')).toBe(false);
@@ -464,7 +464,7 @@ describe('Popup UI Integration', () => {
       await triggerInit();
 
       const selectContainer = document.querySelector<HTMLElement>('[data-id="font-color"]');
-      const trigger = selectContainer!.querySelector('.select-trigger') as HTMLElement;
+      const trigger = selectContainer!.querySelector<HTMLElement>('.select-trigger')!;
 
       trigger.click();
       expect(selectContainer!.classList.contains('open')).toBe(true);
@@ -478,7 +478,7 @@ describe('Popup UI Integration', () => {
       await triggerInit();
 
       const selectContainer = document.querySelector<HTMLElement>('[data-id="font-color"]');
-      const trigger = selectContainer!.querySelector('.select-trigger') as HTMLElement;
+      const trigger = selectContainer!.querySelector<HTMLElement>('.select-trigger')!;
 
       trigger.click();
       expect(selectContainer!.classList.contains('open')).toBe(true);
@@ -493,7 +493,7 @@ describe('Popup UI Integration', () => {
       const selectContainer = document.querySelector<HTMLElement>('[data-id="font-color"]');
       const valueEl = selectContainer!.querySelector('.select-value');
 
-      expect(valueEl!.textContent!.trim()).toBe('Site default');
+      expect(valueEl!.textContent.trim()).toBe('Site default');
 
       const redOption = selectContainer!.querySelector<HTMLElement>(
         '.select-option[data-value="red"]',
@@ -502,7 +502,7 @@ describe('Popup UI Integration', () => {
 
       await new Promise((r) => setTimeout(r, 0));
 
-      expect(valueEl!.textContent!.trim()).toContain('Red');
+      expect(valueEl!.textContent.trim()).toContain('Red');
     });
 
     it('marks selected option with .selected class', async () => {
@@ -530,7 +530,7 @@ describe('Popup UI Integration', () => {
       await triggerInit();
 
       const selectContainer = document.querySelector<HTMLElement>('[data-id="font-color"]');
-      const trigger = selectContainer!.querySelector('.select-trigger') as HTMLElement;
+      const trigger = selectContainer!.querySelector<HTMLElement>('.select-trigger')!;
 
       trigger.click();
       expect(selectContainer!.classList.contains('open')).toBe(true);
@@ -678,21 +678,19 @@ describe('Popup UI Integration', () => {
       mockActiveTab('https://www.youtube.com/watch?v=abc');
 
       // Return site override from storage
-      vi.mocked<() => Promise<Record<string, unknown>>>(chrome.storage.sync.get).mockImplementation(
-        async (keys: unknown) => {
-          if (typeof keys === 'string' && keys === 'siteSettings') {
-            return {
-              siteSettings: {
-                youtube: {
-                  settings: { ...ALL_AUTO, fontColor: 'cyan' },
-                  activePreset: null,
-                },
+      vi.mocked(chrome.storage.sync.get).mockImplementation(async (keys: unknown) => {
+        if (typeof keys === 'string' && keys === 'siteSettings') {
+          return {
+            siteSettings: {
+              youtube: {
+                settings: { ...ALL_AUTO, fontColor: 'cyan' },
+                activePreset: null,
               },
-            };
-          }
-          return ALL_AUTO;
-        },
-      );
+            },
+          };
+        }
+        return ALL_AUTO;
+      });
 
       await triggerInit();
 
@@ -713,18 +711,16 @@ describe('Popup UI Integration', () => {
       const globalSettings = { ...ALL_AUTO, fontColor: 'white' };
       const siteSettings = { ...ALL_AUTO, fontColor: 'cyan' };
 
-      vi.mocked<() => Promise<Record<string, unknown>>>(chrome.storage.sync.get).mockImplementation(
-        async (keys: unknown) => {
-          if (typeof keys === 'string' && keys === 'siteSettings') {
-            return {
-              siteSettings: {
-                youtube: { settings: siteSettings, activePreset: null },
-              },
-            };
-          }
-          return globalSettings;
-        },
-      );
+      vi.mocked(chrome.storage.sync.get).mockImplementation(async (keys: unknown) => {
+        if (typeof keys === 'string' && keys === 'siteSettings') {
+          return {
+            siteSettings: {
+              youtube: { settings: siteSettings, activePreset: null },
+            },
+          };
+        }
+        return globalSettings;
+      });
 
       await triggerInit();
 
@@ -748,24 +744,22 @@ describe('Popup UI Integration', () => {
       const globalSettings = { ...ALL_AUTO, fontColor: 'white' };
 
       // No site override on first load
-      let hasSiteOverride = false;
-      vi.mocked<() => Promise<Record<string, unknown>>>(chrome.storage.sync.get).mockImplementation(
-        async (keys: unknown) => {
-          if (typeof keys === 'string' && keys === 'siteSettings') {
-            return hasSiteOverride
-              ? {
-                  siteSettings: {
-                    youtube: {
-                      settings: { ...ALL_AUTO, fontColor: 'red' },
-                      activePreset: null,
-                    },
+      const hasSiteOverride = false;
+      vi.mocked(chrome.storage.sync.get).mockImplementation(async (keys: unknown) => {
+        if (typeof keys === 'string' && keys === 'siteSettings') {
+          return hasSiteOverride
+            ? {
+                siteSettings: {
+                  youtube: {
+                    settings: { ...ALL_AUTO, fontColor: 'red' },
+                    activePreset: null,
                   },
-                }
-              : {};
-          }
-          return globalSettings;
-        },
-      );
+                },
+              }
+            : {};
+        }
+        return globalSettings;
+      });
 
       await triggerInit();
 
@@ -869,8 +863,8 @@ describe('Popup UI Integration', () => {
 
       const tabsMock = (
         chrome as unknown as Record<string, { sendMessage: ReturnType<typeof vi.fn> }>
-      ).tabs;
-      expect(tabsMock.sendMessage).toHaveBeenCalledWith(42, {
+      )['tabs'];
+      expect(tabsMock!.sendMessage).toHaveBeenCalledWith(42, {
         type: 'subtitleStylerPopupUpdate',
         settings: expect.objectContaining({
           characterEdgeStyle: 'outline',
@@ -890,8 +884,8 @@ describe('Popup UI Integration', () => {
 
       const tabsMock = (
         chrome as unknown as Record<string, { sendMessage: ReturnType<typeof vi.fn> }>
-      ).tabs;
-      expect(tabsMock.sendMessage).toHaveBeenCalledWith(42, {
+      )['tabs'];
+      expect(tabsMock!.sendMessage).toHaveBeenCalledWith(42, {
         type: 'subtitleStylerPopupUpdate',
         settings: expect.objectContaining({
           characterEdgeStyle: 'dropshadow',

@@ -274,7 +274,7 @@ describe('injection.ts module', () => {
   // ── broadcastChanges to VHX/Vimeo iframes ──
 
   it('broadcasts changes to VHX and Vimeo iframes', async () => {
-    const postMessageSpy = vi.spyOn(window, 'postMessage') as Mock;
+    const _postMessageSpy = vi.spyOn(window, 'postMessage') as Mock;
     await loadInjection();
 
     // Create iframes with matching srcs

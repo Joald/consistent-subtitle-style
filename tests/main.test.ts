@@ -1,4 +1,4 @@
-import { describe, it, expect, vi, beforeEach, afterEach, type Mock } from 'vitest';
+import { describe, it, expect, vi, afterEach, type Mock } from 'vitest';
 import type { StorageSettings, PlatformConfig } from '../src/types/index.js';
 
 // Top-level mocks are hoisted
@@ -225,9 +225,10 @@ describe('SubtitleStylerApp', () => {
 
     it('does not inject baseline CSS when it is not defined', async () => {
       // Create a config without baselineCss
-      const { baselineCss: _, ...configNoBaseline } = makeYouTubeConfig() as PlatformConfig & {
-        baselineCss?: unknown;
-      };
+      const { baselineCss: _unused, ...configNoBaseline } =
+        makeYouTubeConfig() as PlatformConfig & {
+          baselineCss?: unknown;
+        };
       await setupMocks({
         config: configNoBaseline as PlatformConfig,
       });
@@ -331,7 +332,7 @@ describe('SubtitleStylerApp', () => {
       )?.[1] as (ev: MessageEvent) => void;
 
       const el = getStyleElement();
-      const contentBefore = el!.textContent;
+      const _contentBefore = el!.textContent;
 
       // Reset mock call count
       generateCombinedCssRulesMock.mockClear();
@@ -1285,10 +1286,10 @@ describe('SubtitleStylerApp', () => {
         settings: {
           ...ALL_AUTO,
           fontColor: 'red',
-          fontSize: '120%',
+          fontSize: '120%' as StorageSettings['fontSize'],
           characterEdgeStyle: 'dropshadow',
           backgroundColor: 'black',
-          backgroundOpacity: '75%',
+          backgroundOpacity: '75%' as StorageSettings['backgroundOpacity'],
           windowColor: 'blue',
         },
       });
@@ -1336,11 +1337,11 @@ describe('SubtitleStylerApp', () => {
 
       type DebugWindow = typeof window & { subtitleStylerDebug?: () => Record<string, unknown> };
       const info = (window as DebugWindow).subtitleStylerDebug!();
-      const log = info.log as Record<string, { success: boolean; details?: string }>;
+      const log = info['log'] as Record<string, { success: boolean; details?: string }>;
 
-      expect(log.fontColor).toBeDefined();
-      expect(log.fontColor.success).toBe(true);
-      expect(log.fontColor.details).toBe('CSS rule queued');
+      expect(log['fontColor']).toBeDefined();
+      expect(log['fontColor']!.success).toBe(true);
+      expect(log['fontColor']!.details).toBe('CSS rule queued');
     });
 
     it('tracks native setting application in applicationLog', async () => {
@@ -1373,11 +1374,11 @@ describe('SubtitleStylerApp', () => {
 
       type DebugWindow = typeof window & { subtitleStylerDebug?: () => Record<string, unknown> };
       const info = (window as DebugWindow).subtitleStylerDebug!();
-      const log = info.log as Record<string, { success: boolean; details?: string }>;
+      const log = info['log'] as Record<string, { success: boolean; details?: string }>;
 
-      expect(log.fontColor).toBeDefined();
-      expect(log.fontColor.success).toBe(true);
-      expect(log.fontColor.details).toBe('Font color set to red');
+      expect(log['fontColor']).toBeDefined();
+      expect(log['fontColor']!.success).toBe(true);
+      expect(log['fontColor']!.details).toBe('Font color set to red');
     });
   });
 });
