@@ -536,6 +536,66 @@ function _getVimeoPlayer(): VimeoPlayer | null {
 }
 
 /**
+ * Convert an opacity percentage string ('0','25','50','75','100') to a CSS alpha
+ * value in the 0–1 range. Returns '1' for null/undefined/invalid.
+ */
+function opacityPercentToAlpha(pct: string | null | undefined): string {
+  if (pct == null) return '1';
+  const num = parseInt(pct, 10);
+  if (isNaN(num)) return '1';
+  return (num / 100).toString();
+}
+
+/**
+ * Resolve a hex color (#fff, #ff0000) or known color name to [r, g, b].
+ * Returns null if the color can't be resolved.
+ */
+function resolveColorToRgb(color: string): [number, number, number] | null {
+  if (color.startsWith('#')) {
+    const hex = color.slice(1);
+    if (hex.length === 3) {
+      const r = hex[0];
+      const g = hex[1];
+      const b = hex[2];
+      if (r === undefined || g === undefined || b === undefined) return null;
+      return [parseInt(r + r, 16), parseInt(g + g, 16), parseInt(b + b, 16)];
+    }
+    if (hex.length === 6) {
+      return [
+        parseInt(hex.slice(0, 2), 16),
+        parseInt(hex.slice(2, 4), 16),
+        parseInt(hex.slice(4, 6), 16),
+      ];
+    }
+    return null;
+  }
+  // Look up known color names via COLOR_HEX_MAP
+  const hexColor = COLOR_HEX_MAP[color];
+  if (hexColor) return resolveColorToRgb(hexColor);
+  return null;
+}
+
+/**
+ * Extract RGB components from a CSS color string (rgb/rgba/hex).
+ * Falls back to null if parsing fails.
+ */
+function extractRgbFromCss(cssColor: string): [number, number, number] | null {
+  const match = cssColor.match(/\d+/g);
+  if (match && match.length >= 3) {
+    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion -- length >= 3 checked
+    return [parseInt(match[0], 10), parseInt(match[1]!, 10), parseInt(match[2]!, 10)];
+  }
+  return null;
+}
+
+/**
+ * Format an rgba CSS color string from RGB components and alpha.
+ */
+function formatRgba(rgb: [number, number, number], alpha: string): string {
+  return `rgba(${String(rgb[0])}, ${String(rgb[1])}, ${String(rgb[2])}, ${alpha})`;
+}
+
+/**
  * Directly set inline styles on .vp-captions, mirroring how the Vimeo player's
  * own Customize UI applies caption styles. The React CaptionsRenderer reads
  * these inline styles when rendering caption cues.
@@ -543,6 +603,10 @@ function _getVimeoPlayer(): VimeoPlayer | null {
  * This is the primary mechanism for live visual updates — localStorage alone
  * only takes effect on reload, and the player's setCaptionStyle API is
  * typically unavailable from the page world.
+ *
+ * Color and opacity are always applied together — changing a color preserves
+ * the current opacity, and vice versa. Opacity percentages (0–100) are
+ * converted to CSS alpha (0–1).
  */
 function applyCaptionInlineStyles(values: Record<string, string | null>): void {
   const container = document.querySelector<HTMLElement>('.vp-captions');
@@ -552,59 +616,65 @@ function applyCaptionInlineStyles(values: Record<string, string | null>): void {
     if (value == null) continue;
     switch (key) {
       case 'color':
-        container.style.color = value;
-        break;
       case 'fontOpacity': {
-        // Combine current color with opacity
-        const currentColor = container.style.color || getComputedStyle(container).color;
-        const match = currentColor.match(/\d+/g);
-        if (match && match.length >= 3) {
-          // eslint-disable-next-line @typescript-eslint/restrict-template-expressions
-          container.style.color = `rgba(${match[0]}, ${match[1]}, ${match[2]}, ${value})`;
+        // Always apply combined color + opacity from currentValues
+        const colorVal = currentValues['color'];
+        const alpha = opacityPercentToAlpha(currentValues['fontOpacity']);
+        const rgb = colorVal ? resolveColorToRgb(colorVal) : null;
+        if (rgb) {
+          container.style.color = formatRgba(rgb, alpha);
+        } else {
+          // No tracked color — read from DOM and apply opacity
+          const cssColor = container.style.color || getComputedStyle(container).color;
+          const domRgb = extractRgbFromCss(cssColor);
+          if (domRgb) {
+            container.style.color = formatRgba(domRgb, alpha);
+          }
         }
         break;
       }
-      case 'bgColor': {
-        // Background is set on individual caption lines, not the container
-        const lines = document.querySelectorAll<HTMLElement>(
-          '[class*="CaptionsRenderer_module_captionsLine"]',
-        );
-        lines.forEach((line) => {
-          line.style.background = value;
-        });
-        break;
-      }
+      case 'bgColor':
       case 'bgOpacity': {
+        // Always apply combined background color + opacity
+        const colorVal = currentValues['bgColor'];
+        const alpha = opacityPercentToAlpha(currentValues['bgOpacity']);
+        const rgb = colorVal ? resolveColorToRgb(colorVal) : null;
         const lines = document.querySelectorAll<HTMLElement>(
           '[class*="CaptionsRenderer_module_captionsLine"]',
         );
         lines.forEach((line) => {
-          const bg = line.style.background || getComputedStyle(line).backgroundColor;
-          const m = bg.match(/\d+/g);
-          if (m && m.length >= 3) {
-            // eslint-disable-next-line @typescript-eslint/restrict-template-expressions
-            line.style.background = `rgba(${m[0]}, ${m[1]}, ${m[2]}, ${value})`;
+          if (rgb) {
+            line.style.background = formatRgba(rgb, alpha);
+          } else {
+            // No tracked color — read from DOM
+            const bg = line.style.background || getComputedStyle(line).backgroundColor;
+            const domRgb = extractRgbFromCss(bg);
+            if (domRgb) {
+              line.style.background = formatRgba(domRgb, alpha);
+            }
           }
         });
         break;
       }
-      case 'windowColor': {
-        const win = document.querySelector<HTMLElement>(
-          '[class*="CaptionsRenderer_module_captionsWindow"]',
-        );
-        if (win) win.style.backgroundColor = value;
-        break;
-      }
+      case 'windowColor':
       case 'windowOpacity': {
+        // Always apply combined window color + opacity
+        const colorVal = currentValues['windowColor'];
+        const alpha = opacityPercentToAlpha(currentValues['windowOpacity']);
+        const rgb = colorVal ? resolveColorToRgb(colorVal) : null;
         const win = document.querySelector<HTMLElement>(
           '[class*="CaptionsRenderer_module_captionsWindow"]',
         );
         if (win) {
-          const bg = win.style.backgroundColor || getComputedStyle(win).backgroundColor;
-          const m = bg.match(/\d+/g);
-          if (m && m.length >= 3) {
-            // eslint-disable-next-line @typescript-eslint/restrict-template-expressions
-            win.style.backgroundColor = `rgba(${m[0]}, ${m[1]}, ${m[2]}, ${value})`;
+          if (rgb) {
+            win.style.backgroundColor = formatRgba(rgb, alpha);
+          } else {
+            // No tracked color — read from DOM
+            const bg = win.style.backgroundColor || getComputedStyle(win).backgroundColor;
+            const domRgb = extractRgbFromCss(bg);
+            if (domRgb) {
+              win.style.backgroundColor = formatRgba(domRgb, alpha);
+            }
           }
         }
         break;
