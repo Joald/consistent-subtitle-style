@@ -8,6 +8,7 @@
 - **Max (HBO Max)**: CSS-only subtitle support using `CaptionWindow`/`TextCue`/`CueBoxContainer` selectors. Supports `max.com` + legacy `hbomax.com`. 15 unit tests.
 - **Crunchyroll**: CSS-only subtitle support via Bitmovin player (`bmpui-ui-subtitle-label`/`bmpui-ui-subtitle-overlay`) selectors. 15 unit tests.
 - **Disney+**: CSS injection + Shadow DOM support via `disney-web-player` custom element. Dual subtitle renderers (`dss-subtitle-renderer-cue`, `hive-subtitle-renderer-cue`). 22 unit tests.
+- **Netflix**: CSS injection targeting Cadmium player `.player-timedtext` containers and `.player-timedtext-text-container span` for text styling. 18 unit tests.
 
 ### New Features
 
@@ -34,8 +35,8 @@
 
 ### Stats
 
-- **254 unit tests** across 16 test files (up from 62 E2E tests at v1.0)
-- **7 supported platforms**: YouTube, Nebula, Dropout, Prime Video, Max, Crunchyroll, Disney+
+- **345 unit tests** across 18 test files (up from 62 E2E tests at v1.0)
+- **8 supported platforms**: YouTube, Nebula, Dropout, Prime Video, Max, Crunchyroll, Disney+, Netflix
 - **Zero network requests** — all processing is local
 
 ## 1.0.1 - Style Refinements & Bug Fixes
