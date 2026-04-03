@@ -54,3 +54,8 @@
 - [ ] E2E tests for preset system — select preset in popup, verify settings applied, verify CSS on YouTube. No subscription needed.
 - [ ] E2E tests for per-site settings — set YouTube-specific styles, verify YouTube uses per-site, verify other platform uses global. No subscription needed.
 - [ ] E2E tests for Max/HBO — free trailers at hbomax.com/collections/watch-free, no login required
+
+## Coverage Metrics (Unblocked)
+
+- [ ] Deterministic line coverage counter — integrate vitest coverage (istanbul/v8) to track actual % of lines/branches/functions covered per file. Display in Space dashboard.
+- [ ] LLM-powered logical feature coverage — enumerate logical features per platform (e.g. "font color change", "opacity slider", "live update", "preset apply", "per-site override") and map each to test assertions. Show which features have tests vs which are untested. Update Space dashboard with feature coverage matrix.
