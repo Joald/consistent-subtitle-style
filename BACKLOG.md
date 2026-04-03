@@ -27,12 +27,12 @@
 - [x] Add comprehensive YouTube unit tests (71 tests: detection, config, applySetting, native settings, getCurrentValue)
 - [x] Update README with all platform support
 - [x] Nebula unit tests + extract to own module (14 tests, consistent with other platforms)
-- [ ] E2E tests for Prime Video (currently unit tests only)
-- [ ] E2E tests for Max/HBO (currently unit tests only)
-- [ ] E2E tests for Crunchyroll (currently unit tests only)
-- [ ] E2E tests for Disney+ (currently unit tests only)
-- [ ] E2E tests for Netflix (currently unit tests only)
-- [ ] E2E tests for Vimeo (currently unit tests only)
+- [ ] E2E tests for Prime Video (currently unit tests only — requires login)
+- [ ] E2E tests for Max/HBO (currently unit tests only — requires login)
+- [ ] E2E tests for Crunchyroll (currently unit tests only — may work with free episodes)
+- [ ] E2E tests for Disney+ (currently unit tests only — requires login)
+- [ ] E2E tests for Netflix (currently unit tests only — requires login)
+- [x] E2E tests for Vimeo — 22 assertions, player.vimeo.com embed with free public video, CSS-based style testing
 - [ ] Chrome Web Store submission
 
 ## Done

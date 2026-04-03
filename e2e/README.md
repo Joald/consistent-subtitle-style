@@ -83,6 +83,24 @@ Finding the extension ID is non-trivial in Puppeteer. The helper
 
 ## Per-Platform Details
 
+### Vimeo (`vimeo.e2e.js`)
+
+- **URL:** `player.vimeo.com/video/{id}` embed — no login required
+- **What it tests:**
+  - Extension init (bridge, platform detection as `vimeo`, `applyStyles()`)
+  - Live CSS-based style changes on `.vp-captions` (color, font family,
+    font size, edge style) and `.vp-captions > span` (background)
+  - Combined multi-setting changes and reset
+  - Popup UI (dropdowns, reset button, preview)
+- **Video selection:** Tries multiple fallback video IDs for reliability;
+  gracefully exits (exit 0) if no video loads
+- **Captions:** Uses `?texttrack=en` to auto-enable English captions.
+  If captions container exists but no text is visible (video timing),
+  style tests still run against the container element
+- **Style mechanism:** CSS rules injected via a `<style>` element
+  targeting `.vp-captions` (subtitle text) and `.vp-captions > span`
+  (background color)
+
 ### Dropout (`dropout.e2e.js`)
 
 - **URL:** Direct `embed.vhx.tv` embed — no login required
@@ -150,6 +168,7 @@ e2e/
 ├── helpers.js          ← browser launch, extension ID discovery,
 │                         popup-based storage manipulation, waitForStyle,
 │                         test runner utilities
+├── vimeo.e2e.js        ← Vimeo embed tests (22 assertions)
 ├── dropout.e2e.js      ← Dropout/VHX embed tests (22 assertions)
 ├── nebula.e2e.js       ← Nebula free-video tests (25 assertions)
 ├── youtube.e2e.js      ← YouTube embed tests (14 assertions)
