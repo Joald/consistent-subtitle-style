@@ -48,3 +48,9 @@
 - [x] Dropout live update implementation (broadcastChanges + applyCaptionInlineStyles)
 - [x] E2E test suite — 62 tests across 3 platforms
 - [x] registerContentScripts regression fix
+
+## E2E Coverage Gaps (Unblocked)
+
+- [ ] E2E tests for preset system — select preset in popup, verify settings applied, verify CSS on YouTube. No subscription needed.
+- [ ] E2E tests for per-site settings — set YouTube-specific styles, verify YouTube uses per-site, verify other platform uses global. No subscription needed.
+- [ ] E2E tests for Max/HBO — free trailers at hbomax.com/collections/watch-free, no login required
