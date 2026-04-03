@@ -28,7 +28,7 @@
 - [x] Update README with all platform support
 - [x] Nebula unit tests + extract to own module (14 tests, consistent with other platforms)
 - [ ] E2E tests for Prime Video (currently unit tests only — requires login)
-- [ ] E2E tests for Max/HBO (currently unit tests only — requires login)
+- [x] E2E tests for Max/HBO — 17 assertions, mock subtitle injection on hbomax.com free trailers, CSS-based style testing
 - [ ] E2E tests for Crunchyroll (currently unit tests only — may work with free episodes)
 - [ ] E2E tests for Disney+ (currently unit tests only — requires login)
 - [ ] E2E tests for Netflix (currently unit tests only — requires login)
@@ -46,14 +46,14 @@
 - [x] Preset system (Recommended, Classic, Minimal + 6 dev presets, popup dropdown, 17 unit tests)
 - [x] Font-family snake_case fix (camelCase → snake_case for Vimeo localStorage)
 - [x] Dropout live update implementation (broadcastChanges + applyCaptionInlineStyles)
-- [x] E2E test suite — 62 tests across 3 platforms
+- [x] E2E test suite — 101 tests across 5 platforms (YouTube 14, Dropout 22, Nebula 25, Vimeo 22, Max 17)
 - [x] registerContentScripts regression fix
 
 ## E2E Coverage Gaps (Unblocked)
 
 - [ ] E2E tests for preset system — select preset in popup, verify settings applied, verify CSS on YouTube. No subscription needed.
 - [ ] E2E tests for per-site settings — set YouTube-specific styles, verify YouTube uses per-site, verify other platform uses global. No subscription needed.
-- [ ] E2E tests for Max/HBO — free trailers at hbomax.com/collections/watch-free, no login required
+- [x] E2E tests for Max/HBO — free trailers at hbomax.com/collections/watch-free, no login required. 17 assertions, mock subtitle injection.
 
 ## Coverage Metrics (Unblocked)
 

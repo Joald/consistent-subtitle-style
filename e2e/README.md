@@ -143,6 +143,26 @@ Finding the extension ID is non-trivial in Puppeteer. The helper
   If bot detection triggers, the entire YouTube suite is gracefully
   skipped.
 
+### Max/HBO (`max.e2e.js`)
+
+- **URL:** `hbomax.com/collections/watch-free` — free trailers, no login
+- **What it tests:**
+  - Extension init and Max platform detection
+  - Mock subtitle injection (TextCue, CueBoxContainer, CaptionWindow
+    elements matching Max's real DOM structure)
+  - Live CSS-based style changes (color, font family, font size,
+    background, edge style)
+  - Combined multi-setting changes and reset
+  - Popup UI (dropdowns, reset button, preview)
+- **Mock subtitles:** Free trailers don't always have real subtitles, so
+  the test injects DOM elements matching Max's subtitle selectors
+  (`[class^="TextCue"]`, `[data-testid="CueBoxContainer"]`,
+  `[class^="CaptionWindow"]`). This validates the full CSS injection
+  pipeline: platform detection → selector matching → CSS generation →
+  style application.
+- **Style mechanism:** CSS rules injected via `<style>` element targeting
+  Max's subtitle class selectors
+
 ## Style Assertion Strategy
 
 Visual style checks use `waitForStyle()` — a polling helper that
@@ -168,9 +188,10 @@ e2e/
 ├── helpers.js          ← browser launch, extension ID discovery,
 │                         popup-based storage manipulation, waitForStyle,
 │                         test runner utilities
-├── vimeo.e2e.js        ← Vimeo embed tests (22 assertions)
 ├── dropout.e2e.js      ← Dropout/VHX embed tests (22 assertions)
+├── max.e2e.js          ← Max/HBO tests (17 assertions)
 ├── nebula.e2e.js       ← Nebula free-video tests (25 assertions)
+├── vimeo.e2e.js        ← Vimeo embed tests (22 assertions)
 ├── youtube.e2e.js      ← YouTube embed tests (14 assertions)
 └── run.sh              ← Xvfb + build + sequential runner
 ```
