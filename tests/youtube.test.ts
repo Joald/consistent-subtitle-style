@@ -515,4 +515,3 @@ describe('youtube error paths', () => {
     expect(result?.message).toContain('No active YouTube player');
   });
 });
-
