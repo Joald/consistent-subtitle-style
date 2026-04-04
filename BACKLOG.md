@@ -27,11 +27,11 @@
 - [x] Add comprehensive YouTube unit tests (71 tests: detection, config, applySetting, native settings, getCurrentValue)
 - [x] Update README with all platform support
 - [x] Nebula unit tests + extract to own module (14 tests, consistent with other platforms)
-- [ ] E2E tests for Prime Video (currently unit tests only — requires login)
+- [x] E2E tests for Prime Video — 20 assertions, DOM-mock with atvwebplayersdk captions structure on amazon.com, CSS-based style testing
 - [x] E2E tests for Max/HBO — 17 assertions, mock subtitle injection on hbomax.com free trailers, CSS-based style testing
-- [ ] E2E tests for Crunchyroll (currently unit tests only — may work with free episodes)
-- [ ] E2E tests for Disney+ (currently unit tests only — requires login)
-- [ ] E2E tests for Netflix (currently unit tests only — requires login)
+- [x] E2E tests for Crunchyroll — 19 assertions, DOM-mock with Bitmovin bmpui-ui-subtitle elements on crunchyroll.com, CSS-based style testing
+- [x] E2E tests for Disney+ — 24 assertions, DOM-mock with Shadow DOM injection via <disney-web-player> custom element, CSS verified in shadow root
+- [x] E2E tests for Netflix — 22 assertions, DOM-mock with injected .player-timedtext structure, CSS-based style testing
 - [x] E2E tests for Vimeo — 22 assertions, player.vimeo.com embed with free public video, CSS-based style testing
 - [ ] Chrome Web Store submission
 
