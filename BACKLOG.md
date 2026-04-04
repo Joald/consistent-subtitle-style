@@ -46,13 +46,13 @@
 - [x] Preset system (Recommended, Classic, Minimal + 6 dev presets, popup dropdown, 17 unit tests)
 - [x] Font-family snake_case fix (camelCase → snake_case for Vimeo localStorage)
 - [x] Dropout live update implementation (broadcastChanges + applyCaptionInlineStyles)
-- [x] E2E test suite — 125 tests across 6 platforms/features (YouTube 14, Dropout 22, Nebula 25, Vimeo 22, Max 17, Presets 24)
+- [x] E2E test suite — 141 assertions across 7 platforms/features (YouTube 14, Dropout 22, Nebula 25, Vimeo 22, Max 17, Presets 24, Per-Site 17)
 - [x] registerContentScripts regression fix
 
 ## E2E Coverage Gaps (Unblocked)
 
 - [x] E2E tests for preset system — 24 assertions on Vimeo: dropdown UI, Classic/Recommended/Minimal presets, CSS verification, manual-change-to-Custom detection, reset.
-- [ ] E2E tests for per-site settings — set YouTube-specific styles, verify YouTube uses per-site, verify other platform uses global. No subscription needed.
+- [x] E2E tests for per-site settings — 17 assertions on Vimeo: per-site override priority over global, fallback after clearing, multi-platform isolation, CSS verification.
 - [x] E2E tests for Max/HBO — free trailers at hbomax.com/collections/watch-free, no login required. 17 assertions, mock subtitle injection.
 
 ## Coverage Metrics (Unblocked)
