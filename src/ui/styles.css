@@ -228,31 +228,6 @@ hr {
   background-color: #333;
 }
 
-.button-group {
-  display: flex;
-  gap: 10px;
-  margin-top: 20px;
-}
-
-button {
-  flex: 1;
-  padding: 10px 15px;
-  border: none;
-  border-radius: 6px;
-  font-size: 14px;
-  font-weight: 500;
-  cursor: pointer;
-  transition: all 0.2s;
-}
-
-#reset-btn {
-  background: #333;
-  color: #e5e5e5;
-}
-
-#reset-btn:hover {
-  background: #444;
-}
 
 .message {
   position: fixed;

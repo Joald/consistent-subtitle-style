@@ -7,7 +7,7 @@ import { loadSettings, applyPreset, DEFAULTS } from '../storage.js';
 import { debug } from '../debug.js';
 import { generateCombinedCssRules } from '../css-mappings.js';
 import { getAvailablePresets, getPresetById, detectActivePreset } from '../presets.js';
-import { loadSiteOverride, saveSiteOverride, clearSiteOverride } from '../site-settings.js';
+import { loadSiteOverride, saveSiteOverride } from '../site-settings.js';
 import type { Platform } from '../platforms/index.js';
 
 /** Detected platform for the active tab (null when on a non-supported site). */
@@ -191,32 +191,6 @@ async function handleSave(): Promise<void> {
     console.error('Failed to save settings:', error);
     showMessage('Failed to save settings', 'error');
   }
-}
-
-async function handleReset(): Promise<void> {
-  const defaults: StorageSettings = { ...DEFAULTS };
-  populateForm(defaults);
-
-  if (siteScope && currentPlatform) {
-    // In per-site mode, clearing means removing the site override entirely
-    await clearSiteOverride(currentPlatform);
-    // Switch back to global mode since there's no more override
-    siteScope = false;
-    updateScopeUI();
-    // Re-load global settings into the form
-    const globalSettings = await loadSettings();
-    populateForm(globalSettings);
-    updatePresetIndicator(globalSettings);
-  } else {
-    // Global mode: reset to defaults
-    if (typeof chrome !== 'undefined') {
-      await chrome.storage.sync.set({ ...defaults, activePreset: null });
-    }
-    updatePresetIndicator(defaults);
-  }
-
-  updatePreview();
-  showMessage('Saved', 'success');
 }
 
 function setupCustomSelects(): void {
@@ -545,14 +519,6 @@ async function initializePopup(): Promise<void> {
     updatePresetIndicator(settings);
 
     setupCustomSelects();
-
-    const resetBtn = document.getElementById('reset-btn');
-    if (resetBtn) {
-      resetBtn.addEventListener('click', (e) => {
-        e.preventDefault();
-        void handleReset();
-      });
-    }
   } catch (error) {
     console.error('Failed to initialize popup:', error);
     showMessage('Failed to initialize popup', 'error');
