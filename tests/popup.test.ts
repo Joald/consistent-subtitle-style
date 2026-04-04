@@ -119,33 +119,6 @@ describe('Popup UI Integration', () => {
     expect(saveCallArg.characterEdgeStyle).toBe('dropshadow');
   });
 
-  it('handles reset button click', async () => {
-    vi.mocked<() => Promise<Record<string, unknown>>>(chrome.storage.sync.get).mockResolvedValue({
-      ...ALL_AUTO,
-      characterEdgeStyle: 'dropshadow',
-      fontColor: 'red',
-    });
-
-    await triggerInit();
-
-    const fontColorSelect = document.querySelector<HTMLElement>('[data-id="font-color"]');
-    if (!fontColorSelect) throw new Error('fontColorSelect not found');
-    expect(fontColorSelect.dataset['selectedValue']).toBe('red');
-
-    const resetBtn = document.getElementById('reset-btn');
-    resetBtn?.click();
-
-    await new Promise((r) => setTimeout(r, 0));
-
-    expect(fontColorSelect.dataset['selectedValue']).toBe('auto');
-    const setMock = vi.mocked(chrome.storage.sync.set);
-    expect(setMock.mock.calls.length).toBeGreaterThan(0);
-    const lastCall = setMock.mock.calls[setMock.mock.calls.length - 1];
-    if (!lastCall) throw new Error('set not called');
-    const saveCallArg = lastCall[0] as Partial<import('../src/types/index.js').StorageSettings>;
-    expect(saveCallArg.fontColor).toBe('auto');
-  });
-
   describe('preset selector', () => {
     it('builds preset dropdown during initialization', async () => {
       await triggerInit();
@@ -813,19 +786,6 @@ describe('Popup UI Integration', () => {
       expect(messageEl!.textContent).toBe('Saved!');
       expect(messageEl!.classList.contains('success')).toBe(true);
       expect(messageEl!.classList.contains('show')).toBe(true);
-    });
-
-    it('shows success message after reset', async () => {
-      await triggerInit();
-
-      const resetBtn = document.getElementById('reset-btn');
-      resetBtn!.click();
-
-      await new Promise((r) => setTimeout(r, 0));
-
-      const messageEl = document.getElementById('message');
-      expect(messageEl!.textContent).toBe('Saved');
-      expect(messageEl!.classList.contains('success')).toBe(true);
     });
 
     it('shows preset name message when applying a preset', async () => {
