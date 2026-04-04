@@ -165,6 +165,7 @@ describe('Popup UI Integration', () => {
         characterEdgeStyle: 'dropshadow',
         backgroundOpacity: '0',
         windowOpacity: '0',
+        fontFamily: 'proportional-sans-serif',
       });
 
       await triggerInit();
@@ -246,6 +247,7 @@ describe('Popup UI Integration', () => {
         characterEdgeStyle: 'dropshadow',
         backgroundOpacity: '0',
         windowOpacity: '0',
+        fontFamily: 'proportional-sans-serif',
       });
 
       await triggerInit();

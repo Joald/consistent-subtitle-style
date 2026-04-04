@@ -72,6 +72,7 @@ describe('presets', () => {
         characterEdgeStyle: 'dropshadow',
         backgroundOpacity: '0',
         windowOpacity: '0',
+        fontFamily: 'proportional-sans-serif',
       };
       expect(detectActivePreset(settings, false)).toBe('recommended');
     });
@@ -127,9 +128,10 @@ describe('presets', () => {
       }
     });
 
-    it('recommended preset has dropshadow + 0% bg/window', () => {
+    it('recommended preset has dropshadow + sans-serif + 0% bg/window', () => {
       const preset = getPresetById('recommended');
       expect(preset!.settings.characterEdgeStyle).toBe('dropshadow');
+      expect(preset!.settings.fontFamily).toBe('proportional-sans-serif');
       expect(preset!.settings.backgroundOpacity).toBe('0');
       expect(preset!.settings.windowOpacity).toBe('0');
     });

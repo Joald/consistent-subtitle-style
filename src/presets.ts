@@ -31,13 +31,14 @@ const PRODUCTION_PRESETS: Preset[] = [
   {
     id: 'recommended',
     name: 'Recommended',
-    description: 'Drop shadow, transparent background — clean and readable',
+    description: 'Drop shadow, sans-serif font, transparent background — clean and readable',
     isRecommended: true,
     settings: {
       ...ALL_AUTO,
       characterEdgeStyle: 'dropshadow',
       backgroundOpacity: '0',
       windowOpacity: '0',
+      fontFamily: 'proportional-sans-serif',
     },
   },
   {
