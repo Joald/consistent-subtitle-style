@@ -57,9 +57,9 @@
 
 ## Coverage Metrics (Unblocked)
 
-- [ ] Deterministic line coverage counter — integrate vitest coverage (istanbul/v8) to track actual % of lines/branches/functions covered per file. Display in Space dashboard.
+- [x] Deterministic line coverage counter — Istanbul provider via vitest --coverage. 85% lines, 83% stmts, 69% branches, 91% funcs. 14/21 files at 100%. JSON report at coverage/coverage-summary.json. Commits: a15dbd9, 9b3866a
 - [ ] LLM-powered logical feature coverage — enumerate logical features per platform (e.g. "font color change", "opacity slider", "live update", "preset apply", "per-site override") and map each to test assertions. Show which features have tests vs which are untested. Update Space dashboard with feature coverage matrix.
 
 ## Documentation (Unblocked)
 
-- [ ] Implementation strategy matrix — document per-site per-feature how each style property is implemented. E.g. YouTube uses native player API for font color, Dropout uses inline styles on .vp-captions, Netflix uses CSS injection, Disney+ uses Shadow DOM piercing. Columns: platform. Rows: feature (font size, font color, font family, background color, background opacity, window color, window opacity, text opacity, live update). Cells: strategy (native API, CSS injection, inline styles, localStorage, Shadow DOM, N/A). Display in Space dashboard.
+- [x] Implementation strategy matrix — docs/IMPLEMENTATION-MATRIX.md documenting per-site per-feature implementation strategies for all 9 platforms. Includes CSS selectors, architecture notes, coverage summary, and complexity ranking. Commit: 89e7195
