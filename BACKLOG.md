@@ -8,7 +8,7 @@
 
 ## Popup UX Improvements (Unblocked — do one per worker run)
 
-- [ ] **Rename presets** — "Minimal" → "Do Nothing", "Classic" → "High Contrast". Update presets.ts, tests, and any references.
+- [x] **Rename presets** — "Minimal" → "Do Nothing", "Classic" → "High Contrast". Updated presets.ts, popup test, E2E presets test, docs. Commit: (pending)
 - [ ] **Remove Reset button** — redundant with "Do Nothing" preset. Remove from popup.ts and styles.css. Update tests.
 - [ ] **Recommended preset: add proportional sans-serif** — set `fontFamily: "proportionalSansSerif"` in Recommended preset settings. Update tests.
 - [ ] **Dropdowns show effective per-site values** — Form always shows what's actually applied on current page (per-site override if exists, otherwise global). Scope toggle only changes what happens on save, not displayed values. Load site override on init and populate form with effective settings.

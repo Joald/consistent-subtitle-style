@@ -838,7 +838,7 @@ describe('Popup UI Integration', () => {
       await new Promise((r) => setTimeout(r, 0));
 
       const messageEl = document.getElementById('message');
-      expect(messageEl!.textContent).toContain('Classic');
+      expect(messageEl!.textContent).toContain('High Contrast');
     });
   });
 

@@ -134,9 +134,9 @@ Every platform must be correctly identified from URL hostname.
 | Preset settings integrity | ✅ (4 tests) | — |
 | Popup dropdown renders presets | ✅ (popup.test) | ✅ (presets.e2e) |
 | Select preset → applies settings | ✅ (popup.test) | ✅ (presets.e2e) |
-| Classic preset CSS verification | — | ✅ (presets.e2e) |
+| High Contrast preset CSS verification | — | ✅ (presets.e2e) |
 | Recommended preset CSS verification | — | ✅ (presets.e2e) |
-| Minimal preset CSS verification | — | ✅ (presets.e2e) |
+| Do Nothing preset CSS verification | — | ✅ (presets.e2e) |
 | Manual change → switches to Custom | ✅ (popup.test) | ✅ (presets.e2e) |
 | Saves preset via chrome.storage | ✅ (popup.test + storage.test) | — |
 | Reset preserves preset selection | — | ✅ (presets.e2e) |
