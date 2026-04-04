@@ -430,3 +430,14 @@ hr {
   color: #e0e0e0;
   font-weight: 600;
 }
+
+/* Override badge — small dot on dropdown triggers for per-site overrides */
+.override-badge {
+  display: inline-block;
+  width: 8px;
+  height: 8px;
+  background: #f59e0b;
+  border-radius: 50%;
+  margin-right: 6px;
+  flex-shrink: 0;
+}
