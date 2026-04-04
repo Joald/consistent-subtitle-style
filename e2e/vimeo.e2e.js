@@ -313,6 +313,118 @@ async function run() {
         shadow?.substring(0, 60),
       );
 
+      // ── Font opacity ────────────────────────────────────────────────
+      console.log('\n🔅  Font opacity (color-mix)');
+
+      // Font opacity requires a font color to be set (auto color + opacity = no rule for fonts)
+      await setStorage(browser, extId, { fontColor: 'yellow', fontOpacity: '50' });
+
+      const fontOpacityColor = await waitForStyle(
+        page,
+        SUB_SEL,
+        'color',
+        (v) => v != null && v.includes('0.5'),
+      );
+      assert(
+        fontOpacityColor && fontOpacityColor.includes('0.5'),
+        'Font color+opacity produces semi-transparent color',
+        fontOpacityColor,
+      );
+      // Chrome may return color(srgb 1 1 0 / 0.5) or rgba(255, 255, 0, 0.5)
+      const isYellow = fontOpacityColor && (
+        (fontOpacityColor.includes('255') && fontOpacityColor.includes('255, 0')) ||
+        fontOpacityColor.includes('srgb 1 1 0')
+      );
+      assert(isYellow, 'Font opacity preserves yellow hue', fontOpacityColor);
+
+      // ── Background opacity ──────────────────────────────────────────
+      console.log('\n🔅  Background opacity (color-mix)');
+
+      // Background opacity with explicit blue color
+      await setStorage(browser, extId, { backgroundColor: 'blue', backgroundOpacity: '75' });
+
+      const bgOpacity = await waitForStyle(
+        page,
+        SUB_BG_SEL,
+        'backgroundColor',
+        (v) => v != null && v.includes('0.75'),
+      );
+      assert(
+        bgOpacity && bgOpacity.includes('0.75'),
+        'Background color+opacity produces 75% alpha',
+        bgOpacity,
+      );
+      // Chrome may return color(srgb 0 0 1 / 0.75) or rgba(0, 0, 255, 0.75)
+      const isBlue = bgOpacity && (
+        bgOpacity.includes('0, 0, 255') || bgOpacity.includes('srgb 0 0 1')
+      );
+      assert(isBlue, 'Background opacity preserves blue hue', bgOpacity);
+
+      // Background opacity alone (falls back to black)
+      await setStorage(browser, extId, { backgroundColor: 'auto', backgroundOpacity: '50' });
+
+      const bgOpacityAlone = await waitForStyle(
+        page,
+        SUB_BG_SEL,
+        'backgroundColor',
+        (v) => v != null && v.includes('0.5'),
+      );
+      assert(
+        bgOpacityAlone && bgOpacityAlone.includes('0.5'),
+        'Background opacity alone produces 50% alpha (black fallback)',
+        bgOpacityAlone,
+      );
+
+      // ── Window color ────────────────────────────────────────────────
+      console.log('\n🪟  Window color');
+
+      // Reset background settings first to avoid confusion
+      await setStorage(browser, extId, { backgroundColor: 'auto', backgroundOpacity: 'auto' });
+      await sleep(1000);
+
+      await setStorage(browser, extId, { windowColor: 'red' });
+
+      const windowColor = await waitForStyle(
+        page,
+        SUB_SEL, // window selector = .vp-captions on Vimeo
+        'backgroundColor',
+        (v) => v != null && v.includes('255, 0, 0'),
+      );
+      assert(
+        windowColor && windowColor.includes('255, 0, 0'),
+        'Window color changes to red on .vp-captions',
+        windowColor,
+      );
+
+      // ── Window opacity ──────────────────────────────────────────────
+      console.log('\n🔅  Window opacity (color-mix)');
+
+      await setStorage(browser, extId, { windowColor: 'green', windowOpacity: '50' });
+
+      const windowOpacity = await waitForStyle(
+        page,
+        SUB_SEL,
+        'backgroundColor',
+        (v) => v != null && v.includes('0.5'),
+      );
+      assert(
+        windowOpacity && windowOpacity.includes('0.5'),
+        'Window color+opacity produces 50% alpha',
+        windowOpacity,
+      );
+      // Chrome may return color(srgb 0 1 0 / 0.5) or rgba(0, 255, 0, 0.5) or rgba(0, 128, 0, 0.5)
+      const isGreen = windowOpacity && (
+        windowOpacity.includes('0, 255, 0') ||
+        windowOpacity.includes('0, 128, 0') ||
+        windowOpacity.includes('srgb 0 1 0') ||
+        windowOpacity.includes('srgb 0 0.5')
+      );
+      assert(isGreen, 'Window opacity preserves green hue', windowOpacity);
+
+      // Reset for next tests
+      await resetStorage(browser, extId);
+      await sleep(2000);
+
       // ── Combined settings ────────────────────────────────────────────
       console.log('\n🎯  Combined settings');
 
