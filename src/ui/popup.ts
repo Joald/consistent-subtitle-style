@@ -7,7 +7,8 @@ import { loadSettings, applyPreset, DEFAULTS } from '../storage.js';
 import { debug } from '../debug.js';
 import { generateCombinedCssRules } from '../css-mappings.js';
 import { getAvailablePresets, getPresetById, detectActivePreset } from '../presets.js';
-import { loadSiteOverride, saveSiteOverride } from '../site-settings.js';
+import { loadSiteOverride, saveSiteOverride, loadAllSiteOverrides } from '../site-settings.js';
+import type { SiteSettingsMap } from '../site-settings.js';
 import type { Platform } from '../platforms/index.js';
 
 /** Detected platform for the active tab (null when on a non-supported site). */
@@ -16,6 +17,8 @@ let currentPlatform: Platform | null = null;
 let siteScope = false;
 /** Global settings, cached on init for comparing against per-site overrides. */
 let globalSettings: StorageSettings | null = null;
+/** All per-site overrides, loaded once at init for indicator icons. */
+let allSiteOverrides: SiteSettingsMap = {};
 
 const PLATFORM_DISPLAY_NAMES: Record<Platform, string> = {
   youtube: 'YouTube',
@@ -27,6 +30,18 @@ const PLATFORM_DISPLAY_NAMES: Record<Platform, string> = {
   disneyplus: 'Disney+',
   netflix: 'Netflix',
   vimeo: 'Vimeo',
+};
+
+const PLATFORM_SHORT_NAMES: Record<Platform, string> = {
+  youtube: 'YT',
+  nebula: 'NB',
+  dropout: 'DO',
+  primevideo: 'PV',
+  max: 'MX',
+  crunchyroll: 'CR',
+  disneyplus: 'D+',
+  netflix: 'NF',
+  vimeo: 'VM',
 };
 
 const ID_TO_SETTING_KEY: Record<string, keyof StorageSettings> = {
@@ -101,6 +116,7 @@ function populateForm(settings: StorageSettings): void {
   });
   updateOpacityStates();
   updateOverrideBadges();
+  updateSiteIndicators();
   updatePreview();
 }
 
@@ -157,6 +173,69 @@ function updateOverrideBadges(): void {
         trigger.appendChild(badge);
       }
     }
+  });
+}
+
+/**
+ * Update per-site indicator icons inside dropdown options.
+ * For each option in each dropdown, show small platform abbreviation badges
+ * for platforms that have a per-site override using that value (when it
+ * differs from the global value). Excludes the currently active platform
+ * since the user already knows they're on it.
+ */
+function updateSiteIndicators(): void {
+  if (!globalSettings) return;
+
+  const platforms = Object.keys(PLATFORM_SHORT_NAMES) as Platform[];
+
+  Object.entries(ID_TO_SETTING_KEY).forEach(([id, settingKey]) => {
+    const container = document.querySelector(`[data-id="${id}"]`);
+    if (!container) return;
+
+    const options = container.querySelectorAll('.select-option');
+    options.forEach((opt) => {
+      if (!(opt instanceof HTMLElement)) return;
+      const optionValue = opt.dataset['value'] ?? 'auto';
+
+      // Remove existing indicators
+      opt.querySelectorAll('.site-indicator').forEach((el) => {
+        el.remove();
+      });
+
+      // Find platforms that use this value as a per-site override (different from global)
+      const matchingPlatforms: Platform[] = [];
+      for (const platform of platforms) {
+        // Skip the current platform — already shown in scope toggle
+        if (platform === currentPlatform) continue;
+
+        const override = allSiteOverrides[platform];
+        if (!override) continue;
+
+        const overrideValue = override.settings[settingKey] as string;
+        const globalValue = (globalSettings ?? ({} as StorageSettings))[settingKey] as string;
+
+        // Only show if the override differs from global AND matches this option value
+        if (overrideValue !== globalValue && overrideValue === optionValue) {
+          matchingPlatforms.push(platform);
+        }
+      }
+
+      if (matchingPlatforms.length > 0) {
+        const indicatorContainer = document.createElement('span');
+        indicatorContainer.className = 'site-indicator-group';
+
+        for (const platform of matchingPlatforms) {
+          const badge = document.createElement('span');
+          badge.className = 'site-indicator';
+          badge.textContent = PLATFORM_SHORT_NAMES[platform];
+          badge.title = `${PLATFORM_DISPLAY_NAMES[platform]} uses this setting`;
+          badge.dataset['platform'] = platform;
+          indicatorContainer.appendChild(badge);
+        }
+
+        opt.appendChild(indicatorContainer);
+      }
+    });
   });
 }
 
@@ -279,6 +358,7 @@ function setupCustomSelects(): void {
         updatePreview();
         updateOpacityStates();
         updateOverrideBadges();
+        updateSiteIndicators();
         void handleSave();
       });
     });
@@ -523,6 +603,9 @@ async function initializePopup(): Promise<void> {
 
     // Always load global settings (needed for override badge comparison)
     globalSettings = await loadSettings();
+
+    // Load all site overrides for indicator icons in dropdown options
+    allSiteOverrides = await loadAllSiteOverrides();
 
     // Determine initial settings: check for per-site override first
     let settings: StorageSettings;
