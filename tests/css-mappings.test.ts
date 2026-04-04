@@ -763,4 +763,23 @@ describe('css-mappings', () => {
       });
     });
   });
+
+  // ── Edge Cases ────────────────────────────────────────────────────────
+
+  describe('edge cases', () => {
+    it('generateCssRule returns null for unknown CSS property (error path)', () => {
+      const bogusMapping = {
+        property: 'totallyBogusProperty' as keyof StorageSettings,
+        appliesTo: 'subtitle' as const,
+      };
+      const result = generateCssRule(bogusMapping, 'red');
+      expect(result).toBeNull();
+    });
+
+    it('generateCssRule returns null for empty string value', () => {
+      const mapping = CSS_SETTING_MAPPINGS.fontColor;
+      const result = generateCssRule(mapping, '');
+      expect(result).toBeNull();
+    });
+  });
 });
