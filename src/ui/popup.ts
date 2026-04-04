@@ -14,6 +14,8 @@ import type { Platform } from '../platforms/index.js';
 let currentPlatform: Platform | null = null;
 /** Whether we're in per-site mode (true) or global mode (false). */
 let siteScope = false;
+/** Global settings, cached on init for comparing against per-site overrides. */
+let globalSettings: StorageSettings | null = null;
 
 const PLATFORM_DISPLAY_NAMES: Record<Platform, string> = {
   youtube: 'YouTube',
@@ -98,6 +100,7 @@ function populateForm(settings: StorageSettings): void {
     }
   });
   updateOpacityStates();
+  updateOverrideBadges();
   updatePreview();
 }
 
@@ -116,6 +119,45 @@ function updateOpacityStates(): void {
       helpEl?.classList.add('hidden');
     }
   }
+}
+
+/**
+ * Update override badges on dropdown triggers.
+ * When a per-site override is active and the current setting differs from the
+ * global value, we show a small dot badge on the trigger so users can see at a
+ * glance which settings are overridden for this site.
+ */
+function updateOverrideBadges(): void {
+  Object.entries(ID_TO_SETTING_KEY).forEach(([id, settingKey]) => {
+    const el = document.querySelector(`[data-id="${id}"]`);
+    if (!(el instanceof HTMLElement)) return;
+
+    const trigger = el.querySelector('.select-trigger');
+    if (!trigger) return;
+
+    // Remove existing badge if any
+    const existing = trigger.querySelector('.override-badge');
+    existing?.remove();
+
+    // Only show badges when we have both global settings and a per-site override
+    if (!globalSettings || !currentPlatform) return;
+
+    const currentValue = el.dataset['selectedValue'] ?? 'auto';
+    const globalValue = globalSettings[settingKey] as string;
+
+    if (currentValue !== globalValue) {
+      const badge = document.createElement('span');
+      badge.className = 'override-badge';
+      badge.title = `Per-site override (global: ${globalValue})`;
+      // Insert before the arrow
+      const arrow = trigger.querySelector('.select-arrow');
+      if (arrow) {
+        trigger.insertBefore(badge, arrow);
+      } else {
+        trigger.appendChild(badge);
+      }
+    }
+  });
 }
 
 function collectSettings(): Partial<StorageSettings> {
@@ -236,6 +278,7 @@ function setupCustomSelects(): void {
 
         updatePreview();
         updateOpacityStates();
+        updateOverrideBadges();
         void handleSave();
       });
     });
@@ -478,6 +521,9 @@ async function initializePopup(): Promise<void> {
     // Detect current platform from the active tab
     currentPlatform = await detectActiveTabPlatform();
 
+    // Always load global settings (needed for override badge comparison)
+    globalSettings = await loadSettings();
+
     // Determine initial settings: check for per-site override first
     let settings: StorageSettings;
     if (currentPlatform) {
@@ -487,11 +533,11 @@ async function initializePopup(): Promise<void> {
         settings = override.settings;
       } else {
         siteScope = false;
-        settings = await loadSettings();
+        settings = globalSettings;
       }
     } else {
       siteScope = false;
-      settings = await loadSettings();
+      settings = globalSettings;
     }
 
     buildPresetSelector();

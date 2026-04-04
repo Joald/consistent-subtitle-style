@@ -990,4 +990,190 @@ describe('Popup UI Integration', () => {
       expect(messageEl!.textContent).toContain('Failed to save');
     });
   });
+
+  describe('override badges', () => {
+    afterEach(() => {
+      clearTabsMock();
+    });
+
+    it('shows override badges when per-site settings differ from global', async () => {
+      mockActiveTab('https://www.youtube.com/watch?v=abc');
+
+      const globalSettings = { ...ALL_AUTO, fontColor: 'white', fontSize: '100%' };
+      const siteSettings = { ...ALL_AUTO, fontColor: 'cyan', fontSize: '150%' };
+
+      vi.mocked(chrome.storage.sync.get).mockImplementation(async (keys: unknown) => {
+        if (typeof keys === 'string' && keys === 'siteSettings') {
+          return {
+            siteSettings: {
+              youtube: { settings: siteSettings, activePreset: null },
+            },
+          };
+        }
+        return globalSettings;
+      });
+
+      await triggerInit();
+
+      // fontColor and fontSize differ — should have badges
+      const fontColorBadge = document
+        .querySelector('[data-id="font-color"]')
+        ?.querySelector('.override-badge');
+      const fontSizeBadge = document
+        .querySelector('[data-id="font-size"]')
+        ?.querySelector('.override-badge');
+      expect(fontColorBadge).not.toBeNull();
+      expect(fontSizeBadge).not.toBeNull();
+
+      // Other settings are the same (all auto) — no badges
+      const edgeStyleBadge = document
+        .querySelector('[data-id="character-edge-style"]')
+        ?.querySelector('.override-badge');
+      expect(edgeStyleBadge).toBeNull();
+    });
+
+    it('shows no badges when there is no per-site override', async () => {
+      mockActiveTab('https://www.youtube.com/watch?v=abc');
+
+      await triggerInit();
+
+      // All settings are global defaults — no badges
+      const allBadges = document.querySelectorAll('.override-badge');
+      expect(allBadges.length).toBe(0);
+    });
+
+    it('shows no badges on non-platform pages', async () => {
+      // No tab mock = no platform detected
+      await triggerInit();
+
+      const allBadges = document.querySelectorAll('.override-badge');
+      expect(allBadges.length).toBe(0);
+    });
+
+    it('shows badges for all 9 settings when all differ', async () => {
+      mockActiveTab('https://www.youtube.com/watch?v=abc');
+
+      const globalSettings = { ...ALL_AUTO };
+      const siteSettings = {
+        characterEdgeStyle: 'outline',
+        backgroundOpacity: '75',
+        windowOpacity: '50',
+        fontColor: 'yellow',
+        fontOpacity: '100',
+        backgroundColor: 'blue',
+        windowColor: 'red',
+        fontFamily: 'casual',
+        fontSize: '200%',
+      };
+
+      vi.mocked(chrome.storage.sync.get).mockImplementation(async (keys: unknown) => {
+        if (typeof keys === 'string' && keys === 'siteSettings') {
+          return {
+            siteSettings: {
+              youtube: { settings: siteSettings, activePreset: null },
+            },
+          };
+        }
+        return globalSettings;
+      });
+
+      await triggerInit();
+
+      const allBadges = document.querySelectorAll('.override-badge');
+      expect(allBadges.length).toBe(9);
+    });
+
+    it('badge has tooltip with global value', async () => {
+      mockActiveTab('https://www.youtube.com/watch?v=abc');
+
+      const globalSettings = { ...ALL_AUTO, fontColor: 'white' };
+      const siteSettings = { ...ALL_AUTO, fontColor: 'red' };
+
+      vi.mocked(chrome.storage.sync.get).mockImplementation(async (keys: unknown) => {
+        if (typeof keys === 'string' && keys === 'siteSettings') {
+          return {
+            siteSettings: {
+              youtube: { settings: siteSettings, activePreset: null },
+            },
+          };
+        }
+        return globalSettings;
+      });
+
+      await triggerInit();
+
+      const badge = document
+        .querySelector('[data-id="font-color"]')!
+        .querySelector<HTMLElement>('.override-badge')!;
+      expect(badge).not.toBeNull();
+      expect(badge.title).toContain('white');
+    });
+
+    it('updates badges when a setting changes to match global', async () => {
+      mockActiveTab('https://www.youtube.com/watch?v=abc');
+
+      const globalSettings = { ...ALL_AUTO, fontColor: 'white' };
+      const siteSettings = { ...ALL_AUTO, fontColor: 'red' };
+
+      vi.mocked(chrome.storage.sync.get).mockImplementation(async (keys: unknown) => {
+        if (typeof keys === 'string' && keys === 'siteSettings') {
+          return {
+            siteSettings: {
+              youtube: { settings: siteSettings, activePreset: null },
+            },
+          };
+        }
+        return globalSettings;
+      });
+
+      await triggerInit();
+
+      // Badge should exist initially
+      let badge = document
+        .querySelector('[data-id="font-color"]')
+        ?.querySelector('.override-badge');
+      expect(badge).not.toBeNull();
+
+      // Change fontColor to match global value ('white')
+      const fontColorSelect = document.querySelector<HTMLElement>('[data-id="font-color"]');
+      const whiteOption = fontColorSelect!.querySelector<HTMLElement>(
+        '.select-option[data-value="white"]',
+      );
+      whiteOption!.click();
+      await new Promise((r) => setTimeout(r, 0));
+
+      // Badge should be gone now
+      badge = document.querySelector('[data-id="font-color"]')?.querySelector('.override-badge');
+      expect(badge).toBeNull();
+    });
+
+    it('badge is placed before the arrow in the trigger', async () => {
+      mockActiveTab('https://www.youtube.com/watch?v=abc');
+
+      const globalSettings = { ...ALL_AUTO, fontColor: 'white' };
+      const siteSettings = { ...ALL_AUTO, fontColor: 'cyan' };
+
+      vi.mocked(chrome.storage.sync.get).mockImplementation(async (keys: unknown) => {
+        if (typeof keys === 'string' && keys === 'siteSettings') {
+          return {
+            siteSettings: {
+              youtube: { settings: siteSettings, activePreset: null },
+            },
+          };
+        }
+        return globalSettings;
+      });
+
+      await triggerInit();
+
+      const trigger = document.querySelector('[data-id="font-color"] .select-trigger')!;
+      const children = Array.from(trigger.children);
+      const badgeIdx = children.findIndex((c) => c.classList.contains('override-badge'));
+      const arrowIdx = children.findIndex((c) => c.classList.contains('select-arrow'));
+
+      expect(badgeIdx).toBeGreaterThan(-1);
+      expect(arrowIdx).toBeGreaterThan(-1);
+      expect(badgeIdx).toBeLessThan(arrowIdx);
+    });
+  });
 });
