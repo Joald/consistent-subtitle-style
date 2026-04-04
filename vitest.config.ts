@@ -13,14 +13,13 @@ export default defineConfig({
     include: ['tests/**/*.test.ts'],
     exclude: ['node_modules', 'dist'],
     coverage: {
-      // Note: vitest --coverage requires matching versions of @vitest/coverage-istanbul
-      // and Node 19+ for @vitest/coverage-v8. Use `npm run test:coverage` for static
-      // analysis via scripts/analyze-coverage.cjs instead.
+      // Istanbul coverage provider — works on Node 18+.
+      // Run: npm run test:coverage
       provider: 'istanbul',
       reporter: ['text', 'json-summary', 'html'],
       reportsDirectory: './coverage',
       include: ['src/**/*.ts'],
-      exclude: ['src/**/*.d.ts', 'src/types/**'],
+      exclude: ['src/**/*.d.ts', 'src/types/**', 'src/ui/mock-chrome.ts'],
     },
   },
 });
