@@ -143,6 +143,20 @@ Finding the extension ID is non-trivial in Puppeteer. The helper
   If bot detection triggers, the entire YouTube suite is gracefully
   skipped.
 
+### Presets (`presets.e2e.js`)
+
+- **URL:** Vimeo player embed — no login required
+- **What it tests:**
+  - Preset dropdown exists in popup with correct options (Custom, ★ Recommended, Classic, Minimal)
+  - Selecting "Classic" preset updates all dropdown values to match preset settings
+  - CSS verified on Vimeo: white font color, no text shadow
+  - Selecting "Recommended" preset updates dropdowns (dropshadow, 0% bg opacity)
+  - CSS verified on Vimeo: dropshadow text shadow applied
+  - Manual setting change reverts preset indicator to "Custom"
+  - "Minimal" preset sets all dropdowns to "auto"
+  - Reset returns to minimal/custom state
+- **Style mechanism:** Tests the full pipeline: preset selection → storage write → CSS application
+
 ### Max/HBO (`max.e2e.js`)
 
 - **URL:** `hbomax.com/collections/watch-free` — free trailers, no login
@@ -191,6 +205,7 @@ e2e/
 ├── dropout.e2e.js      ← Dropout/VHX embed tests (22 assertions)
 ├── max.e2e.js          ← Max/HBO tests (17 assertions)
 ├── nebula.e2e.js       ← Nebula free-video tests (25 assertions)
+├── presets.e2e.js       ← Preset system tests (24 assertions)
 ├── vimeo.e2e.js        ← Vimeo embed tests (22 assertions)
 ├── youtube.e2e.js      ← YouTube embed tests (14 assertions)
 └── run.sh              ← Xvfb + build + sequential runner
