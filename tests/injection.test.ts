@@ -7,6 +7,7 @@ describe('injection.ts module', () => {
   let appendChildSpy: Mock;
 
   beforeEach(() => {
+    vi.useFakeTimers();
     vi.clearAllMocks();
 
     // Reset injection dedup guard so each test can re-import
@@ -38,6 +39,8 @@ describe('injection.ts module', () => {
   });
 
   afterEach(() => {
+    vi.clearAllTimers();
+    vi.useRealTimers();
     vi.restoreAllMocks();
     vi.stubGlobal('chrome', undefined);
   });
@@ -109,7 +112,9 @@ describe('injection.ts module', () => {
     } as unknown as MessageEvent);
 
     // Give promises time to resolve
-    await new Promise((resolve) => setTimeout(resolve, 0));
+    await Promise.resolve();
+    await Promise.resolve();
+    await Promise.resolve();
 
     expect(postMessageSpy).toHaveBeenCalledWith(
       expect.objectContaining({
@@ -148,9 +153,9 @@ describe('injection.ts module', () => {
     } as unknown as MessageEvent);
 
     // Give promises time to resolve
-    await new Promise((resolve) => {
-      setTimeout(resolve, 0);
-    });
+    await Promise.resolve();
+    await Promise.resolve();
+    await Promise.resolve();
 
     expect(postMessageSpy).toHaveBeenCalledWith(
       expect.objectContaining({
@@ -247,7 +252,9 @@ describe('injection.ts module', () => {
       },
     } as unknown as MessageEvent);
 
-    await new Promise((r) => setTimeout(r, 0));
+    await Promise.resolve();
+    await Promise.resolve();
+    await Promise.resolve();
 
     // Should not have posted any response
     expect(postMessageSpy).not.toHaveBeenCalled();
@@ -427,7 +434,9 @@ describe('injection.ts module', () => {
       },
     } as unknown as MessageEvent);
 
-    await new Promise((r) => setTimeout(r, 0));
+    await Promise.resolve();
+    await Promise.resolve();
+    await Promise.resolve();
 
     // Should not post any response
     expect(postMessageSpy).not.toHaveBeenCalledWith(
@@ -455,7 +464,9 @@ describe('injection.ts module', () => {
       },
     } as unknown as MessageEvent);
 
-    await new Promise((r) => setTimeout(r, 0));
+    await Promise.resolve();
+    await Promise.resolve();
+    await Promise.resolve();
 
     // Should not post a response for unknown actions
     expect(postMessageSpy).not.toHaveBeenCalledWith(
@@ -483,7 +494,9 @@ describe('injection.ts module', () => {
       },
     } as unknown as MessageEvent);
 
-    await new Promise((r) => setTimeout(r, 0));
+    await Promise.resolve();
+    await Promise.resolve();
+    await Promise.resolve();
 
     // Should not post a response when settings are missing
     expect(postMessageSpy).not.toHaveBeenCalledWith(
@@ -495,8 +508,6 @@ describe('injection.ts module', () => {
   // ── Script loading chain ──
 
   it('starts loading script chain after bridge.js loads', async () => {
-    vi.useFakeTimers();
-
     await loadInjection();
 
     // Find bridge.js script
@@ -525,7 +536,5 @@ describe('injection.ts module', () => {
     )?.value as HTMLScriptElement;
 
     expect(platformsScript).toBeDefined();
-
-    vi.useRealTimers();
   });
 });
