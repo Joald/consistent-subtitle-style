@@ -427,13 +427,13 @@ function buildScopeToggle(): void {
   globalBtn.addEventListener('click', () => {
     if (!siteScope) return;
     siteScope = false;
-    void switchScope();
+    switchScope();
   });
 
   siteBtn.addEventListener('click', () => {
     if (siteScope) return;
     siteScope = true;
-    void switchScope();
+    switchScope();
   });
 
   toggleContainer.appendChild(globalBtn);
@@ -463,31 +463,14 @@ function updateScopeUI(): void {
 }
 
 /**
- * Switch between global and per-site mode: reload settings for the new scope.
+ * Switch between global and per-site mode.
+ * Only updates the scope toggle UI — the form keeps showing the effective
+ * settings (what's actually applied on the current page) regardless of scope.
+ * The scope only affects where the *next save* goes.
  */
-async function switchScope(): Promise<void> {
+function switchScope(): void {
   updateScopeUI();
-
-  if (siteScope && currentPlatform) {
-    // Load per-site override, or fall back to global
-    const override = await loadSiteOverride(currentPlatform);
-    if (override) {
-      populateForm(override.settings);
-      updatePresetIndicator(override.settings);
-    } else {
-      // No per-site override yet — start with a copy of global settings
-      const globalSettings = await loadSettings();
-      populateForm(globalSettings);
-      updatePresetIndicator(globalSettings);
-    }
-  } else {
-    // Global mode: load global settings
-    const globalSettings = await loadSettings();
-    populateForm(globalSettings);
-    updatePresetIndicator(globalSettings);
-  }
-
-  updatePreview();
+  // Form stays the same — scope only controls save destination.
 }
 
 async function initializePopup(): Promise<void> {

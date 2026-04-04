@@ -680,7 +680,7 @@ describe('Popup UI Integration', () => {
       expect(fontColorSelect!.dataset['selectedValue']).toBe('cyan');
     });
 
-    it('switches to global mode and reloads global settings', async () => {
+    it('switches to global mode without changing displayed settings', async () => {
       mockActiveTab('https://www.youtube.com/watch?v=abc');
 
       const globalSettings = { ...ALL_AUTO, fontColor: 'white' };
@@ -699,7 +699,7 @@ describe('Popup UI Integration', () => {
 
       await triggerInit();
 
-      // Should start in site mode
+      // Should start in site mode with per-site settings
       const fontColorSelect = document.querySelector<HTMLElement>('[data-id="font-color"]');
       expect(fontColorSelect!.dataset['selectedValue']).toBe('cyan');
 
@@ -709,11 +709,13 @@ describe('Popup UI Integration', () => {
 
       await new Promise((r) => setTimeout(r, 0));
 
+      // Toggle UI updates
       expect(globalBtn!.classList.contains('active')).toBe(true);
-      expect(fontColorSelect!.dataset['selectedValue']).toBe('white');
+      // Form keeps showing effective settings (what's applied on page) — no reload
+      expect(fontColorSelect!.dataset['selectedValue']).toBe('cyan');
     });
 
-    it('switches to site mode and loads per-site override', async () => {
+    it('switches to site mode without changing displayed settings', async () => {
       mockActiveTab('https://www.youtube.com/watch?v=abc');
 
       const globalSettings = { ...ALL_AUTO, fontColor: 'white' };
@@ -748,8 +750,9 @@ describe('Popup UI Integration', () => {
 
       await new Promise((r) => setTimeout(r, 0));
 
+      // Toggle UI updates
       expect(siteBtn!.classList.contains('active')).toBe(true);
-      // No override yet, so falls back to global
+      // Form keeps showing effective settings — no reload
       expect(fontColorSelect!.dataset['selectedValue']).toBe('white');
     });
 
