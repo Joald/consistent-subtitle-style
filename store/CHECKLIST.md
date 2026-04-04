@@ -3,7 +3,7 @@
 ## Pre-Submission
 
 - [ ] Merge `fix/dropout-live-settings` → `main`
-- [ ] Verify all 450 unit tests pass on `main`
+- [ ] Verify all 682 unit tests pass on `main`
 - [ ] Verify E2E tests pass on `main`
 - [ ] Run `npm run release` to generate production zip
 - [ ] Test the release zip via "Load unpacked" on a fresh Chrome profile
