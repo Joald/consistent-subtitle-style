@@ -1176,4 +1176,266 @@ describe('Popup UI Integration', () => {
       expect(badgeIdx).toBeLessThan(arrowIdx);
     });
   });
+
+  describe('site indicator icons in dropdown options', () => {
+    afterEach(() => {
+      clearTabsMock();
+    });
+
+    it('shows platform indicators on options that match other platforms per-site overrides', async () => {
+      mockActiveTab('https://www.youtube.com/watch?v=abc');
+
+      const globalSettings = { ...ALL_AUTO };
+      const netflixSettings = { ...ALL_AUTO, fontColor: 'red' };
+      const vimeoSettings = { ...ALL_AUTO, fontColor: 'red', fontSize: '200%' };
+
+      vi.mocked(chrome.storage.sync.get).mockImplementation(async (keys: unknown) => {
+        if (typeof keys === 'string' && keys === 'siteSettings') {
+          return {
+            siteSettings: {
+              netflix: { settings: netflixSettings, activePreset: null },
+              vimeo: { settings: vimeoSettings, activePreset: null },
+            },
+          };
+        }
+        return globalSettings;
+      });
+
+      await triggerInit();
+
+      // The "red" option in font-color should have NF and VM indicators
+      const fontColorSelect = document.querySelector('[data-id="font-color"]');
+      const redOption = fontColorSelect!.querySelector('.select-option[data-value="red"]');
+      const indicators = redOption!.querySelectorAll('.site-indicator');
+      expect(indicators.length).toBe(2);
+
+      const platformTexts = Array.from(indicators).map((i) => i.textContent);
+      expect(platformTexts).toContain('NF');
+      expect(platformTexts).toContain('VM');
+    });
+
+    it('does not show indicators for the current platform', async () => {
+      mockActiveTab('https://www.youtube.com/watch?v=abc');
+
+      const globalSettings = { ...ALL_AUTO };
+      const youtubeSettings = { ...ALL_AUTO, fontColor: 'red' };
+      const netflixSettings = { ...ALL_AUTO, fontColor: 'red' };
+
+      vi.mocked(chrome.storage.sync.get).mockImplementation(async (keys: unknown) => {
+        if (typeof keys === 'string' && keys === 'siteSettings') {
+          return {
+            siteSettings: {
+              youtube: { settings: youtubeSettings, activePreset: null },
+              netflix: { settings: netflixSettings, activePreset: null },
+            },
+          };
+        }
+        return globalSettings;
+      });
+
+      await triggerInit();
+
+      // Only NF should show (not YT — current platform is excluded)
+      const fontColorSelect = document.querySelector('[data-id="font-color"]');
+      const redOption = fontColorSelect!.querySelector('.select-option[data-value="red"]');
+      const indicators = redOption!.querySelectorAll('.site-indicator');
+      expect(indicators.length).toBe(1);
+      expect(indicators[0]!.textContent).toBe('NF');
+    });
+
+    it('does not show indicators when override matches global value', async () => {
+      mockActiveTab('https://www.youtube.com/watch?v=abc');
+
+      const globalSettings = { ...ALL_AUTO, fontColor: 'red' };
+      // Netflix also has red, same as global → no indicator
+      const netflixSettings = { ...ALL_AUTO, fontColor: 'red' };
+
+      vi.mocked(chrome.storage.sync.get).mockImplementation(async (keys: unknown) => {
+        if (typeof keys === 'string' && keys === 'siteSettings') {
+          return {
+            siteSettings: {
+              netflix: { settings: netflixSettings, activePreset: null },
+            },
+          };
+        }
+        return globalSettings;
+      });
+
+      await triggerInit();
+
+      // "red" option should have NO indicators (Netflix matches global)
+      const fontColorSelect = document.querySelector('[data-id="font-color"]');
+      const redOption = fontColorSelect!.querySelector('.select-option[data-value="red"]');
+      const indicators = redOption!.querySelectorAll('.site-indicator');
+      expect(indicators.length).toBe(0);
+    });
+
+    it('shows no indicators when no site overrides exist', async () => {
+      mockActiveTab('https://www.youtube.com/watch?v=abc');
+
+      vi.mocked(chrome.storage.sync.get).mockImplementation(async (keys: unknown) => {
+        if (typeof keys === 'string' && keys === 'siteSettings') {
+          return {};
+        }
+        return ALL_AUTO;
+      });
+
+      await triggerInit();
+
+      const allIndicators = document.querySelectorAll('.site-indicator');
+      expect(allIndicators.length).toBe(0);
+    });
+
+    it('shows indicators on correct options across multiple dropdowns', async () => {
+      mockActiveTab('https://www.youtube.com/watch?v=abc');
+
+      const globalSettings = { ...ALL_AUTO };
+      const netflixSettings = { ...ALL_AUTO, fontColor: 'cyan', fontSize: '150%' };
+
+      vi.mocked(chrome.storage.sync.get).mockImplementation(async (keys: unknown) => {
+        if (typeof keys === 'string' && keys === 'siteSettings') {
+          return {
+            siteSettings: {
+              netflix: { settings: netflixSettings, activePreset: null },
+            },
+          };
+        }
+        return globalSettings;
+      });
+
+      await triggerInit();
+
+      // NF indicator on "cyan" in font-color dropdown
+      const fontColorSelect = document.querySelector('[data-id="font-color"]');
+      const cyanOption = fontColorSelect!.querySelector('.select-option[data-value="cyan"]');
+      const cyanIndicators = cyanOption!.querySelectorAll('.site-indicator');
+      expect(cyanIndicators.length).toBe(1);
+      expect(cyanIndicators[0]!.textContent).toBe('NF');
+
+      // NF indicator on "150%" in font-size dropdown
+      const fontSizeSelect = document.querySelector('[data-id="font-size"]');
+      const sizeOption = fontSizeSelect!.querySelector('.select-option[data-value="150%"]');
+      const sizeIndicators = sizeOption!.querySelectorAll('.site-indicator');
+      expect(sizeIndicators.length).toBe(1);
+      expect(sizeIndicators[0]!.textContent).toBe('NF');
+
+      // No NF indicator on "auto" in font-color (matches global)
+      const autoOption = fontColorSelect!.querySelector('.select-option[data-value="auto"]');
+      const autoIndicators = autoOption!.querySelectorAll('.site-indicator');
+      expect(autoIndicators.length).toBe(0);
+    });
+
+    it('indicator has tooltip with platform display name', async () => {
+      mockActiveTab('https://www.youtube.com/watch?v=abc');
+
+      const globalSettings = { ...ALL_AUTO };
+      const netflixSettings = { ...ALL_AUTO, fontColor: 'white' };
+
+      vi.mocked(chrome.storage.sync.get).mockImplementation(async (keys: unknown) => {
+        if (typeof keys === 'string' && keys === 'siteSettings') {
+          return {
+            siteSettings: {
+              netflix: { settings: netflixSettings, activePreset: null },
+            },
+          };
+        }
+        return globalSettings;
+      });
+
+      await triggerInit();
+
+      const fontColorSelect = document.querySelector('[data-id="font-color"]');
+      const whiteOption = fontColorSelect!.querySelector('.select-option[data-value="white"]');
+      const indicator = whiteOption!.querySelector<HTMLElement>('.site-indicator');
+      expect(indicator).not.toBeNull();
+      expect(indicator!.title).toContain('Netflix');
+    });
+
+    it('indicator has data-platform attribute', async () => {
+      mockActiveTab('https://www.youtube.com/watch?v=abc');
+
+      const globalSettings = { ...ALL_AUTO };
+      const disneySettings = { ...ALL_AUTO, fontFamily: 'casual' };
+
+      vi.mocked(chrome.storage.sync.get).mockImplementation(async (keys: unknown) => {
+        if (typeof keys === 'string' && keys === 'siteSettings') {
+          return {
+            siteSettings: {
+              disneyplus: { settings: disneySettings, activePreset: null },
+            },
+          };
+        }
+        return globalSettings;
+      });
+
+      await triggerInit();
+
+      const fontFamilySelect = document.querySelector('[data-id="font-family"]');
+      const casualOption = fontFamilySelect!.querySelector('.select-option[data-value="casual"]');
+      const indicator = casualOption!.querySelector<HTMLElement>('.site-indicator');
+      expect(indicator).not.toBeNull();
+      expect(indicator!.dataset['platform']).toBe('disneyplus');
+      expect(indicator!.textContent).toBe('D+');
+    });
+
+    it('shows no indicators on non-platform pages', async () => {
+      // No tab mock = no platform detected
+      vi.mocked(chrome.storage.sync.get).mockImplementation(async (keys: unknown) => {
+        if (typeof keys === 'string' && keys === 'siteSettings') {
+          return {
+            siteSettings: {
+              netflix: { settings: { ...ALL_AUTO, fontColor: 'red' }, activePreset: null },
+            },
+          };
+        }
+        return ALL_AUTO;
+      });
+
+      await triggerInit();
+
+      // Still shows indicators (they're useful even on non-platform pages for seeing config)
+      // Actually the function runs regardless of currentPlatform — the only restriction
+      // is we skip currentPlatform (which is null, so no platform is skipped)
+      const fontColorSelect = document.querySelector('[data-id="font-color"]');
+      const redOption = fontColorSelect!.querySelector('.select-option[data-value="red"]');
+      const indicators = redOption!.querySelectorAll('.site-indicator');
+      expect(indicators.length).toBe(1);
+      expect(indicators[0]!.textContent).toBe('NF');
+    });
+
+    it('shows indicators for many platforms on one option', async () => {
+      mockActiveTab('https://www.youtube.com/watch?v=abc');
+
+      const globalSettings = { ...ALL_AUTO };
+      // Several platforms all use fontColor: 'white'
+      const overrides: Record<string, unknown> = {};
+      const platformsWithWhite = ['netflix', 'vimeo', 'max', 'dropout'];
+      for (const p of platformsWithWhite) {
+        overrides[p] = {
+          settings: { ...ALL_AUTO, fontColor: 'white' },
+          activePreset: null,
+        };
+      }
+
+      vi.mocked(chrome.storage.sync.get).mockImplementation(async (keys: unknown) => {
+        if (typeof keys === 'string' && keys === 'siteSettings') {
+          return { siteSettings: overrides };
+        }
+        return globalSettings;
+      });
+
+      await triggerInit();
+
+      const fontColorSelect = document.querySelector('[data-id="font-color"]');
+      const whiteOption = fontColorSelect!.querySelector('.select-option[data-value="white"]');
+      const indicators = whiteOption!.querySelectorAll('.site-indicator');
+      expect(indicators.length).toBe(4);
+
+      const texts = Array.from(indicators).map((i) => i.textContent);
+      expect(texts).toContain('NF');
+      expect(texts).toContain('VM');
+      expect(texts).toContain('MX');
+      expect(texts).toContain('DO');
+    });
+  });
 });

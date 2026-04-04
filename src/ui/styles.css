@@ -441,3 +441,34 @@ hr {
   margin-right: 6px;
   flex-shrink: 0;
 }
+
+/* Site indicator badges — show which platforms use a specific option value */
+.site-indicator-group {
+  display: inline-flex;
+  gap: 4px;
+  margin-left: auto;
+  padding-left: 8px;
+  flex-shrink: 0;
+}
+
+.site-indicator {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1px 4px;
+  background: #333;
+  border: 1px solid #555;
+  border-radius: 3px;
+  font-size: 9px;
+  font-weight: 600;
+  color: #aaa;
+  letter-spacing: 0.3px;
+  white-space: nowrap;
+  cursor: help;
+}
+
+.select-option:hover .site-indicator {
+  background: #444;
+  color: #ccc;
+  border-color: #666;
+}
