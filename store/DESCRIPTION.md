@@ -27,7 +27,9 @@ Consistent Subtitle Style gives you full control over how subtitles look on your
 
 ⚡ KEY FEATURES
 • Per-site settings: different styles for different platforms, or one global style for everything
-• 3 built-in presets (Recommended, Classic, Minimal) for quick setup
+• 3 built-in presets (Recommended, High Contrast, Do Nothing) for quick setup
+• Custom presets: save your own style combos and switch between them instantly
+• Per-site override indicators show which settings differ from your global defaults
 • Live preview in the popup
 • Instant updates — no page reload needed
 • Settings sync across Chrome instances via chrome.storage.sync
