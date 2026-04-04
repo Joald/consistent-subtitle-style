@@ -10,7 +10,7 @@
 
 - [x] **Rename presets** — "Minimal" → "Do Nothing", "Classic" → "High Contrast". Updated presets.ts, popup test, E2E presets test, docs. Commit: `609e553`
 - [x] **Remove Reset button** — removed Reset button, handleReset() function, CSS styles, and 2 related tests. "Do Nothing" preset serves as reset. Commit: `92f5fcf`
-- [ ] **Recommended preset: add proportional sans-serif** — set `fontFamily: "proportionalSansSerif"` in Recommended preset settings. Update tests.
+- [x] **Recommended preset: add proportional sans-serif** — set `fontFamily: "proportional-sans-serif"` in Recommended preset settings. Updated description, 4 tests. Commit: `1b655ff`
 - [ ] **Dropdowns show effective per-site values** — Form always shows what's actually applied on current page (per-site override if exists, otherwise global). Scope toggle only changes what happens on save, not displayed values. Load site override on init and populate form with effective settings.
 - [ ] **Per-site override badge on dropdown triggers** — When current site has a per-site override that differs from global for a setting, show a small indicator icon/badge on that dropdown's trigger (closed state). Helps user see at a glance which settings are overridden.
 - [ ] **Per-site indicator icons inside dropdown options** — When dropdown is open, show small platform icons next to options that have a per-site override DIFFERENT from global. E.g. if global font color is "auto" but YouTube has "red", show YT icon next to "red". Load all site overrides on popup init.
