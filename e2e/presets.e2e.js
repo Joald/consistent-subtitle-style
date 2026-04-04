@@ -45,7 +45,7 @@ const PRESETS = {
     },
   },
   classic: {
-    name: 'Classic',
+    name: 'High Contrast',
     settings: {
       characterEdgeStyle: 'none',
       backgroundOpacity: '75',
@@ -59,7 +59,7 @@ const PRESETS = {
     },
   },
   minimal: {
-    name: 'Minimal',
+    name: 'Do Nothing',
     settings: {
       characterEdgeStyle: 'auto',
       backgroundOpacity: 'auto',
@@ -183,7 +183,7 @@ async function run() {
       presetInfo?.tagName,
     );
 
-    // Should have: Custom + Recommended + Classic + Minimal = 4 minimum
+    // Should have: Custom + Recommended + High Contrast + Do Nothing = 4 minimum
     assert(
       presetInfo?.optionCount >= 4,
       'Preset dropdown has ≥4 options',
@@ -194,8 +194,8 @@ async function run() {
     const optionValues = presetInfo?.options?.map((o) => o.value) ?? [];
     assert(optionValues.includes('custom'), 'Has "Custom" option');
     assert(optionValues.includes('recommended'), 'Has "Recommended" option');
-    assert(optionValues.includes('classic'), 'Has "Classic" option');
-    assert(optionValues.includes('minimal'), 'Has "Minimal" option');
+    assert(optionValues.includes('classic'), 'Has "High Contrast" option');
+    assert(optionValues.includes('minimal'), 'Has "Do Nothing" option');
 
     // Recommended should have star prefix
     const recOpt = presetInfo?.options?.find((o) => o.value === 'recommended');
@@ -207,8 +207,8 @@ async function run() {
 
     await popupPage.close();
 
-    // ── Phase 3: Apply "Classic" preset ────────────────────────────────
-    console.log('\n── Apply Classic preset ──');
+    // ── Phase 3: Apply "High Contrast" preset ────────────────────────────
+    console.log('\n── Apply High Contrast preset ──');
     popupPage = await openPopup(browser, extId);
     await selectPreset(popupPage, 'classic');
 
@@ -216,21 +216,21 @@ async function run() {
     const classicVal = await getPresetValue(popupPage);
     assert(classicVal === 'classic', 'Preset indicator shows "classic"', `got: ${classicVal}`);
 
-    // Verify individual dropdown values match Classic preset
+    // Verify individual dropdown values match High Contrast preset
     const classicDropdowns = await getPopupDropdownValues(popupPage);
     assert(
       classicDropdowns['font-color'] === 'white',
-      'Classic: fontColor → white',
+      'High Contrast: fontColor → white',
       `got: ${classicDropdowns['font-color']}`,
     );
     assert(
       classicDropdowns['background-color'] === 'black',
-      'Classic: backgroundColor → black',
+      'High Contrast: backgroundColor → black',
       `got: ${classicDropdowns['background-color']}`,
     );
     assert(
       classicDropdowns['character-edge-style'] === 'none',
-      'Classic: edgeStyle → none',
+      'High Contrast: edgeStyle → none',
       `got: ${classicDropdowns['character-edge-style']}`,
     );
 
@@ -238,8 +238,8 @@ async function run() {
 
     // Verify CSS on Vimeo page (if loaded)
     if (loaded) {
-      console.log('\n── Verify Classic CSS on Vimeo ──');
-      // Classic: fontColor=white → rgb(255,255,255), edgeStyle=none
+      console.log('\n── Verify High Contrast CSS on Vimeo ──');
+      // High Contrast: fontColor=white → rgb(255,255,255), edgeStyle=none
       const captionSel = '.vp-captions';
 
       const classicColor = await waitForStyle(
@@ -251,7 +251,7 @@ async function run() {
       );
       assert(
         classicColor && classicColor.includes('255'),
-        'Classic CSS: white font color on Vimeo',
+        'High Contrast CSS: white font color on Vimeo',
         `got: ${classicColor}`,
       );
 
@@ -264,7 +264,7 @@ async function run() {
       );
       assert(
         !classicShadow || classicShadow === 'none',
-        'Classic CSS: no text shadow on Vimeo',
+        'High Contrast CSS: no text shadow on Vimeo',
         `got: ${classicShadow}`,
       );
     }
@@ -329,8 +329,8 @@ async function run() {
 
     await popupPage.close();
 
-    // ── Phase 6: Apply "Minimal" preset (all auto) ─────────────────────
-    console.log('\n── Apply Minimal preset ──');
+    // ── Phase 6: Apply "Do Nothing" preset (all auto) ─────────────────────
+    console.log('\n── Apply Do Nothing preset ──');
     popupPage = await openPopup(browser, extId);
     await selectPreset(popupPage, 'minimal');
 
@@ -342,7 +342,7 @@ async function run() {
     const allAuto = Object.entries(minDropdowns).every(([, v]) => v === 'auto');
     assert(
       allAuto,
-      'Minimal: all settings are "auto"',
+      'Do Nothing: all settings are "auto"',
       JSON.stringify(minDropdowns),
     );
 

@@ -42,7 +42,7 @@ const PRODUCTION_PRESETS: Preset[] = [
   },
   {
     id: 'classic',
-    name: 'Classic',
+    name: 'High Contrast',
     description: 'Traditional white-on-black subtitles',
     settings: {
       ...ALL_AUTO,
@@ -54,7 +54,7 @@ const PRODUCTION_PRESETS: Preset[] = [
   },
   {
     id: 'minimal',
-    name: 'Minimal',
+    name: 'Do Nothing',
     description: 'No decoration — site defaults for everything',
     settings: { ...ALL_AUTO },
   },

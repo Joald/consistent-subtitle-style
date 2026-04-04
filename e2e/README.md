@@ -148,12 +148,12 @@ Finding the extension ID is non-trivial in Puppeteer. The helper
 - **URL:** Vimeo player embed — no login required
 - **What it tests:**
   - Preset dropdown exists in popup with correct options (Custom, ★ Recommended, Classic, Minimal)
-  - Selecting "Classic" preset updates all dropdown values to match preset settings
+  - Selecting "High Contrast" preset updates all dropdown values to match preset settings
   - CSS verified on Vimeo: white font color, no text shadow
   - Selecting "Recommended" preset updates dropdowns (dropshadow, 0% bg opacity)
   - CSS verified on Vimeo: dropshadow text shadow applied
   - Manual setting change reverts preset indicator to "Custom"
-  - "Minimal" preset sets all dropdowns to "auto"
+  - "Do Nothing" preset sets all dropdowns to "auto"
   - Reset returns to minimal/custom state
 - **Style mechanism:** Tests the full pipeline: preset selection → storage write → CSS application
 

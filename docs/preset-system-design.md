@@ -297,4 +297,4 @@ chrome.storage.sync → content script (loadSettings) → applyStyles
 
 - **No migration needed** — presets are purely additive. Existing users' settings are unaffected.
 - **Sync-friendly** — presets use the same `chrome.storage.sync` keys, so settings sync across devices.
-- **Per-site presets** — future per-site settings could allow different presets per platform (e.g., "Recommended" on YouTube, "Classic" on Dropout). This is a separate feature that builds on both presets and per-site settings.
+- **Per-site presets** — future per-site settings could allow different presets per platform (e.g., "Recommended" on YouTube, "High Contrast" on Dropout). This is a separate feature that builds on both presets and per-site settings.
