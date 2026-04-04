@@ -13,8 +13,8 @@
 - [x] **Recommended preset: add proportional sans-serif** — set `fontFamily: "proportional-sans-serif"` in Recommended preset settings. Updated description, 4 tests. Commit: `1b655ff`
 - [x] **Dropdowns show effective per-site values** — Form always shows what's actually applied on current page (per-site override if exists, otherwise global). Scope toggle only changes what happens on save, not displayed values. Load site override on init and populate form with effective settings. Commit: `53b4937`
 - [x] **Per-site override badge on dropdown triggers** — When current site has a per-site override that differs from global for a setting, shows a small amber dot badge on that dropdown's trigger (closed state). Badges update dynamically as settings change. Tooltip shows global value. 7 new tests.
-- [ ] **Per-site indicator icons inside dropdown options** — When dropdown is open, show small platform icons next to options that have a per-site override DIFFERENT from global. E.g. if global font color is "auto" but YouTube has "red", show YT icon next to "red". Load all site overrides on popup init.
-- [ ] **Custom presets** — "Save as Preset" button saves current settings as named custom preset in chrome.storage.sync under `customPresets` key. Custom presets appear in dropdown alongside built-in ones. User can delete custom presets (not built-in). Simple name input dialog.
+- [x] **Per-site indicator icons inside dropdown options** — When dropdown is open, shows small platform abbreviation badges (YT, NF, D+, etc.) next to options that other platforms use as per-site overrides. Excludes current platform. 8 new tests. Commit: `cd776a5`
+- [x] **Custom presets** — "Save as Preset" 💾 button saves current settings as named custom preset in chrome.storage.sync under `customPresets` key. Custom presets appear in dropdown under "── My Presets ──" separator alongside built-in ones. Selecting a custom preset applies it. 🗑️ delete button appears when custom preset is active (confirm dialog). 10 unit tests for CRUD, 84 popup tests (including delete button visibility, save/cancel flows). 682 total tests.
 
 ## Medium Priority
 

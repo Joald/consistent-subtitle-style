@@ -1,5 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import { getAvailablePresets, getPresetById, detectActivePreset } from '../src/presets.js';
+import type { CustomPreset } from '../src/custom-presets.js';
 
 import type { StorageSettings } from '../src/types/index.js';
 
@@ -147,6 +148,115 @@ describe('presets', () => {
       const devPresets = presets.filter((p) => p.id.startsWith('dev-'));
       expect(devPresets.length).toBe(6);
       expect(devPresets.every((p) => p.devOnly)).toBe(true);
+    });
+  });
+
+  describe('custom presets integration', () => {
+    const customPresets: CustomPreset[] = [
+      {
+        id: 'custom-1',
+        name: 'My Cinema',
+        settings: { ...ALL_AUTO, fontColor: 'cyan', fontSize: '200%' },
+      },
+      {
+        id: 'custom-2',
+        name: 'My Reading',
+        settings: { ...ALL_AUTO, fontFamily: 'monospaced-serif', characterEdgeStyle: 'outline' },
+      },
+    ];
+
+    describe('getAvailablePresets with custom presets', () => {
+      it('includes custom presets between production and dev', () => {
+        const presets = getAvailablePresets(true, customPresets);
+        // 3 production + 2 custom + 6 dev = 11
+        expect(presets.length).toBe(11);
+      });
+
+      it('includes custom presets after production in non-dev mode', () => {
+        const presets = getAvailablePresets(false, customPresets);
+        // 3 production + 2 custom = 5
+        expect(presets.length).toBe(5);
+        expect(presets[3]!.id).toBe('custom-1');
+        expect(presets[4]!.id).toBe('custom-2');
+      });
+
+      it('marks custom presets with isCustom: true', () => {
+        const presets = getAvailablePresets(false, customPresets);
+        const custom = presets.filter((p) => p.isCustom);
+        expect(custom.length).toBe(2);
+        expect(custom[0]!.name).toBe('My Cinema');
+      });
+
+      it('custom presets come before dev presets', () => {
+        const presets = getAvailablePresets(true, customPresets);
+        const firstCustomIdx = presets.findIndex((p) => p.isCustom);
+        const firstDevIdx = presets.findIndex((p) => p.devOnly);
+        expect(firstCustomIdx).toBeLessThan(firstDevIdx);
+      });
+
+      it('returns normal results when customPresets is undefined', () => {
+        const presets = getAvailablePresets(false, undefined);
+        expect(presets.length).toBe(3);
+      });
+
+      it('returns normal results when customPresets is empty', () => {
+        const presets = getAvailablePresets(false, []);
+        expect(presets.length).toBe(3);
+      });
+    });
+
+    describe('getPresetById with custom presets', () => {
+      it('finds custom presets by id', () => {
+        const preset = getPresetById('custom-1', customPresets);
+        expect(preset).toBeDefined();
+        expect(preset!.name).toBe('My Cinema');
+        expect(preset!.isCustom).toBe(true);
+      });
+
+      it('still finds built-in presets', () => {
+        const preset = getPresetById('recommended', customPresets);
+        expect(preset).toBeDefined();
+        expect(preset!.name).toBe('Recommended');
+      });
+
+      it('still finds dev presets', () => {
+        const preset = getPresetById('dev-colorful', customPresets);
+        expect(preset).toBeDefined();
+      });
+
+      it('returns undefined for unknown id', () => {
+        expect(getPresetById('nonexistent', customPresets)).toBeUndefined();
+      });
+
+      it('prioritizes built-in over custom if ids clash', () => {
+        const clash: CustomPreset[] = [{ id: 'recommended', name: 'Clash', settings: ALL_AUTO }];
+        const preset = getPresetById('recommended', clash);
+        expect(preset!.name).toBe('Recommended'); // built-in wins
+      });
+    });
+
+    describe('detectActivePreset with custom presets', () => {
+      it('detects a custom preset match', () => {
+        const settings: StorageSettings = { ...ALL_AUTO, fontColor: 'cyan', fontSize: '200%' };
+        const result = detectActivePreset(settings, false, customPresets);
+        expect(result).toBe('custom-1');
+      });
+
+      it('still detects built-in presets first', () => {
+        // minimal is all-auto, which matches before any custom
+        const result = detectActivePreset(ALL_AUTO, false, customPresets);
+        expect(result).toBe('minimal');
+      });
+
+      it('returns null when no preset matches', () => {
+        const settings: StorageSettings = {
+          ...ALL_AUTO,
+          fontColor: 'magenta',
+          windowColor: 'green',
+        };
+        const result = detectActivePreset(settings, false, customPresets);
+        expect(result).toBeNull();
+      });
     });
   });
 });

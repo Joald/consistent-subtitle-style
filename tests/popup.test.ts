@@ -1438,4 +1438,256 @@ describe('Popup UI Integration', () => {
       expect(texts).toContain('DO');
     });
   });
+
+  describe('custom presets', () => {
+    it('builds save preset button during initialization', async () => {
+      await triggerInit();
+
+      const saveBtn = document.getElementById('save-preset-btn');
+      expect(saveBtn).toBeTruthy();
+      expect(saveBtn!.title).toBe('Save as Preset');
+    });
+
+    it('shows "My Presets" separator when custom presets exist', async () => {
+      vi.mocked(chrome.storage.sync.get).mockImplementation(async (keys: unknown) => {
+        if (typeof keys === 'string' && keys === 'customPresets') {
+          return {
+            customPresets: [
+              {
+                id: 'custom-1',
+                name: 'My Style',
+                settings: { ...ALL_AUTO, fontColor: 'cyan' },
+              },
+            ],
+          };
+        }
+        if (typeof keys === 'string' && keys === 'siteSettings') return {};
+        return ALL_AUTO;
+      });
+
+      await triggerInit();
+
+      const presetSelect = document.getElementById('preset-select') as HTMLSelectElement;
+      const options = Array.from(presetSelect.options);
+      const separatorOption = options.find((o) => o.textContent?.includes('My Presets'));
+      expect(separatorOption).toBeTruthy();
+      expect(separatorOption!.disabled).toBe(true);
+    });
+
+    it('includes custom presets in dropdown', async () => {
+      vi.mocked(chrome.storage.sync.get).mockImplementation(async (keys: unknown) => {
+        if (typeof keys === 'string' && keys === 'customPresets') {
+          return {
+            customPresets: [
+              {
+                id: 'custom-1',
+                name: 'Cinema Mode',
+                settings: { ...ALL_AUTO, fontColor: 'yellow', fontSize: '200%' },
+              },
+            ],
+          };
+        }
+        if (typeof keys === 'string' && keys === 'siteSettings') return {};
+        return ALL_AUTO;
+      });
+
+      await triggerInit();
+
+      const presetSelect = document.getElementById('preset-select') as HTMLSelectElement;
+      const customOption = presetSelect.querySelector('option[value="custom-1"]');
+      expect(customOption).toBeTruthy();
+      expect(customOption!.textContent).toContain('Cinema Mode');
+    });
+
+    it('custom preset option shows name without delete marker', async () => {
+      vi.mocked(chrome.storage.sync.get).mockImplementation(async (keys: unknown) => {
+        if (typeof keys === 'string' && keys === 'customPresets') {
+          return {
+            customPresets: [
+              {
+                id: 'custom-1',
+                name: 'My Preset',
+                settings: ALL_AUTO,
+              },
+            ],
+          };
+        }
+        if (typeof keys === 'string' && keys === 'siteSettings') return {};
+        return ALL_AUTO;
+      });
+
+      await triggerInit();
+
+      const presetSelect = document.getElementById('preset-select') as HTMLSelectElement;
+      const customOption = presetSelect.querySelector<HTMLOptionElement>(
+        'option[value="custom-1"]',
+      );
+      expect(customOption).toBeTruthy();
+      expect(customOption!.textContent).toBe('My Preset');
+    });
+
+    it('delete button is hidden by default and shown when custom preset active', async () => {
+      const customSettings = { ...ALL_AUTO, fontColor: 'cyan', fontSize: '200%' };
+
+      vi.mocked(chrome.storage.sync.get).mockImplementation(async (keys: unknown) => {
+        if (typeof keys === 'string' && keys === 'customPresets') {
+          return {
+            customPresets: [
+              {
+                id: 'custom-1',
+                name: 'My Cinema',
+                settings: customSettings,
+              },
+            ],
+          };
+        }
+        if (typeof keys === 'string' && keys === 'siteSettings') return {};
+        if (typeof keys === 'string' && keys === 'activePreset') {
+          return { activePreset: 'custom-1' };
+        }
+        return customSettings;
+      });
+
+      await triggerInit();
+
+      const deleteBtn = document.getElementById('delete-preset-btn');
+      expect(deleteBtn).toBeTruthy();
+      // Should be visible because custom preset is active
+      expect(deleteBtn!.style.display).not.toBe('none');
+    });
+
+    it('delete button is hidden when built-in preset is active', async () => {
+      await triggerInit();
+
+      const deleteBtn = document.getElementById('delete-preset-btn');
+      expect(deleteBtn).toBeTruthy();
+      expect(deleteBtn!.style.display).toBe('none');
+    });
+
+    it('detects custom preset as active when settings match', async () => {
+      const customSettings = { ...ALL_AUTO, fontColor: 'cyan', fontSize: '200%' };
+
+      vi.mocked(chrome.storage.sync.get).mockImplementation(async (keys: unknown) => {
+        if (typeof keys === 'string' && keys === 'customPresets') {
+          return {
+            customPresets: [
+              {
+                id: 'custom-1',
+                name: 'My Cinema',
+                settings: customSettings,
+              },
+            ],
+          };
+        }
+        if (typeof keys === 'string' && keys === 'siteSettings') return {};
+        if (typeof keys === 'string' && keys === 'activePreset') {
+          return { activePreset: 'custom-1' };
+        }
+        return customSettings;
+      });
+
+      await triggerInit();
+
+      const presetSelect = document.getElementById('preset-select') as HTMLSelectElement;
+      expect(presetSelect.value).toBe('custom-1');
+    });
+
+    it('saves custom preset when save button is clicked', async () => {
+      // Mock window.prompt to return a name
+      const originalPrompt = globalThis.prompt;
+      globalThis.prompt = vi.fn().mockReturnValue('My New Preset');
+
+      await triggerInit();
+
+      const saveBtn = document.getElementById('save-preset-btn');
+      saveBtn!.click();
+
+      await new Promise((r) => setTimeout(r, 0));
+
+      // Should have called chrome.storage.sync.set with customPresets
+      const setMock = vi.mocked(chrome.storage.sync.set);
+      const customPresetsCall = setMock.mock.calls.find(
+        (call) => (call[0] as Record<string, unknown>)['customPresets'] !== undefined,
+      );
+      expect(customPresetsCall).toBeTruthy();
+
+      const saved = (customPresetsCall![0] as Record<string, unknown>)['customPresets'] as {
+        name: string;
+      }[];
+      expect(saved.length).toBe(1);
+      expect(saved[0]!.name).toBe('My New Preset');
+
+      globalThis.prompt = originalPrompt;
+    });
+
+    it('does nothing when save prompt is cancelled', async () => {
+      const originalPrompt = globalThis.prompt;
+      globalThis.prompt = vi.fn().mockReturnValue(null);
+
+      await triggerInit();
+      vi.mocked(chrome.storage.sync.set).mockClear();
+
+      const saveBtn = document.getElementById('save-preset-btn');
+      saveBtn!.click();
+
+      await new Promise((r) => setTimeout(r, 0));
+
+      // No customPresets save call
+      const setMock = vi.mocked(chrome.storage.sync.set);
+      const customPresetsCall = setMock.mock.calls.find(
+        (call) => (call[0] as Record<string, unknown>)['customPresets'] !== undefined,
+      );
+      expect(customPresetsCall).toBeUndefined();
+
+      globalThis.prompt = originalPrompt;
+    });
+
+    it('does nothing when save prompt is empty string', async () => {
+      const originalPrompt = globalThis.prompt;
+      globalThis.prompt = vi.fn().mockReturnValue('');
+
+      await triggerInit();
+      vi.mocked(chrome.storage.sync.set).mockClear();
+
+      const saveBtn = document.getElementById('save-preset-btn');
+      saveBtn!.click();
+
+      await new Promise((r) => setTimeout(r, 0));
+
+      // No customPresets save call
+      const setMock = vi.mocked(chrome.storage.sync.set);
+      const customPresetsCall = setMock.mock.calls.find(
+        (call) => (call[0] as Record<string, unknown>)['customPresets'] !== undefined,
+      );
+      expect(customPresetsCall).toBeUndefined();
+
+      globalThis.prompt = originalPrompt;
+    });
+
+    it('shows no "My Presets" separator when no custom presets exist', async () => {
+      await triggerInit();
+
+      const presetSelect = document.getElementById('preset-select') as HTMLSelectElement;
+      const options = Array.from(presetSelect.options);
+      const separatorOption = options.find((o) => o.textContent?.includes('My Presets'));
+      expect(separatorOption).toBeUndefined();
+    });
+
+    it('preset row contains select, save, and delete buttons', async () => {
+      await triggerInit();
+
+      const presetGroup = document.querySelector('.preset-group');
+      expect(presetGroup).toBeTruthy();
+
+      const presetRow = presetGroup!.querySelector('.preset-row');
+      expect(presetRow).toBeTruthy();
+
+      const select = presetRow!.querySelector('#preset-select');
+      const saveBtn = presetRow!.querySelector('#save-preset-btn');
+      const deleteBtn = presetRow!.querySelector('#delete-preset-btn');
+      expect(select).toBeTruthy();
+      expect(saveBtn).toBeTruthy();
+      expect(deleteBtn).toBeTruthy();
+    });
+  });
 });

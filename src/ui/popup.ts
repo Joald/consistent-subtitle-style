@@ -8,6 +8,8 @@ import { debug } from '../debug.js';
 import { generateCombinedCssRules } from '../css-mappings.js';
 import { getAvailablePresets, getPresetById, detectActivePreset } from '../presets.js';
 import { loadSiteOverride, saveSiteOverride, loadAllSiteOverrides } from '../site-settings.js';
+import { loadCustomPresets, saveCustomPreset, deleteCustomPreset } from '../custom-presets.js';
+import type { CustomPreset } from '../custom-presets.js';
 import type { SiteSettingsMap } from '../site-settings.js';
 import type { Platform } from '../platforms/index.js';
 
@@ -19,6 +21,8 @@ let siteScope = false;
 let globalSettings: StorageSettings | null = null;
 /** All per-site overrides, loaded once at init for indicator icons. */
 let allSiteOverrides: SiteSettingsMap = {};
+/** User-created custom presets, loaded once at init. */
+let customPresets: CustomPreset[] = [];
 
 const PLATFORM_DISPLAY_NAMES: Record<Platform, string> = {
   youtube: 'YouTube',
@@ -387,8 +391,12 @@ function updatePresetIndicator(settings: Partial<StorageSettings>): void {
     fontSize: 'auto',
     ...settings,
   };
-  const detected = detectActivePreset(full, __DEV__);
+  const detected = detectActivePreset(full, __DEV__, customPresets);
   presetSelect.value = detected ?? 'custom';
+
+  // Show delete button only when a custom preset is active
+  const isCustom = customPresets.some((cp) => cp.id === detected);
+  updateDeleteButton(isCustom);
 }
 
 function buildPresetSelector(): void {
@@ -402,39 +410,48 @@ function buildPresetSelector(): void {
   label.setAttribute('for', 'preset-select');
   label.textContent = 'Preset';
 
+  const selectRow = document.createElement('div');
+  selectRow.className = 'preset-row';
+
   const select = document.createElement('select');
   select.id = 'preset-select';
   select.className = 'preset-select';
 
-  // "Custom" option (shown when no preset matches)
-  const customOpt = document.createElement('option');
-  customOpt.value = 'custom';
-  customOpt.textContent = 'Custom';
-  select.appendChild(customOpt);
-
-  const presets = getAvailablePresets(__DEV__);
-  let addedDevSeparator = false;
-
-  for (const preset of presets) {
-    if (preset.devOnly && !addedDevSeparator) {
-      const sep = document.createElement('option');
-      sep.disabled = true;
-      sep.textContent = '── Dev Presets ──';
-      select.appendChild(sep);
-      addedDevSeparator = true;
-    }
-    const opt = document.createElement('option');
-    opt.value = preset.id;
-    opt.textContent = preset.isRecommended ? `★ ${preset.name}` : preset.name;
-    select.appendChild(opt);
-  }
+  populatePresetOptions(select);
 
   select.addEventListener('change', () => {
     void handlePresetChange(select.value);
   });
 
+  const saveBtn = document.createElement('button');
+  saveBtn.type = 'button';
+  saveBtn.id = 'save-preset-btn';
+  saveBtn.className = 'save-preset-btn';
+  saveBtn.textContent = '💾';
+  saveBtn.title = 'Save as Preset';
+  saveBtn.addEventListener('click', () => {
+    void handleSaveAsPreset();
+  });
+
+  const deleteBtn = document.createElement('button');
+  deleteBtn.type = 'button';
+  deleteBtn.id = 'delete-preset-btn';
+  deleteBtn.className = 'delete-preset-btn';
+  deleteBtn.textContent = '🗑️';
+  deleteBtn.title = 'Delete Custom Preset';
+  deleteBtn.style.display = 'none';
+  deleteBtn.addEventListener('click', () => {
+    const currentId = select.value;
+    if (currentId && currentId !== 'custom') {
+      void handleDeleteCustomPreset(currentId);
+    }
+  });
+
+  selectRow.appendChild(select);
+  selectRow.appendChild(saveBtn);
+  selectRow.appendChild(deleteBtn);
   wrapper.appendChild(label);
-  wrapper.appendChild(select);
+  wrapper.appendChild(selectRow);
 
   // Insert before the first .form-group in the form
   const firstGroup = form.querySelector('.form-group');
@@ -445,10 +462,106 @@ function buildPresetSelector(): void {
   }
 }
 
-async function handlePresetChange(presetId: string): Promise<void> {
-  if (presetId === 'custom') return;
+/**
+ * Populate preset <select> options from built-in + custom presets.
+ */
+function populatePresetOptions(select: HTMLSelectElement): void {
+  // Clear existing options
+  select.innerHTML = '';
 
-  const preset = getPresetById(presetId);
+  // "Custom" option (shown when no preset matches)
+  const customOpt = document.createElement('option');
+  customOpt.value = 'custom';
+  customOpt.textContent = 'Custom';
+  select.appendChild(customOpt);
+
+  const presets = getAvailablePresets(__DEV__, customPresets);
+  let addedDevSeparator = false;
+  let addedCustomSeparator = false;
+
+  for (const preset of presets) {
+    if (preset.isCustom && !addedCustomSeparator) {
+      const sep = document.createElement('option');
+      sep.disabled = true;
+      sep.textContent = '── My Presets ──';
+      select.appendChild(sep);
+      addedCustomSeparator = true;
+    }
+    if (preset.devOnly && !addedDevSeparator) {
+      const sep = document.createElement('option');
+      sep.disabled = true;
+      sep.textContent = '── Dev Presets ──';
+      select.appendChild(sep);
+      addedDevSeparator = true;
+    }
+    const opt = document.createElement('option');
+    opt.value = preset.id;
+    if (preset.isRecommended) {
+      opt.textContent = `★ ${preset.name}`;
+    } else if (preset.isCustom) {
+      opt.textContent = preset.name;
+    } else {
+      opt.textContent = preset.name;
+    }
+    select.appendChild(opt);
+  }
+}
+
+/**
+ * Refresh the preset dropdown options (after adding/deleting a custom preset).
+ */
+function refreshPresetDropdown(): void {
+  const select = document.getElementById('preset-select') as HTMLSelectElement | null;
+  if (!select) return;
+  const currentValue = select.value;
+  populatePresetOptions(select);
+  // Try to restore previous selection
+  const optionExists = Array.from(select.options).some((o) => o.value === currentValue);
+  select.value = optionExists ? currentValue : 'custom';
+}
+
+/**
+ * Handle "Save as Preset" button click.
+ * Shows a simple prompt for the preset name.
+ */
+async function handleSaveAsPreset(): Promise<void> {
+  const name = prompt('Preset name:');
+  if (!name?.trim()) return;
+
+  try {
+    const currentSettings = collectSettings();
+    const fullSettings: StorageSettings = { ...DEFAULTS, ...currentSettings };
+
+    const newPreset = await saveCustomPreset(name.trim(), fullSettings);
+    customPresets = await loadCustomPresets();
+
+    refreshPresetDropdown();
+
+    // Set the dropdown to the new preset
+    const select = document.getElementById('preset-select') as HTMLSelectElement | null;
+    if (select) select.value = newPreset.id;
+
+    // Also persist the active preset id
+    if (siteScope && currentPlatform) {
+      await saveSiteOverride(currentPlatform, fullSettings, newPreset.id);
+    } else {
+      await applyPreset(fullSettings, newPreset.id);
+    }
+
+    showMessage(`Saved "${name.trim()}"`, 'success');
+  } catch (error) {
+    console.error('Failed to save custom preset:', error);
+    showMessage('Failed to save preset', 'error');
+  }
+}
+
+async function handlePresetChange(presetId: string): Promise<void> {
+  if (presetId === 'custom') {
+    updateDeleteButton(false);
+    return;
+  }
+
+  const preset = getPresetById(presetId, customPresets);
   if (!preset) return;
 
   try {
@@ -462,6 +575,7 @@ async function handlePresetChange(presetId: string): Promise<void> {
 
     populateForm(preset.settings);
     updatePreview();
+    updateDeleteButton(!!preset.isCustom);
     showMessage(`Applied "${preset.name}"`, 'success');
 
     // Notify content scripts
@@ -483,6 +597,34 @@ async function handlePresetChange(presetId: string): Promise<void> {
   } catch (error) {
     console.error('Failed to apply preset:', error);
     showMessage('Failed to apply preset', 'error');
+  }
+}
+
+/**
+ * Show or hide the delete button based on whether a custom preset is selected.
+ */
+function updateDeleteButton(show: boolean): void {
+  const btn = document.getElementById('delete-preset-btn');
+  if (btn) btn.style.display = show ? '' : 'none';
+}
+
+/**
+ * Handle deletion of a custom preset.
+ */
+async function handleDeleteCustomPreset(presetId: string): Promise<void> {
+  try {
+    await deleteCustomPreset(presetId);
+    customPresets = await loadCustomPresets();
+    refreshPresetDropdown();
+
+    // Update indicator based on current settings
+    const currentSettings = collectSettings();
+    updatePresetIndicator(currentSettings);
+
+    showMessage('Preset deleted', 'success');
+  } catch (error) {
+    console.error('Failed to delete custom preset:', error);
+    showMessage('Failed to delete preset', 'error');
   }
 }
 
@@ -606,6 +748,9 @@ async function initializePopup(): Promise<void> {
 
     // Load all site overrides for indicator icons in dropdown options
     allSiteOverrides = await loadAllSiteOverrides();
+
+    // Load custom presets
+    customPresets = await loadCustomPresets();
 
     // Determine initial settings: check for per-site override first
     let settings: StorageSettings;

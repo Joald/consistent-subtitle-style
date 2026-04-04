@@ -1,4 +1,5 @@
 import type { StorageSettings } from './types/index.js';
+import type { CustomPreset } from './custom-presets.js';
 
 export interface Preset {
   /** Unique identifier (slug) */
@@ -11,6 +12,8 @@ export interface Preset {
   isRecommended?: boolean;
   /** Whether this is a dev-only preset (hidden in production builds) */
   devOnly?: boolean;
+  /** Whether this is a user-created custom preset */
+  isCustom?: boolean;
   /** The settings this preset applies */
   settings: StorageSettings;
 }
@@ -151,24 +154,53 @@ const DEV_PRESETS: Preset[] = [
 /**
  * Returns all available presets for the current build mode.
  * Dev presets are included only when `isDev` is true.
+ * Custom presets (if provided) are inserted after production presets.
  */
-export function getAvailablePresets(isDev: boolean): Preset[] {
-  return isDev ? [...PRODUCTION_PRESETS, ...DEV_PRESETS] : [...PRODUCTION_PRESETS];
+export function getAvailablePresets(isDev: boolean, customPresets?: CustomPreset[]): Preset[] {
+  const custom: Preset[] = (customPresets ?? []).map((cp) => ({
+    id: cp.id,
+    name: cp.name,
+    isCustom: true,
+    settings: cp.settings,
+  }));
+  if (isDev) {
+    return [...PRODUCTION_PRESETS, ...custom, ...DEV_PRESETS];
+  }
+  return [...PRODUCTION_PRESETS, ...custom];
 }
 
 /**
- * Look up a preset by id. Searches production presets first, then dev presets.
+ * Look up a preset by id. Searches production presets first, then custom, then dev presets.
  */
-export function getPresetById(id: string): Preset | undefined {
-  return PRODUCTION_PRESETS.find((p) => p.id === id) ?? DEV_PRESETS.find((p) => p.id === id);
+export function getPresetById(id: string, customPresets?: CustomPreset[]): Preset | undefined {
+  const prod = PRODUCTION_PRESETS.find((p) => p.id === id);
+  if (prod) return prod;
+
+  if (customPresets) {
+    const custom = customPresets.find((cp) => cp.id === id);
+    if (custom) {
+      return {
+        id: custom.id,
+        name: custom.name,
+        isCustom: true,
+        settings: custom.settings,
+      };
+    }
+  }
+
+  return DEV_PRESETS.find((p) => p.id === id);
 }
 
 /**
  * Check whether the given settings exactly match a known preset's settings.
  * Returns the matching preset id, or null if no match.
  */
-export function detectActivePreset(settings: StorageSettings, isDev: boolean): string | null {
-  const presets = getAvailablePresets(isDev);
+export function detectActivePreset(
+  settings: StorageSettings,
+  isDev: boolean,
+  customPresets?: CustomPreset[],
+): string | null {
+  const presets = getAvailablePresets(isDev, customPresets);
   for (const preset of presets) {
     const keys = Object.keys(preset.settings) as (keyof StorageSettings)[];
     const match = keys.every((k) => settings[k] === preset.settings[k]);
