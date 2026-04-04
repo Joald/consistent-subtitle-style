@@ -464,3 +464,55 @@ describe('youtube font size mapping', () => {
     });
   }
 });
+
+// ── Error Paths ─────────────────────────────────────────────────────────────
+
+describe('youtube error paths', () => {
+  afterEach(() => {
+    document.body.innerHTML = '';
+  });
+
+  it('getCurrentValue returns undefined when getSubtitlesUserSettings throws', () => {
+    const el = document.createElement('div');
+    el.classList.add('html5-video-player');
+    const player = el as unknown as YouTubePlayerElement & HTMLElement;
+    player.getSubtitlesUserSettings = vi.fn().mockImplementation(() => {
+      throw new Error('player error');
+    });
+    player.updateSubtitlesUserSettings = vi.fn();
+    document.body.appendChild(el);
+
+    // Should handle gracefully and return auto/undefined
+    const result = youtube.nativeSettings?.fontColor.getCurrentValue();
+    expect(result === 'auto' || result === undefined).toBe(true);
+  });
+
+  it('applySetting handles updateSubtitlesUserSettings throwing', () => {
+    const el = document.createElement('div');
+    el.classList.add('html5-video-player');
+    const player = el as unknown as YouTubePlayerElement & HTMLElement;
+    player.getSubtitlesUserSettings = vi.fn().mockReturnValue({});
+    player.updateSubtitlesUserSettings = vi.fn().mockImplementation(() => {
+      throw new Error('update error');
+    });
+    document.body.appendChild(el);
+
+    const result = youtube.nativeSettings?.fontColor.applySetting('white' as AnySettingValue);
+    expect(result?.success).toBe(false);
+    expect(result?.message).toContain('Failed');
+  });
+
+  it('getCurrentValue returns auto when no players in DOM', () => {
+    // No player elements in DOM
+    const result = youtube.nativeSettings?.backgroundOpacity.getCurrentValue();
+    expect(result).toBe('auto');
+  });
+
+  it('applySetting reports no players found', () => {
+    // No player elements in DOM
+    const result = youtube.nativeSettings?.fontFamily.applySetting('casual' as AnySettingValue);
+    expect(result?.success).toBe(false);
+    expect(result?.message).toContain('No active YouTube player');
+  });
+});
+
