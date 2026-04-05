@@ -127,20 +127,20 @@
 
 #### preset E2E (per-platform)
 
-- [ ] E2E: Nebula preset apply
-- [ ] E2E: Dropout preset apply
-- [ ] E2E: Prime Video preset apply
-- [ ] E2E: Max/HBO preset apply
-- [ ] E2E: Crunchyroll preset apply
-- [ ] E2E: Disney+ preset apply
-- [ ] E2E: Netflix preset apply
+- [x] E2E: Nebula preset apply
+- [x] E2E: Dropout preset apply
+- [x] E2E: Prime Video preset apply
+- [x] E2E: Max/HBO preset apply
+- [x] E2E: Crunchyroll preset apply
+- [x] E2E: Disney+ preset apply
+- [x] E2E: Netflix preset apply
 
 #### perSite E2E (per-platform)
 
-- [ ] E2E: Nebula per-site override
-- [ ] E2E: Dropout per-site override
-- [ ] E2E: Prime Video per-site override
-- [ ] E2E: Max/HBO per-site override
-- [ ] E2E: Crunchyroll per-site override
-- [ ] E2E: Disney+ per-site override
-- [ ] E2E: Netflix per-site override
+- [x] E2E: Nebula per-site override
+- [x] E2E: Dropout per-site override
+- [x] E2E: Prime Video per-site override
+- [x] E2E: Max/HBO per-site override
+- [x] E2E: Crunchyroll per-site override
+- [x] E2E: Disney+ per-site override
+- [x] E2E: Netflix per-site override
