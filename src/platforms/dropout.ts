@@ -133,6 +133,22 @@ const currentValues: Record<string, string | null> = {};
 let cachedPlayer: VimeoPlayer | null = null;
 let lastScanTime = 0;
 const SCAN_THROTTLE_MS = 2000;
+let captionObserver: MutationObserver | null = null;
+let captionObserverDebounce: ReturnType<typeof setTimeout> | null = null;
+let captionObserverContainer: Element | null = null;
+
+/** Disconnect the caption MutationObserver (cleanup). */
+function disconnectCaptionObserver(): void {
+  if (captionObserverDebounce) {
+    clearTimeout(captionObserverDebounce);
+    captionObserverDebounce = null;
+  }
+  if (captionObserver) {
+    captionObserver.disconnect();
+    captionObserver = null;
+  }
+  captionObserverContainer = null;
+}
 
 // ── Discovery Helpers ───────────────────────────────────────────────────────
 
@@ -608,6 +624,72 @@ function formatRgba(rgb: [number, number, number], alpha: string): string {
  * the current opacity, and vice versa. Opacity percentages (0–100) are
  * converted to CSS alpha (0–1).
  */
+/**
+ * Watches for new captionsLine/captionsWindow elements created by the VHX player
+ * when subtitle cues change, and re-applies inline styles from currentValues.
+ *
+ * Without this, bgOpacity=0, colors, etc. only apply to the first set of subtitle
+ * elements and reset when the player creates new DOM nodes for the next cue.
+ */
+function setupCaptionMutationObserver(): void {
+  const container = document.querySelector('.vp-captions');
+  if (!container) return;
+
+  // If the container has changed (e.g. player re-rendered), reconnect
+  if (captionObserver && captionObserverContainer !== container) {
+    disconnectCaptionObserver();
+  }
+
+  if (captionObserver) return; // Already observing this container
+
+  captionObserverContainer = container;
+
+  captionObserver = new MutationObserver((mutations) => {
+    // Check if any added nodes are caption elements we care about
+    let hasRelevantNodes = false;
+    for (const mutation of mutations) {
+      for (const node of Array.from(mutation.addedNodes)) {
+        if (!(node instanceof HTMLElement)) continue;
+        const className = node.className || '';
+        if (
+          className.includes('CaptionsRenderer_module_captionsLine') ||
+          className.includes('CaptionsRenderer_module_captionsWindow') ||
+          node.querySelector(
+            '[class*="CaptionsRenderer_module_captionsLine"], [class*="CaptionsRenderer_module_captionsWindow"]',
+          )
+        ) {
+          hasRelevantNodes = true;
+          break;
+        }
+      }
+      if (hasRelevantNodes) break;
+    }
+
+    if (!hasRelevantNodes) return;
+
+    // Debounce: multiple nodes may be added rapidly during a cue change
+    if (captionObserverDebounce) clearTimeout(captionObserverDebounce);
+    captionObserverDebounce = setTimeout(() => {
+      captionObserverDebounce = null;
+      // Re-apply all current inline styles to the new elements
+      const hasValues = Object.values(currentValues).some((v) => v != null);
+      if (hasValues) {
+        console.log(
+          '[CSS-STYL] MutationObserver: new caption elements detected, re-applying inline styles',
+        );
+        applyCaptionInlineStyles(currentValues);
+      }
+    }, 50);
+  });
+
+  captionObserver.observe(container, {
+    childList: true,
+    subtree: true,
+  });
+
+  console.log('[CSS-STYL] Caption MutationObserver set up on .vp-captions');
+}
+
 function applyCaptionInlineStyles(values: Record<string, string | null>): void {
   const container = document.querySelector<HTMLElement>('.vp-captions');
   if (!container) return;
@@ -703,6 +785,9 @@ function applyCaptionInlineStyles(values: Record<string, string | null>): void {
         break;
     }
   }
+
+  // Set up observer so new caption elements (created on cue change) also get styled
+  setupCaptionMutationObserver();
 }
 
 /**
