@@ -301,24 +301,22 @@ async function run() {
       `got: ${font}`,
     );
 
-    // Font size → 200%
-    console.log('\n── Font size → 200% ──');
-    const baseSize = await getStyle(page, SUB_SEL, 'fontSize');
-    const basePx = parseFloat(baseSize || '16');
+    // Font size → 200% (uses transform: scale() on container, not font-size CSS)
+    console.log('\n── Font size → 200% (transform: scale) ──');
 
     await setStorage(browser, extId, { fontSize: '200%' });
 
-    const size = await waitForShadowStyle(
+    const transform = await waitForShadowStyle(
       page,
-      SUB_SEL,
-      'fontSize',
-      (v) => v && parseFloat(v) > basePx,
+      WINDOW_SEL,
+      'transform',
+      (v) => v && v !== 'none' && v.includes('matrix'),
       { timeoutMs: 10_000 },
     );
     assert(
-      size && parseFloat(size) > basePx,
-      'Font size → 200% in shadow DOM',
-      `base: ${basePx}px, got: ${size}`,
+      transform && transform !== 'none',
+      'Font size → 200% applies transform: scale(2) on container in shadow DOM',
+      `got transform: ${transform}`,
     );
 
     // Background color → blue

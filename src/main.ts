@@ -200,6 +200,25 @@ class SubtitleStylerApp {
       }
     }
 
+    // Special handling for fontSize on CSS-only platforms:
+    // CSS `font-size: 150%` is relative to the PARENT element's font-size, not
+    // the element's own computed size. On platforms like Netflix that set absolute
+    // font sizes (e.g. 2.8vw), our percentage override would produce tiny text
+    // (150% of body's 16px = 24px, instead of 150% of 2.8vw ≈ 54px).
+    // Fix: use `transform: scale(X)` on the subtitle container, which acts as a
+    // true visual multiplier regardless of the original font-size.
+    let fontSizeScaleFactor: number | null = null;
+    if (cssByAppliesTo.subtitle?.fontSize) {
+      const sizeValue = cssByAppliesTo.subtitle.fontSize;
+      const percentage = parseInt(sizeValue);
+      if (!isNaN(percentage) && percentage !== 100) {
+        fontSizeScaleFactor = percentage / 100;
+      }
+      // Remove fontSize from the subtitle group so it doesn't generate
+      // a broken `font-size: X%` rule
+      delete cssByAppliesTo.subtitle.fontSize;
+    }
+
     const cssRules: string[] = [];
 
     if (this.platformConfig.baselineCss && this.platformConfig.css?.selectors) {
@@ -229,6 +248,14 @@ class SubtitleStylerApp {
           }
         }
       }
+    }
+
+    // Apply fontSize as transform: scale() on the subtitle container
+    if (fontSizeScaleFactor !== null && this.platformConfig.css?.subtitleContainerSelector) {
+      const containerSelector = this.platformConfig.css.subtitleContainerSelector;
+      cssRules.push(
+        `${containerSelector} { transform: scale(${fontSizeScaleFactor.toString()}); transform-origin: center bottom; }`,
+      );
     }
 
     this.injectCssRules(cssRules);
