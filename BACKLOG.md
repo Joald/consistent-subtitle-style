@@ -73,3 +73,22 @@
 ## Documentation (Unblocked)
 
 - [x] Implementation strategy matrix — docs/IMPLEMENTATION-MATRIX.md documenting per-site per-feature implementation strategies for all 9 platforms. Includes CSS selectors, architecture notes, coverage summary, and complexity ranking. Commit: 89e7195
+
+## Coverage Gap Items (Unblocked)
+
+### textOpacity tests
+- [ ] Test: Nebula textOpacity — add unit/E2E test for text opacity on Nebula
+- [ ] Test: Dropout textOpacity — add unit/E2E test for text opacity on Dropout
+- [ ] Test: Prime Video textOpacity — add unit/E2E test for text opacity on Prime Video
+- [ ] Test: Max/HBO textOpacity — add unit/E2E test for text opacity on Max/HBO
+- [ ] Test: Crunchyroll textOpacity — add unit/E2E test for text opacity on Crunchyroll
+- [ ] Test: Disney+ textOpacity — add unit/E2E test for text opacity on Disney+
+- [ ] Test: Netflix textOpacity — add unit/E2E test for text opacity on Netflix
+- [ ] Test: Vimeo textOpacity — add unit/E2E test for text opacity on Vimeo
+
+### liveUpdate tests
+- [ ] Test: Prime Video liveUpdate — add unit/E2E test for live settings update on Prime Video
+- [ ] Test: Max/HBO liveUpdate — add unit/E2E test for live settings update on Max/HBO
+- [ ] Test: Crunchyroll liveUpdate — add unit/E2E test for live settings update on Crunchyroll
+- [ ] Test: Disney+ liveUpdate — add unit/E2E test for live settings update on Disney+
+- [ ] Test: Netflix liveUpdate — add unit/E2E test for live settings update on Netflix
