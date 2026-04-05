@@ -10,9 +10,10 @@ A Chrome extension that applies persistent, customizable subtitle styles across 
 
 - **9 customizable style properties**: font color, font family, font size, font opacity, background color, background opacity, window color, window opacity, and character edge style
 - **Per-site settings**: apply different styles to different platforms (or use one global style everywhere)
-- **Preset system**: 3 built-in presets (Recommended, Classic, Minimal) for quick setup
+- **Preset system**: 3 built-in presets (Recommended, High Contrast, Do Nothing) plus custom user-created presets
 - **Live preview**: see style changes in the popup before they're applied
 - **Instant updates**: style changes apply immediately without reloading the page
+- **Per-site override indicators**: badges show which settings differ from global defaults
 
 ## Quick Start
 
@@ -90,14 +91,14 @@ Uses CSS injection targeting Netflix's Cadmium player subtitle elements (`player
 npm install          # Install dependencies
 npm run build        # Development build
 npm run build:prod   # Production build
-npm run test         # Run unit tests (254 tests)
+npm run test         # Run unit tests (682 tests)
 npm run ci           # Full CI: format + lint + typecheck + test + build
 ```
 
 ### Testing
 
-- **Unit tests**: 254 tests across 16 test files (Vitest)
-- **E2E tests**: 62 tests across YouTube, Nebula, and Dropout (Puppeteer)
+- **Unit tests**: 682 tests across 21 test files (Vitest)
+- **E2E tests**: 141+ assertions across YouTube, Nebula, Dropout, Vimeo, Max, Prime Video, Crunchyroll, Disney+, Netflix, presets, and per-site settings (Puppeteer)
 
 ```bash
 npm run test         # Unit tests
@@ -124,9 +125,11 @@ src/
 │   ├── max.ts       # Max (HBO Max) CSS selectors
 │   ├── crunchyroll.ts# Crunchyroll Bitmovin CSS selectors
 │   ├── disneyplus.ts# Disney+ CSS selectors + Shadow DOM
-│   └── netflix.ts   # Netflix Cadmium player-timedtext selectors
+│   ├── netflix.ts   # Netflix Cadmium player-timedtext selectors
+│   └── vimeo.ts     # Vimeo vp-captions CSS selectors
 ├── types/           # TypeScript type definitions
+├── presets.ts       # Built-in preset definitions
 └── ui/
-    ├── popup.ts     # Popup UI logic (settings, presets, per-site)
+    ├── popup.ts     # Popup UI logic (settings, presets, custom presets, per-site)
     └── styles.css   # Popup styles (dark theme)
 ```
