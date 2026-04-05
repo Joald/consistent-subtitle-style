@@ -1328,6 +1328,259 @@ describe('SubtitleStylerApp', () => {
 
   // ── Application log tracking ──
 
+  // ── Platform-specific live update tests ──
+
+  describe('platform-specific live update via subtitleStylerChanged', () => {
+    function makePlatformConfig(
+      name: string,
+      selectors: { subtitle: string; background: string; window: string },
+      extra?: Partial<PlatformConfig>,
+    ): PlatformConfig {
+      return {
+        name,
+        css: {
+          subtitleContainerSelector: selectors.window,
+          selectors,
+          ...extra?.css,
+        },
+        detectNativeCapabilities: () => false,
+        getCurrentNativeSettings: () => null,
+        ...extra,
+      };
+    }
+
+    const platformConfigs: {
+      platform: string;
+      name: string;
+      selectors: { subtitle: string; background: string; window: string };
+      shadowHost?: string;
+    }[] = [
+      {
+        platform: 'primevideo',
+        name: 'Prime Video',
+        selectors: {
+          subtitle: '.atvwebplayersdk-captions-text',
+          background: '.atvwebplayersdk-captions-region',
+          window: '.atvwebplayersdk-captions-overlay',
+        },
+      },
+      {
+        platform: 'max',
+        name: 'Max',
+        selectors: {
+          subtitle: '[class^="TextCue"]',
+          background: '[data-testid="CueBoxContainer"]',
+          window: '[class^="CaptionWindow"]',
+        },
+      },
+      {
+        platform: 'crunchyroll',
+        name: 'Crunchyroll',
+        selectors: {
+          subtitle: '.bmpui-ui-subtitle-label',
+          background: '.bmpui-ui-subtitle-label',
+          window: '.bmpui-ui-subtitle-overlay',
+        },
+      },
+      {
+        platform: 'disneyplus',
+        name: 'Disney+',
+        selectors: {
+          subtitle: '.dss-subtitle-renderer-cue > span, .hive-subtitle-renderer-cue > span',
+          background: '.dss-subtitle-renderer-cue > span, .hive-subtitle-renderer-cue > span',
+          window: '.dss-subtitle-renderer-cue, .hive-subtitle-renderer-cue',
+        },
+        shadowHost: 'disney-web-player',
+      },
+      {
+        platform: 'netflix',
+        name: 'Netflix',
+        selectors: {
+          subtitle: '.player-timedtext-text-container span',
+          background: '.player-timedtext-text-container',
+          window: '.player-timedtext',
+        },
+      },
+    ];
+
+    for (const { platform, name, selectors, shadowHost } of platformConfigs) {
+      describe(`${name} (${platform})`, () => {
+        it('applies CSS with correct subtitle selector on fontColor change', async () => {
+          const config = makePlatformConfig(
+            name,
+            selectors,
+            shadowHost
+              ? { css: { subtitleContainerSelector: selectors.window, selectors, shadowHost } }
+              : undefined,
+          );
+          await setupMocks({ platform, config });
+          await initMain();
+
+          const messageHandler = addEventListenerSpy.mock.calls.find(
+            (c: unknown[]) => c[0] === 'message',
+          )?.[1] as (ev: MessageEvent) => void;
+          expect(messageHandler).toBeDefined();
+
+          messageHandler({
+            source: window,
+            data: {
+              type: 'subtitleStylerChanged',
+              data: { fontColor: { newValue: 'yellow' } },
+            },
+          } as unknown as MessageEvent);
+
+          const el = getStyleElement();
+          expect(el).not.toBeNull();
+          expect(el!.textContent).toContain(selectors.subtitle);
+        });
+
+        it('applies CSS with correct background selector on backgroundColor change', async () => {
+          const config = makePlatformConfig(
+            name,
+            selectors,
+            shadowHost
+              ? { css: { subtitleContainerSelector: selectors.window, selectors, shadowHost } }
+              : undefined,
+          );
+          await setupMocks({
+            platform,
+            config,
+            settings: { ...ALL_AUTO, backgroundColor: 'blue' },
+          });
+          await initMain();
+
+          const messageHandler = addEventListenerSpy.mock.calls.find(
+            (c: unknown[]) => c[0] === 'message',
+          )?.[1] as (ev: MessageEvent) => void;
+
+          // Clear mocks to verify the message triggers a new call
+          generateCombinedCssRulesMock.mockClear();
+          generateCombinedCssRulesMock.mockReturnValue(['background-color: blue !important;']);
+
+          messageHandler({
+            source: window,
+            data: {
+              type: 'subtitleStylerChanged',
+              data: { backgroundColor: { newValue: 'blue' } },
+            },
+          } as unknown as MessageEvent);
+
+          expect(generateCombinedCssRulesMock).toHaveBeenCalled();
+          const el = getStyleElement();
+          expect(el).not.toBeNull();
+          expect(el!.textContent).toContain(selectors.background);
+        });
+
+        it('applies CSS with correct window selector on windowColor change', async () => {
+          const config = makePlatformConfig(
+            name,
+            selectors,
+            shadowHost
+              ? { css: { subtitleContainerSelector: selectors.window, selectors, shadowHost } }
+              : undefined,
+          );
+          await setupMocks({ platform, config, settings: { ...ALL_AUTO, windowColor: 'red' } });
+          await initMain();
+
+          const messageHandler = addEventListenerSpy.mock.calls.find(
+            (c: unknown[]) => c[0] === 'message',
+          )?.[1] as (ev: MessageEvent) => void;
+
+          generateCombinedCssRulesMock.mockClear();
+          generateCombinedCssRulesMock.mockReturnValue(['background-color: red !important;']);
+
+          messageHandler({
+            source: window,
+            data: {
+              type: 'subtitleStylerChanged',
+              data: { windowColor: { newValue: 'red' } },
+            },
+          } as unknown as MessageEvent);
+
+          expect(generateCombinedCssRulesMock).toHaveBeenCalled();
+          const el = getStyleElement();
+          expect(el).not.toBeNull();
+          expect(el!.textContent).toContain(selectors.window);
+        });
+
+        it('updates CSS when multiple settings change simultaneously', async () => {
+          const config = makePlatformConfig(
+            name,
+            selectors,
+            shadowHost
+              ? { css: { subtitleContainerSelector: selectors.window, selectors, shadowHost } }
+              : undefined,
+          );
+          await setupMocks({
+            platform,
+            config,
+            settings: { ...ALL_AUTO, fontColor: 'green', characterEdgeStyle: 'dropshadow' },
+          });
+          await initMain();
+
+          const messageHandler = addEventListenerSpy.mock.calls.find(
+            (c: unknown[]) => c[0] === 'message',
+          )?.[1] as (ev: MessageEvent) => void;
+
+          generateCombinedCssRulesMock.mockClear();
+          generateCombinedCssRulesMock.mockReturnValue([
+            'color: green !important;',
+            'text-shadow: 2px 2px 3px rgba(0,0,0,0.9) !important;',
+          ]);
+
+          messageHandler({
+            source: window,
+            data: {
+              type: 'subtitleStylerChanged',
+              data: {
+                fontColor: { newValue: 'green' },
+                characterEdgeStyle: { newValue: 'dropshadow' },
+              },
+            },
+          } as unknown as MessageEvent);
+
+          expect(generateCombinedCssRulesMock).toHaveBeenCalled();
+          const el = getStyleElement();
+          expect(el).not.toBeNull();
+          expect(el!.textContent).toContain(selectors.subtitle);
+        });
+
+        it('re-applies styles on subtitleStylerChanged from cross-origin frame', async () => {
+          const config = makePlatformConfig(
+            name,
+            selectors,
+            shadowHost
+              ? { css: { subtitleContainerSelector: selectors.window, selectors, shadowHost } }
+              : undefined,
+          );
+          await setupMocks({ platform, config });
+          await initMain();
+
+          const messageHandler = addEventListenerSpy.mock.calls.find(
+            (c: unknown[]) => c[0] === 'message',
+          )?.[1] as (ev: MessageEvent) => void;
+
+          generateCombinedCssRulesMock.mockClear();
+          generateCombinedCssRulesMock.mockReturnValue(['color: cyan !important;']);
+
+          const fakeSource = {} as Window;
+          messageHandler({
+            source: fakeSource,
+            data: {
+              type: 'subtitleStylerChanged',
+              data: { fontColor: { newValue: 'cyan' } },
+            },
+          } as unknown as MessageEvent);
+
+          expect(generateCombinedCssRulesMock).toHaveBeenCalled();
+          const el = getStyleElement();
+          expect(el).not.toBeNull();
+          expect(el!.textContent).toContain(selectors.subtitle);
+        });
+      });
+    }
+  });
+
   describe('application log', () => {
     it('tracks CSS setting application in applicationLog', async () => {
       await setupMocks({
