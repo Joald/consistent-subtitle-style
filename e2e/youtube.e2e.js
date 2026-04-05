@@ -161,6 +161,18 @@ async function run() {
       'applyStyles() re-fires after characterEdgeStyle change',
     );
 
+    // ── Live update: font opacity ──────────────────────────────────────
+    console.log('\n🔅  Live update — fontOpacity → 50%');
+    const logsBeforeOpacity = consoleLogs.length;
+    await setStorage(browser, extId, { fontColor: 'yellow', fontOpacity: '50' });
+    await sleep(3000);
+
+    const opacityLogs = consoleLogs.slice(logsBeforeOpacity).filter((l) => l.includes('CSS-STYL'));
+    assert(
+      opacityLogs.some((l) => l.includes('app.applyStyles() called')),
+      'applyStyles() re-fires after fontOpacity change',
+    );
+
     // ── Live update: combined ────────────────────────────────────────────
     console.log('\n🔀  Combined settings change');
     const logsBeforeCombo = consoleLogs.length;

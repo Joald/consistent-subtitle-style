@@ -231,6 +231,26 @@ async function run() {
       afterSize?.fontSize,
     );
 
+    // ── Live update: font opacity ───────────────────────────────────────
+    console.log('\n🔅  Live update — font opacity 50% (color-mix)');
+    // Font opacity requires fontColor to be set
+    await setStorage(browser, extId, { fontColor: 'yellow', fontOpacity: '50' });
+    await sleep(3000);
+
+    const afterFontOpacity = await getCaptionStyles(page);
+    const fontOpColor = afterFontOpacity?.color;
+    // Should be semi-transparent yellow: rgba(255, 255, 0, 0.5) or color(srgb 1 1 0 / 0.5)
+    assert(
+      fontOpColor && fontOpColor.includes('0.5'),
+      'Font color+opacity produces semi-transparent color',
+      fontOpColor,
+    );
+    const isFontYellow = fontOpColor && (
+      (fontOpColor.includes('255') && fontOpColor.includes('255, 0')) ||
+      fontOpColor.includes('srgb 1 1 0')
+    );
+    assert(isFontYellow, 'Font opacity preserves yellow hue', fontOpColor);
+
     // ── Combined settings ────────────────────────────────────────────────
     console.log('\n🔀  Combined settings change');
     await setStorage(browser, extId, {
