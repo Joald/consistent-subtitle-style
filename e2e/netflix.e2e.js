@@ -305,6 +305,23 @@ async function run() {
       `got: ${bgOpacity}`,
     );
 
+    // Window opacity → 50%
+    console.log('\n── Window opacity → 50% ──');
+    await setStorage(browser, extId, { windowColor: 'green', windowOpacity: '50' });
+
+    const windowOpacity = await waitForStyle(
+      page,
+      WINDOW_SEL,
+      'backgroundColor',
+      (v) => v != null && v.includes('0.5'),
+      { timeoutMs: 10_000 },
+    );
+    assert(
+      windowOpacity && windowOpacity.includes('0.5'),
+      'Window opacity 50% produces semi-transparent window',
+      `got: ${windowOpacity}`,
+    );
+
     // Character edge → raised
     console.log('\n── Character edge → raised ──');
     await setStorage(browser, extId, { characterEdgeStyle: 'raised' });

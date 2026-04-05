@@ -261,6 +261,40 @@ async function run() {
       `got: ${fontOpacity}`,
     );
 
+    // Background opacity → 75%
+    console.log('\n── Background opacity → 75% ──');
+    await setStorage(browser, extId, { backgroundColor: 'blue', backgroundOpacity: '75' });
+
+    const bgOpacity = await waitForStyle(
+      page,
+      BG_SEL,
+      'backgroundColor',
+      (v) => v != null && v.includes('0.75'),
+      { timeoutMs: 10_000 },
+    );
+    assert(
+      bgOpacity && bgOpacity.includes('0.75'),
+      'Background opacity 75% produces semi-transparent background',
+      `got: ${bgOpacity}`,
+    );
+
+    // Window opacity → 50%
+    console.log('\n── Window opacity → 50% ──');
+    await setStorage(browser, extId, { windowColor: 'green', windowOpacity: '50' });
+
+    const windowOpacity = await waitForStyle(
+      page,
+      WINDOW_SEL,
+      'backgroundColor',
+      (v) => v != null && v.includes('0.5'),
+      { timeoutMs: 10_000 },
+    );
+    assert(
+      windowOpacity && windowOpacity.includes('0.5'),
+      'Window opacity 50% produces semi-transparent window',
+      `got: ${windowOpacity}`,
+    );
+
     // Combined settings
     console.log('\n── Combined settings ──');
     await resetStorage(browser, extId);

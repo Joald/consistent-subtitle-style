@@ -80,12 +80,12 @@
 
 - [x] Test: Nebula textOpacity — E2E fontOpacity test added to nebula.e2e.js (color-mix verification)
 - [x] Test: Dropout textOpacity — E2E fontOpacity test added to dropout.e2e.js (color-mix verification)
-- [ ] Test: Prime Video textOpacity — add unit/E2E test for text opacity on Prime Video
+- [x] Test: Prime Video textOpacity — E2E fontOpacity test already in primevideo.e2e.js
 - [x] Test: Max/HBO textOpacity — E2E fontOpacity test added to max.e2e.js (color-mix verification)
-- [ ] Test: Crunchyroll textOpacity — add unit/E2E test for text opacity on Crunchyroll
-- [ ] Test: Disney+ textOpacity — add unit/E2E test for text opacity on Disney+
-- [ ] Test: Netflix textOpacity — add unit/E2E test for text opacity on Netflix
-- [ ] Test: Vimeo textOpacity — add unit/E2E test for text opacity on Vimeo
+- [x] Test: Crunchyroll textOpacity — E2E fontOpacity test already in crunchyroll.e2e.js
+- [x] Test: Disney+ textOpacity — E2E fontOpacity test already in disneyplus.e2e.js
+- [x] Test: Netflix textOpacity — E2E fontOpacity test already in netflix.e2e.js
+- [x] Test: Vimeo textOpacity — E2E fontOpacity test already in vimeo.e2e.js
 
 ### liveUpdate tests
 
@@ -100,26 +100,26 @@
 #### bgOpacity E2E
 
 - [x] E2E: Nebula bgOpacity — added to nebula.e2e.js (blue bg + 75% opacity verification)
-- [ ] E2E: Dropout bgOpacity
+- [x] E2E: Dropout bgOpacity — added to dropout.e2e.js (blue bg + 75% opacity verification)
 - [x] E2E: Max/HBO bgOpacity — added to max.e2e.js (blue bg + 75% opacity verification)
-- [ ] E2E: Crunchyroll bgOpacity
-- [ ] E2E: Disney+ bgOpacity
+- [x] E2E: Crunchyroll bgOpacity — added to crunchyroll.e2e.js (blue bg + 75% opacity verification)
+- [x] E2E: Disney+ bgOpacity — added to disneyplus.e2e.js (blue bg + 75% opacity in shadow DOM)
 
 #### windowColor E2E
 
 - [x] E2E: Nebula windowColor — added as part of windowOpacity test (green window color + opacity)
-- [ ] E2E: Dropout windowColor
+- [x] E2E: Dropout windowColor — added to dropout.e2e.js (green window color)
 - [x] E2E: Max/HBO windowColor — added as part of windowOpacity test (green window color + opacity)
 
 #### windowOpacity E2E
 
 - [x] E2E: Nebula windowOpacity — added to nebula.e2e.js (green window + 50% opacity verification)
-- [ ] E2E: Dropout windowOpacity
-- [ ] E2E: Prime Video windowOpacity
+- [x] E2E: Dropout windowOpacity — added to dropout.e2e.js (green window + 50% opacity verification)
+- [x] E2E: Prime Video windowOpacity — added to primevideo.e2e.js (green window + 50% opacity verification)
 - [x] E2E: Max/HBO windowOpacity — added to max.e2e.js (green window + 50% opacity verification)
-- [ ] E2E: Crunchyroll windowOpacity
-- [ ] E2E: Disney+ windowOpacity
-- [ ] E2E: Netflix windowOpacity
+- [x] E2E: Crunchyroll windowOpacity — added to crunchyroll.e2e.js (green window + 50% opacity verification)
+- [x] E2E: Disney+ windowOpacity — added to disneyplus.e2e.js (green window + 50% opacity in shadow DOM)
+- [x] E2E: Netflix windowOpacity — added to netflix.e2e.js (green window + 50% opacity verification)
 
 #### textOpacity E2E
 
