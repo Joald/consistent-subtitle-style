@@ -385,6 +385,40 @@ async function run() {
       `got: ${fontOpacity}`,
     );
 
+    // Background opacity → 75%
+    console.log('\n── Background opacity → 75% ──');
+    await setStorage(browser, extId, { backgroundColor: 'blue', backgroundOpacity: '75' });
+
+    const bgOpacity = await waitForShadowStyle(
+      page,
+      BG_SEL,
+      'backgroundColor',
+      (v) => v != null && v.includes('0.75'),
+      { timeoutMs: 10_000 },
+    );
+    assert(
+      bgOpacity && bgOpacity.includes('0.75'),
+      'Background opacity 75% produces semi-transparent bg in shadow DOM',
+      `got: ${bgOpacity}`,
+    );
+
+    // Window opacity → 50%
+    console.log('\n── Window opacity → 50% ──');
+    await setStorage(browser, extId, { windowColor: 'green', windowOpacity: '50' });
+
+    const windowOpacity = await waitForShadowStyle(
+      page,
+      WINDOW_SEL,
+      'backgroundColor',
+      (v) => v != null && v.includes('0.5'),
+      { timeoutMs: 10_000 },
+    );
+    assert(
+      windowOpacity && windowOpacity.includes('0.5'),
+      'Window opacity 50% produces semi-transparent window in shadow DOM',
+      `got: ${windowOpacity}`,
+    );
+
     // ── Phase 4: Hive renderer variant ─────────────────────────────────
     console.log('\n── Hive renderer variant ──');
 

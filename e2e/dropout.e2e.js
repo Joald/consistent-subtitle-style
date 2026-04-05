@@ -251,6 +251,50 @@ async function run() {
     );
     assert(isFontYellow, 'Font opacity preserves yellow hue', fontOpColor);
 
+    // ── Live update: background opacity ─────────────────────────────────
+    console.log('\n🔅  Live update — background opacity 75% (blue bg)');
+    await setStorage(browser, extId, { backgroundColor: 'blue', backgroundOpacity: '75' });
+    await sleep(3000);
+
+    const afterBgOpacity = await getCaptionStyles(page);
+    const bgOpColor = afterBgOpacity?.lineBackground;
+    assert(
+      bgOpColor && bgOpColor.includes('0.75'),
+      'Background opacity 75% produces semi-transparent background',
+      bgOpColor,
+    );
+    const isBgBlue = bgOpColor && (
+      bgOpColor.includes('0, 0, 255') ||
+      bgOpColor.includes('srgb 0 0 1')
+    );
+    assert(isBgBlue, 'Background opacity preserves blue hue', bgOpColor);
+
+    // ── Live update: window color ───────────────────────────────────────
+    console.log('\n🪟  Live update — window color → green');
+    await setStorage(browser, extId, { windowColor: 'green' });
+    await sleep(3000);
+
+    const afterWindowColor = await getCaptionStyles(page);
+    const winBg = afterWindowColor?.windowBackground;
+    assert(
+      winBg && (winBg.includes('0, 128, 0') || winBg.includes('0, 255, 0') || winBg.includes('green')),
+      'Window color → green',
+      winBg,
+    );
+
+    // ── Live update: window opacity ─────────────────────────────────────
+    console.log('\n🔅  Live update — window opacity 50% (green window)');
+    await setStorage(browser, extId, { windowColor: 'green', windowOpacity: '50' });
+    await sleep(3000);
+
+    const afterWindowOpacity = await getCaptionStyles(page);
+    const winOpBg = afterWindowOpacity?.windowBackground;
+    assert(
+      winOpBg && winOpBg.includes('0.5'),
+      'Window opacity 50% produces semi-transparent window',
+      winOpBg,
+    );
+
     // ── Combined settings ────────────────────────────────────────────────
     console.log('\n🔀  Combined settings change');
     await setStorage(browser, extId, {
