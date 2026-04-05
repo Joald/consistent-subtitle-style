@@ -4,6 +4,7 @@
 
 - [x] **Dropout opacity bug** — fixed: opacity percentages (0–100) now converted to CSS alpha (0–1). Color+opacity always applied together so changing color preserves opacity. 17 new tests, 626 total. Commit: `6061e01`
 - [ ] **Dropout: inline styles lost on new caption lines** — `applyCaptionInlineStyles()` applies to existing DOM elements only. When the player creates a NEW `CaptionsRenderer_module_captionsLine` element (next subtitle cue), inline styles (bgOpacity=0, colors, etc.) are NOT re-applied. Fix: add MutationObserver inside VHX iframe watching for new captionsLine/captionsWindow elements, and re-apply `applyCaptionInlineStyles(currentValues)` on each new node. This is the root cause of "bg opacity 0 breaks on next line".
+- [ ] **Yellow dot badge not clearing without popup re-open** — Root cause: `handleSave()` in global mode does `chrome.storage.sync.set()` but does NOT update the local `globalSettings` variable. After saving, `updateOverrideBadges()` compares new `selectedValue` against stale `globalSettings` → badge appears/doesn't clear. Fix: after global save, set `globalSettings = { ...DEFAULTS, ...settings }`. Similarly after per-site save, update `allSiteOverrides` cache. Then re-call `updateOverrideBadges()` + `updateSiteIndicators()`.
 - [ ] Dropout live update — manual verification needed (waiting for Jacek's test)
 - [ ] Merge fix/dropout-live-settings → main (blocked on manual test)
 
