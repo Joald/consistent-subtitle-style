@@ -89,11 +89,11 @@
 
 ### liveUpdate tests
 
-- [ ] Test: Prime Video liveUpdate — add unit/E2E test for live settings update on Prime Video
-- [ ] Test: Max/HBO liveUpdate — add unit/E2E test for live settings update on Max/HBO
-- [ ] Test: Crunchyroll liveUpdate — add unit/E2E test for live settings update on Crunchyroll
-- [ ] Test: Disney+ liveUpdate — add unit/E2E test for live settings update on Disney+
-- [ ] Test: Netflix liveUpdate — add unit/E2E test for live settings update on Netflix
+- [x] Test: Prime Video liveUpdate — unit tests for live settings update (subtitleStylerChanged → CSS with platform selectors)
+- [x] Test: Max/HBO liveUpdate — unit tests for live settings update (subtitleStylerChanged → CSS with platform selectors)
+- [x] Test: Crunchyroll liveUpdate — unit tests for live settings update (subtitleStylerChanged → CSS with platform selectors)
+- [x] Test: Disney+ liveUpdate — unit tests for live settings update (subtitleStylerChanged → CSS with platform selectors)
+- [x] Test: Netflix liveUpdate — unit tests for live settings update (subtitleStylerChanged → CSS with platform selectors)
 
 ### E2E upgrades (unit-only → E2E)
 
