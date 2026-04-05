@@ -92,3 +92,47 @@
 - [ ] Test: Crunchyroll liveUpdate — add unit/E2E test for live settings update on Crunchyroll
 - [ ] Test: Disney+ liveUpdate — add unit/E2E test for live settings update on Disney+
 - [ ] Test: Netflix liveUpdate — add unit/E2E test for live settings update on Netflix
+
+### E2E upgrades (unit-only → E2E)
+
+#### bgOpacity E2E
+- [ ] E2E: Nebula bgOpacity
+- [ ] E2E: Dropout bgOpacity
+- [ ] E2E: Max/HBO bgOpacity
+- [ ] E2E: Crunchyroll bgOpacity
+- [ ] E2E: Disney+ bgOpacity
+
+#### windowColor E2E
+- [ ] E2E: Nebula windowColor
+- [ ] E2E: Dropout windowColor
+- [ ] E2E: Max/HBO windowColor
+
+#### windowOpacity E2E
+- [ ] E2E: Nebula windowOpacity
+- [ ] E2E: Dropout windowOpacity
+- [ ] E2E: Prime Video windowOpacity
+- [ ] E2E: Max/HBO windowOpacity
+- [ ] E2E: Crunchyroll windowOpacity
+- [ ] E2E: Disney+ windowOpacity
+- [ ] E2E: Netflix windowOpacity
+
+#### textOpacity E2E
+- [ ] E2E: YouTube textOpacity
+
+#### preset E2E (per-platform)
+- [ ] E2E: Nebula preset apply
+- [ ] E2E: Dropout preset apply
+- [ ] E2E: Prime Video preset apply
+- [ ] E2E: Max/HBO preset apply
+- [ ] E2E: Crunchyroll preset apply
+- [ ] E2E: Disney+ preset apply
+- [ ] E2E: Netflix preset apply
+
+#### perSite E2E (per-platform)
+- [ ] E2E: Nebula per-site override
+- [ ] E2E: Dropout per-site override
+- [ ] E2E: Prime Video per-site override
+- [ ] E2E: Max/HBO per-site override
+- [ ] E2E: Crunchyroll per-site override
+- [ ] E2E: Disney+ per-site override
+- [ ] E2E: Netflix per-site override
