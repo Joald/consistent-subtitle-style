@@ -633,6 +633,156 @@ describe('Popup UI Integration', () => {
     });
   });
 
+  describe('platform support indicator', () => {
+    afterEach(() => {
+      clearTabsMock();
+    });
+
+    it('shows supported indicator with platform name on YouTube', async () => {
+      mockActiveTab('https://www.youtube.com/watch?v=abc');
+      await triggerInit();
+
+      const indicator = document.getElementById('platform-indicator')!;
+      expect(indicator).toBeTruthy();
+      expect(indicator.classList.contains('supported')).toBe(true);
+      expect(indicator.classList.contains('hidden')).toBe(false);
+
+      const icon = indicator.querySelector('.platform-indicator-icon')!;
+      expect(icon.textContent).toBe('✅');
+
+      const text = indicator.querySelector('.platform-indicator-text')!;
+      expect(text.textContent).toContain('YouTube');
+      expect(text.textContent).toContain('supported');
+    });
+
+    it('shows supported indicator on Netflix', async () => {
+      mockActiveTab('https://www.netflix.com/watch/12345');
+      await triggerInit();
+
+      const indicator = document.getElementById('platform-indicator')!;
+      expect(indicator.classList.contains('supported')).toBe(true);
+
+      const text = indicator.querySelector('.platform-indicator-text')!;
+      expect(text.textContent).toContain('Netflix');
+    });
+
+    it('shows supported indicator on Dropout', async () => {
+      mockActiveTab('https://www.dropout.tv/videos/abc');
+      await triggerInit();
+
+      const indicator = document.getElementById('platform-indicator')!;
+      expect(indicator.classList.contains('supported')).toBe(true);
+
+      const text = indicator.querySelector('.platform-indicator-text')!;
+      expect(text.textContent).toContain('Dropout');
+    });
+
+    it('shows supported indicator on Nebula', async () => {
+      mockActiveTab('https://nebula.tv/videos/abc');
+      await triggerInit();
+
+      const indicator = document.getElementById('platform-indicator')!;
+      expect(indicator.classList.contains('supported')).toBe(true);
+
+      const text = indicator.querySelector('.platform-indicator-text')!;
+      expect(text.textContent).toContain('Nebula');
+    });
+
+    it('shows supported indicator on Disney+', async () => {
+      mockActiveTab('https://www.disneyplus.com/video/abc');
+      await triggerInit();
+
+      const indicator = document.getElementById('platform-indicator')!;
+      expect(indicator.classList.contains('supported')).toBe(true);
+
+      const text = indicator.querySelector('.platform-indicator-text')!;
+      expect(text.textContent).toContain('Disney+');
+    });
+
+    it('shows supported indicator on Prime Video', async () => {
+      mockActiveTab('https://www.primevideo.com/detail/abc');
+      await triggerInit();
+
+      const indicator = document.getElementById('platform-indicator')!;
+      expect(indicator.classList.contains('supported')).toBe(true);
+
+      const text = indicator.querySelector('.platform-indicator-text')!;
+      expect(text.textContent).toContain('Prime Video');
+    });
+
+    it('shows supported indicator on Max', async () => {
+      mockActiveTab('https://play.max.com/movie/abc');
+      await triggerInit();
+
+      const indicator = document.getElementById('platform-indicator')!;
+      expect(indicator.classList.contains('supported')).toBe(true);
+
+      const text = indicator.querySelector('.platform-indicator-text')!;
+      expect(text.textContent).toContain('Max');
+    });
+
+    it('shows supported indicator on Crunchyroll', async () => {
+      mockActiveTab('https://www.crunchyroll.com/watch/abc');
+      await triggerInit();
+
+      const indicator = document.getElementById('platform-indicator')!;
+      expect(indicator.classList.contains('supported')).toBe(true);
+
+      const text = indicator.querySelector('.platform-indicator-text')!;
+      expect(text.textContent).toContain('Crunchyroll');
+    });
+
+    it('shows supported indicator on Vimeo', async () => {
+      mockActiveTab('https://vimeo.com/12345');
+      await triggerInit();
+
+      const indicator = document.getElementById('platform-indicator')!;
+      expect(indicator.classList.contains('supported')).toBe(true);
+
+      const text = indicator.querySelector('.platform-indicator-text')!;
+      expect(text.textContent).toContain('Vimeo');
+    });
+
+    it('shows unsupported indicator on unknown sites', async () => {
+      mockActiveTab('https://www.example.com/');
+      await triggerInit();
+
+      const indicator = document.getElementById('platform-indicator')!;
+      expect(indicator).toBeTruthy();
+      expect(indicator.classList.contains('unsupported')).toBe(true);
+      expect(indicator.classList.contains('hidden')).toBe(false);
+
+      const icon = indicator.querySelector('.platform-indicator-icon')!;
+      expect(icon.textContent).toBe('⚠️');
+
+      const text = indicator.querySelector('.platform-indicator-text')!;
+      expect(text.textContent).toContain('not supported');
+    });
+
+    it('shows unsupported indicator when tabs API is unavailable', async () => {
+      clearTabsMock();
+      await triggerInit();
+
+      const indicator = document.getElementById('platform-indicator')!;
+      expect(indicator).toBeTruthy();
+      expect(indicator.classList.contains('unsupported')).toBe(true);
+
+      const text = indicator.querySelector('.platform-indicator-text')!;
+      expect(text.textContent).toContain('not supported');
+    });
+
+    it('indicator has correct structure with icon and text spans', async () => {
+      mockActiveTab('https://www.youtube.com/watch?v=abc');
+      await triggerInit();
+
+      const indicator = document.getElementById('platform-indicator')!;
+      const children = indicator.children;
+      expect(children.length).toBe(2);
+      expect(children[0]!.className).toBe('platform-indicator-icon');
+      expect(children[1]!.className).toBe('platform-indicator-text');
+    });
+  });
+
   describe('scope toggle (per-site settings)', () => {
     afterEach(() => {
       clearTabsMock();
