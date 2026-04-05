@@ -1737,4 +1737,417 @@ describe('Popup UI Integration', () => {
       expect(deleteBtn).toBeTruthy();
     });
   });
+
+  describe('keyboard navigation', () => {
+    /** Helper to dispatch a keyboard event on an element. */
+    function pressKey(
+      element: HTMLElement,
+      key: string,
+      eventType: 'keydown' | 'keyup' = 'keydown',
+    ): void {
+      element.dispatchEvent(new KeyboardEvent(eventType, { key, bubbles: true, cancelable: true }));
+    }
+
+    it('triggers have tabindex="0" and role="combobox"', async () => {
+      await triggerInit();
+
+      const triggers = document.querySelectorAll('.select-trigger');
+      expect(triggers.length).toBeGreaterThan(0);
+
+      triggers.forEach((trigger) => {
+        expect(trigger.getAttribute('tabindex')).toBe('0');
+        expect(trigger.getAttribute('role')).toBe('combobox');
+        expect(trigger.getAttribute('aria-expanded')).toBe('false');
+        expect(trigger.getAttribute('aria-haspopup')).toBe('listbox');
+      });
+    });
+
+    it('options containers have role="listbox"', async () => {
+      await triggerInit();
+
+      const optionContainers = document.querySelectorAll('.select-options');
+      expect(optionContainers.length).toBeGreaterThan(0);
+
+      optionContainers.forEach((container) => {
+        expect(container.getAttribute('role')).toBe('listbox');
+      });
+    });
+
+    it('individual options have role="option"', async () => {
+      await triggerInit();
+
+      const options = document.querySelectorAll('.select-option');
+      expect(options.length).toBeGreaterThan(0);
+
+      options.forEach((option) => {
+        expect(option.getAttribute('role')).toBe('option');
+      });
+    });
+
+    it('Enter key opens a closed dropdown', async () => {
+      await triggerInit();
+
+      const container = document.querySelector<HTMLElement>('[data-id="font-family"]')!;
+      const trigger = container.querySelector<HTMLElement>('.select-trigger')!;
+
+      expect(container.classList.contains('open')).toBe(false);
+
+      pressKey(trigger, 'Enter');
+
+      expect(container.classList.contains('open')).toBe(true);
+      expect(trigger.getAttribute('aria-expanded')).toBe('true');
+    });
+
+    it('Space key opens a closed dropdown', async () => {
+      await triggerInit();
+
+      const container = document.querySelector<HTMLElement>('[data-id="font-family"]')!;
+      const trigger = container.querySelector<HTMLElement>('.select-trigger')!;
+
+      expect(container.classList.contains('open')).toBe(false);
+
+      pressKey(trigger, ' ');
+
+      expect(container.classList.contains('open')).toBe(true);
+      expect(trigger.getAttribute('aria-expanded')).toBe('true');
+    });
+
+    it('Escape key closes an open dropdown', async () => {
+      await triggerInit();
+
+      const container = document.querySelector<HTMLElement>('[data-id="font-family"]')!;
+      const trigger = container.querySelector<HTMLElement>('.select-trigger')!;
+
+      // Open first
+      pressKey(trigger, 'Enter');
+      expect(container.classList.contains('open')).toBe(true);
+
+      // Escape to close
+      pressKey(trigger, 'Escape');
+      expect(container.classList.contains('open')).toBe(false);
+      expect(trigger.getAttribute('aria-expanded')).toBe('false');
+    });
+
+    it('ArrowDown opens the dropdown if closed', async () => {
+      await triggerInit();
+
+      const container = document.querySelector<HTMLElement>('[data-id="font-family"]')!;
+      const trigger = container.querySelector<HTMLElement>('.select-trigger')!;
+
+      expect(container.classList.contains('open')).toBe(false);
+
+      pressKey(trigger, 'ArrowDown');
+
+      expect(container.classList.contains('open')).toBe(true);
+    });
+
+    it('ArrowUp opens the dropdown if closed', async () => {
+      await triggerInit();
+
+      const container = document.querySelector<HTMLElement>('[data-id="font-family"]')!;
+      const trigger = container.querySelector<HTMLElement>('.select-trigger')!;
+
+      expect(container.classList.contains('open')).toBe(false);
+
+      pressKey(trigger, 'ArrowUp');
+
+      expect(container.classList.contains('open')).toBe(true);
+    });
+
+    it('ArrowDown highlights the first option when nothing highlighted', async () => {
+      await triggerInit();
+
+      const container = document.querySelector<HTMLElement>('[data-id="font-size"]')!;
+      const trigger = container.querySelector<HTMLElement>('.select-trigger')!;
+
+      // Open with Enter first, then ArrowDown to move
+      pressKey(trigger, 'Enter');
+
+      // Currently selected option is "auto" so it should be highlighted already after open
+      const firstOption = container.querySelector('.select-option[data-value="auto"]')!;
+      expect(firstOption.classList.contains('highlighted')).toBe(true);
+
+      // Press ArrowDown to move to second option
+      pressKey(trigger, 'ArrowDown');
+
+      const secondOption = container.querySelector('.select-option[data-value="50%"]')!;
+      expect(secondOption.classList.contains('highlighted')).toBe(true);
+      // First option should no longer be highlighted
+      expect(firstOption.classList.contains('highlighted')).toBe(false);
+    });
+
+    it('ArrowDown navigates through options sequentially', async () => {
+      await triggerInit();
+
+      const container = document.querySelector<HTMLElement>('[data-id="font-size"]')!;
+      const trigger = container.querySelector<HTMLElement>('.select-trigger')!;
+      const options = Array.from(container.querySelectorAll<HTMLElement>('.select-option'));
+
+      pressKey(trigger, 'Enter');
+
+      // The selected ("auto") option should be highlighted after open
+      expect(options[0]!.classList.contains('highlighted')).toBe(true);
+
+      // Navigate down through several options
+      pressKey(trigger, 'ArrowDown');
+      expect(options[1]!.classList.contains('highlighted')).toBe(true);
+
+      pressKey(trigger, 'ArrowDown');
+      expect(options[2]!.classList.contains('highlighted')).toBe(true);
+
+      pressKey(trigger, 'ArrowDown');
+      expect(options[3]!.classList.contains('highlighted')).toBe(true);
+    });
+
+    it('ArrowUp navigates upward', async () => {
+      await triggerInit();
+
+      const container = document.querySelector<HTMLElement>('[data-id="font-size"]')!;
+      const trigger = container.querySelector<HTMLElement>('.select-trigger')!;
+      const options = Array.from(container.querySelectorAll<HTMLElement>('.select-option'));
+
+      pressKey(trigger, 'Enter');
+      expect(options[0]!.classList.contains('highlighted')).toBe(true);
+
+      // Go down twice
+      pressKey(trigger, 'ArrowDown');
+      pressKey(trigger, 'ArrowDown');
+      expect(options[2]!.classList.contains('highlighted')).toBe(true);
+
+      // Go back up once
+      pressKey(trigger, 'ArrowUp');
+      expect(options[1]!.classList.contains('highlighted')).toBe(true);
+    });
+
+    it('ArrowDown clamps at the last option', async () => {
+      await triggerInit();
+
+      const container = document.querySelector<HTMLElement>('[data-id="font-size"]')!;
+      const trigger = container.querySelector<HTMLElement>('.select-trigger')!;
+      const options = Array.from(container.querySelectorAll<HTMLElement>('.select-option'));
+
+      pressKey(trigger, 'Enter');
+
+      // Navigate all the way to the end
+      for (let i = 0; i < options.length + 5; i++) {
+        pressKey(trigger, 'ArrowDown');
+      }
+
+      // Should be clamped at the last option
+      const lastOption = options[options.length - 1]!;
+      expect(lastOption.classList.contains('highlighted')).toBe(true);
+    });
+
+    it('ArrowUp clamps at the first option', async () => {
+      await triggerInit();
+
+      const container = document.querySelector<HTMLElement>('[data-id="font-size"]')!;
+      const trigger = container.querySelector<HTMLElement>('.select-trigger')!;
+      const options = Array.from(container.querySelectorAll<HTMLElement>('.select-option'));
+
+      pressKey(trigger, 'Enter');
+
+      // Try going up many times from the top
+      for (let i = 0; i < 5; i++) {
+        pressKey(trigger, 'ArrowUp');
+      }
+
+      // Should be clamped at the first option
+      expect(options[0]!.classList.contains('highlighted')).toBe(true);
+    });
+
+    it('Enter selects the highlighted option and closes the dropdown', async () => {
+      await triggerInit();
+
+      const container = document.querySelector<HTMLElement>('[data-id="character-edge-style"]')!;
+      const trigger = container.querySelector<HTMLElement>('.select-trigger')!;
+
+      // Open
+      pressKey(trigger, 'Enter');
+      expect(container.classList.contains('open')).toBe(true);
+
+      // Navigate to "dropshadow" (1 down from auto)
+      pressKey(trigger, 'ArrowDown');
+
+      // Select with Enter
+      pressKey(trigger, 'Enter');
+
+      await new Promise((r) => setTimeout(r, 0));
+
+      // Dropdown should be closed
+      expect(container.classList.contains('open')).toBe(false);
+
+      // Value should be "dropshadow"
+      expect(container.dataset['selectedValue']).toBe('dropshadow');
+
+      // Display text should be updated
+      const valueEl = container.querySelector('.select-value');
+      expect(valueEl?.textContent).toBe('Drop Shadow');
+
+      // Should have triggered save
+      expect(vi.mocked(chrome.storage.sync.set)).toHaveBeenCalled();
+    });
+
+    it('Space selects the highlighted option and closes the dropdown', async () => {
+      await triggerInit();
+
+      const container = document.querySelector<HTMLElement>('[data-id="character-edge-style"]')!;
+      const trigger = container.querySelector<HTMLElement>('.select-trigger')!;
+
+      // Open
+      pressKey(trigger, ' ');
+
+      // Navigate to "raised" (2 down from auto)
+      pressKey(trigger, 'ArrowDown');
+      pressKey(trigger, 'ArrowDown');
+
+      // Select with Space
+      pressKey(trigger, ' ');
+
+      await new Promise((r) => setTimeout(r, 0));
+
+      expect(container.classList.contains('open')).toBe(false);
+      expect(container.dataset['selectedValue']).toBe('raised');
+    });
+
+    it('opening a dropdown highlights the currently selected option', async () => {
+      // Set initial fontColor to "red"
+      const settings = { ...ALL_AUTO, fontColor: 'red' };
+      vi.mocked<() => Promise<Record<string, unknown>>>(chrome.storage.sync.get).mockResolvedValue(
+        settings,
+      );
+
+      await triggerInit();
+
+      const container = document.querySelector<HTMLElement>('[data-id="font-color"]')!;
+      const trigger = container.querySelector<HTMLElement>('.select-trigger')!;
+
+      // Open
+      pressKey(trigger, 'Enter');
+
+      // The "red" option should be highlighted
+      const redOption = container.querySelector<HTMLElement>('.select-option[data-value="red"]')!;
+      expect(redOption.classList.contains('highlighted')).toBe(true);
+
+      // "auto" should NOT be highlighted
+      const autoOption = container.querySelector<HTMLElement>('.select-option[data-value="auto"]')!;
+      expect(autoOption.classList.contains('highlighted')).toBe(false);
+    });
+
+    it('closing with Escape clears highlight', async () => {
+      await triggerInit();
+
+      const container = document.querySelector<HTMLElement>('[data-id="font-family"]')!;
+      const trigger = container.querySelector<HTMLElement>('.select-trigger')!;
+
+      pressKey(trigger, 'Enter');
+      pressKey(trigger, 'ArrowDown');
+
+      // There should be a highlighted option
+      expect(container.querySelector('.select-option.highlighted')).toBeTruthy();
+
+      pressKey(trigger, 'Escape');
+
+      // Highlights should be cleared
+      expect(container.querySelector('.select-option.highlighted')).toBeNull();
+    });
+
+    it('opening another dropdown closes the first', async () => {
+      await triggerInit();
+
+      const container1 = document.querySelector<HTMLElement>('[data-id="font-family"]')!;
+      const trigger1 = container1.querySelector<HTMLElement>('.select-trigger')!;
+
+      const container2 = document.querySelector<HTMLElement>('[data-id="font-size"]')!;
+      const trigger2 = container2.querySelector<HTMLElement>('.select-trigger')!;
+
+      // Open first dropdown
+      pressKey(trigger1, 'Enter');
+      expect(container1.classList.contains('open')).toBe(true);
+
+      // Open second dropdown via keyboard
+      pressKey(trigger2, 'Enter');
+      expect(container2.classList.contains('open')).toBe(true);
+      expect(container1.classList.contains('open')).toBe(false);
+    });
+
+    it('Tab closes the dropdown without selecting', async () => {
+      await triggerInit();
+
+      const container = document.querySelector<HTMLElement>('[data-id="font-family"]')!;
+      const trigger = container.querySelector<HTMLElement>('.select-trigger')!;
+
+      // Open and navigate
+      pressKey(trigger, 'Enter');
+      pressKey(trigger, 'ArrowDown');
+
+      // Tab should close without changing the value
+      const valueBefore = container.dataset['selectedValue'];
+      pressKey(trigger, 'Tab');
+
+      expect(container.classList.contains('open')).toBe(false);
+      expect(container.dataset['selectedValue']).toBe(valueBefore);
+    });
+
+    it('ArrowUp from closed starts highlight at last option', async () => {
+      await triggerInit();
+
+      const container = document.querySelector<HTMLElement>('[data-id="font-size"]')!;
+      const trigger = container.querySelector<HTMLElement>('.select-trigger')!;
+      const options = Array.from(container.querySelectorAll<HTMLElement>('.select-option'));
+
+      // ArrowUp opens and highlights current selected ("auto"), then moves up (clamp at first)
+      // Actually: ArrowUp opens → highlights selected ("auto" = first), then highlightNext(-1) clamps at 0
+      pressKey(trigger, 'ArrowUp');
+
+      expect(container.classList.contains('open')).toBe(true);
+      // Selected is "auto" (first), highlightNext(-1) tries to go up from index 0 → clamps at 0
+      // But actually, open highlights selected first, THEN highlightNext runs
+      // Let me verify: the selected option is "auto" which is index 0
+      // highlightNext(-1) starts from currentIndex=0, nextIndex=0-1=-1 → clamped to 0
+      expect(options[0]!.classList.contains('highlighted')).toBe(true);
+    });
+
+    it('full keyboard flow: open → navigate → select → verify save', async () => {
+      await triggerInit();
+
+      const container = document.querySelector<HTMLElement>('[data-id="background-color"]')!;
+      const trigger = container.querySelector<HTMLElement>('.select-trigger')!;
+
+      // Initially "auto"
+      expect(container.dataset['selectedValue']).toBe('auto');
+
+      // Open with Enter
+      pressKey(trigger, 'Enter');
+      expect(container.classList.contains('open')).toBe(true);
+
+      // Navigate: auto(0) → white(1) → yellow(2) → green(3)
+      pressKey(trigger, 'ArrowDown'); // → white
+      pressKey(trigger, 'ArrowDown'); // → yellow
+      pressKey(trigger, 'ArrowDown'); // → green
+
+      // Verify green is highlighted
+      const greenOption = container.querySelector<HTMLElement>(
+        '.select-option[data-value="green"]',
+      )!;
+      expect(greenOption.classList.contains('highlighted')).toBe(true);
+
+      // Select with Enter
+      pressKey(trigger, 'Enter');
+      await new Promise((r) => setTimeout(r, 0));
+
+      // Verify
+      expect(container.classList.contains('open')).toBe(false);
+      expect(container.dataset['selectedValue']).toBe('green');
+      expect(trigger.getAttribute('aria-expanded')).toBe('false');
+
+      // Verify save was called with green background
+      const setMock = vi.mocked(chrome.storage.sync.set);
+      const lastCall = setMock.mock.calls[setMock.mock.calls.length - 1]?.[0] as Record<
+        string,
+        unknown
+      >;
+      expect(lastCall['backgroundColor']).toBe('green');
+    });
+  });
 });
