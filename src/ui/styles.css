@@ -547,3 +547,39 @@ hr {
   color: #ccc;
   border-color: #666;
 }
+
+/* Platform support indicator */
+.platform-indicator {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 12px;
+  border-radius: 6px;
+  font-size: 12px;
+  margin-bottom: 8px;
+}
+
+.platform-indicator.hidden {
+  display: none;
+}
+
+.platform-indicator.supported {
+  background: rgba(34, 197, 94, 0.1);
+  border: 1px solid rgba(34, 197, 94, 0.3);
+  color: #86efac;
+}
+
+.platform-indicator.unsupported {
+  background: rgba(234, 179, 8, 0.1);
+  border: 1px solid rgba(234, 179, 8, 0.3);
+  color: #fde68a;
+}
+
+.platform-indicator-icon {
+  font-size: 14px;
+  flex-shrink: 0;
+}
+
+.platform-indicator-text {
+  flex: 1;
+}

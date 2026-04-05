@@ -909,6 +909,37 @@ function switchScope(): void {
   // Form stays the same — scope only controls save destination.
 }
 
+/**
+ * Build the platform support indicator banner.
+ * Shows "✅ <Platform> supported" on supported sites, or
+ * "⚠️ This site is not supported" on unsupported sites.
+ */
+function buildPlatformIndicator(): void {
+  const indicator = document.getElementById('platform-indicator');
+  if (!indicator) return;
+
+  indicator.innerHTML = '';
+
+  const iconSpan = document.createElement('span');
+  iconSpan.className = 'platform-indicator-icon';
+
+  const textSpan = document.createElement('span');
+  textSpan.className = 'platform-indicator-text';
+
+  if (currentPlatform) {
+    indicator.className = 'platform-indicator supported';
+    iconSpan.textContent = '✅';
+    textSpan.textContent = `${PLATFORM_DISPLAY_NAMES[currentPlatform]} — supported`;
+  } else {
+    indicator.className = 'platform-indicator unsupported';
+    iconSpan.textContent = '⚠️';
+    textSpan.textContent = 'This site is not supported';
+  }
+
+  indicator.appendChild(iconSpan);
+  indicator.appendChild(textSpan);
+}
+
 async function initializePopup(): Promise<void> {
   try {
     // Detect current platform from the active tab
@@ -939,6 +970,7 @@ async function initializePopup(): Promise<void> {
       settings = globalSettings;
     }
 
+    buildPlatformIndicator();
     buildPresetSelector();
     if (currentPlatform) {
       buildScopeToggle();
