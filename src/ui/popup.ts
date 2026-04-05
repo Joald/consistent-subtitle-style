@@ -340,12 +340,67 @@ function setupCustomSelects(): void {
       e.stopPropagation();
       const isOpen = container.classList.contains('open');
 
-      document.querySelectorAll('.custom-select.open').forEach((open) => {
-        open.classList.remove('open');
-      });
+      closeAllSelects();
 
       if (!isOpen) {
-        container.classList.add('open');
+        openSelect(container);
+      }
+    });
+
+    // Keyboard navigation on trigger
+    trigger?.addEventListener('keydown', (e) => {
+      const event = e as KeyboardEvent;
+      const isOpen = container.classList.contains('open');
+
+      switch (event.key) {
+        case 'Enter':
+        case ' ': {
+          event.preventDefault();
+          if (isOpen) {
+            // Select the highlighted option, or close if none highlighted
+            const highlighted = container.querySelector('.select-option.highlighted');
+            if (highlighted instanceof HTMLElement) {
+              selectOption(container, highlighted);
+            }
+            closeSelect(container);
+          } else {
+            closeAllSelects();
+            openSelect(container);
+          }
+          break;
+        }
+        case 'Escape': {
+          if (isOpen) {
+            event.preventDefault();
+            closeSelect(container);
+            (trigger as HTMLElement).focus();
+          }
+          break;
+        }
+        case 'ArrowDown': {
+          event.preventDefault();
+          if (!isOpen) {
+            closeAllSelects();
+            openSelect(container);
+          }
+          highlightNext(container, 1);
+          break;
+        }
+        case 'ArrowUp': {
+          event.preventDefault();
+          if (!isOpen) {
+            closeAllSelects();
+            openSelect(container);
+          }
+          highlightNext(container, -1);
+          break;
+        }
+        case 'Tab': {
+          if (isOpen) {
+            closeSelect(container);
+          }
+          break;
+        }
       }
     });
 
@@ -353,35 +408,126 @@ function setupCustomSelects(): void {
       if (!(option instanceof HTMLElement)) return;
       const el = option;
       el.addEventListener('click', () => {
-        const value = el.dataset['value'] ?? 'auto';
-        const text = el.textContent.trim();
-
-        container.querySelectorAll('.select-option').forEach((opt) => {
-          opt.classList.remove('selected');
-        });
-        el.classList.add('selected');
-
-        container.dataset['selectedValue'] = value;
-
-        const valueEl = container.querySelector('.select-value');
-        if (valueEl) valueEl.textContent = text;
-
+        selectOption(container, el);
         container.classList.remove('open');
-
-        updatePreview();
-        updateOpacityStates();
-        updateOverrideBadges();
-        updateSiteIndicators();
-        void handleSave();
+        updateAriaExpanded(container, false);
       });
     });
   });
 
   document.addEventListener('click', () => {
-    document.querySelectorAll('.custom-select.open').forEach((open) => {
-      open.classList.remove('open');
-    });
+    closeAllSelects();
   });
+}
+
+/** Open a custom select dropdown. */
+function openSelect(container: HTMLElement): void {
+  container.classList.add('open');
+  updateAriaExpanded(container, true);
+  // Highlight the currently selected option
+  const selected = container.querySelector('.select-option.selected');
+  clearHighlight(container);
+  if (selected instanceof HTMLElement) {
+    selected.classList.add('highlighted');
+    scrollOptionIntoView(selected);
+  }
+}
+
+/** Close a single custom select dropdown. */
+function closeSelect(container: HTMLElement): void {
+  container.classList.remove('open');
+  clearHighlight(container);
+  updateAriaExpanded(container, false);
+}
+
+/** Close all open custom selects. */
+function closeAllSelects(): void {
+  document.querySelectorAll('.custom-select.open').forEach((open) => {
+    if (open instanceof HTMLElement) {
+      closeSelect(open);
+    }
+  });
+}
+
+/** Clear highlight from all options in a container. */
+function clearHighlight(container: HTMLElement): void {
+  container.querySelectorAll('.select-option.highlighted').forEach((el) => {
+    el.classList.remove('highlighted');
+  });
+}
+
+/** Move highlight by a direction (+1 = down, -1 = up). */
+function highlightNext(container: HTMLElement, direction: 1 | -1): void {
+  const options = Array.from(container.querySelectorAll<HTMLElement>('.select-option'));
+  if (options.length === 0) return;
+
+  const currentIndex = options.findIndex((opt) => opt.classList.contains('highlighted'));
+  clearHighlight(container);
+
+  let nextIndex: number;
+  if (currentIndex === -1) {
+    // No highlight yet — start from top (down) or bottom (up)
+    nextIndex = direction === 1 ? 0 : options.length - 1;
+  } else {
+    nextIndex = currentIndex + direction;
+    // Clamp to bounds
+    if (nextIndex < 0) nextIndex = 0;
+    if (nextIndex >= options.length) nextIndex = options.length - 1;
+  }
+
+  const target = options[nextIndex];
+  if (target) {
+    target.classList.add('highlighted');
+    scrollOptionIntoView(target);
+  }
+}
+
+/** Scroll an option into view within the options container. */
+function scrollOptionIntoView(option: HTMLElement): void {
+  const container = option.closest('.select-options');
+  if (container instanceof HTMLElement) {
+    const containerRect = container.getBoundingClientRect();
+    const optionRect = option.getBoundingClientRect();
+    if (optionRect.bottom > containerRect.bottom) {
+      container.scrollTop += optionRect.bottom - containerRect.bottom;
+    } else if (optionRect.top < containerRect.top) {
+      container.scrollTop -= containerRect.top - optionRect.top;
+    }
+  }
+}
+
+/** Select a specific option in a custom select. */
+function selectOption(container: HTMLElement, option: HTMLElement): void {
+  const value = option.dataset['value'] ?? 'auto';
+  const text = option.textContent.trim();
+
+  container.querySelectorAll('.select-option').forEach((opt) => {
+    opt.classList.remove('selected');
+  });
+  option.classList.add('selected');
+
+  container.dataset['selectedValue'] = value;
+
+  const valueEl = container.querySelector('.select-value');
+  if (valueEl) valueEl.textContent = text;
+
+  container.classList.remove('open');
+  clearHighlight(container);
+  updateAriaExpanded(container, false);
+
+  updatePreview();
+  updateOpacityStates();
+  updateOverrideBadges();
+  updateSiteIndicators();
+  void handleSave();
+}
+
+/** Update aria-expanded attribute on the trigger element. */
+function updateAriaExpanded(container: HTMLElement, expanded: boolean): void {
+  const trigger = container.querySelector('.select-trigger');
+  if (trigger) {
+    trigger.setAttribute('aria-expanded', String(expanded));
+  }
 }
 
 function updatePresetIndicator(settings: Partial<StorageSettings>): void {

@@ -130,8 +130,20 @@ hr {
   background: #3a3a3a;
 }
 
+.select-option.highlighted {
+  background: #3a3a3a;
+  outline: 1px solid #666;
+  outline-offset: -1px;
+}
+
 .select-option.selected {
   background: #3a3a3a;
+}
+
+.select-trigger:focus {
+  border-color: #6a9eff;
+  outline: none;
+  box-shadow: 0 0 0 2px rgba(106, 158, 255, 0.3);
 }
 
 .color-swatch {
