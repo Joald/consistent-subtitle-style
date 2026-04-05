@@ -2,7 +2,7 @@
 
 Logical features mapped to test assertions across unit tests and E2E tests.
 
-**Generated**: 2026-04-04 | **632 unit tests** + **234 E2E assertions** across 20 test files + 11 E2E suites
+**Generated**: 2026-04-05 | **707 unit tests** + **318 E2E assertions** across 21 test files + 11 E2E suites
 
 ## Coverage Legend
 
@@ -72,7 +72,7 @@ Every platform must be correctly identified from URL hostname.
 | Apply setting | 🧪 | 🧪 | 🧪 | ✅ | 🧪 | ✅ | ✅ | ✅ | ✅ |
 | Read current value | 🧪 | N/A | 🧪 | N/A | N/A | N/A | N/A | N/A | N/A |
 | CSS color-mix generation | 🧪 | 🧪 | 🧪 | 🧪 | 🧪 | 🧪 | 🧪 | 🧪 | 🧪 |
-| E2E verification | ❌ | ❌ | ❌ | ✅ | ❌ | ✅ | ✅ | ✅ | ✅ |
+| E2E verification | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
 
 ### 2e. Background Color
 
@@ -90,7 +90,7 @@ Every platform must be correctly identified from URL hostname.
 | Apply setting | 🧪 | 🧪 | 🧪 | ✅ | 🧪 | 🧪 | 🧪 | ✅ | ✅ |
 | Read current value | 🧪 | N/A | 🧪 | N/A | N/A | N/A | N/A | N/A | N/A |
 | Color+opacity combined | 🧪 | 🧪 | 🧪 | 🧪 | 🧪 | 🧪 | 🧪 | 🧪 | 🧪 |
-| E2E verification | ❌ | ❌ | ❌ | ✅ | ❌ | ❌ | ❌ | ✅ | ✅ |
+| E2E verification | ❌ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
 
 ### 2g. Window Color
 
@@ -99,7 +99,7 @@ Every platform must be correctly identified from URL hostname.
 | Apply setting | 🧪 | 🧪 | 🧪 | ✅ | 🧪 | ✅ | ✅ | ✅ | ✅ |
 | Read current value | 🧪 | N/A | 🧪 | N/A | N/A | N/A | N/A | N/A | N/A |
 | CSS rule generation | 🧪 | 🧪 | 🧪 | 🧪 | 🧪 | 🧪 | 🧪 | 🧪 | 🧪 |
-| E2E verification | ❌ | ❌ | ❌ | ✅ | ❌ | ✅ | ✅ | ✅ | ✅ |
+| E2E verification | ❌ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
 
 ### 2h. Window Opacity
 
@@ -108,7 +108,7 @@ Every platform must be correctly identified from URL hostname.
 | Apply setting | 🧪 | 🧪 | 🧪 | 🧪 | 🧪 | 🧪 | 🧪 | 🧪 | 🧪 |
 | Read current value | 🧪 | N/A | 🧪 | N/A | N/A | N/A | N/A | N/A | N/A |
 | Color+opacity combined | 🧪 | 🧪 | 🧪 | 🧪 | 🧪 | 🧪 | 🧪 | 🧪 | 🧪 |
-| E2E verification | ❌ | ❌ | ❌ | ❌ | ❌ | ❌ | ❌ | ❌ | ✅ |
+| E2E verification | ❌ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
 
 ### 2i. Character Edge Style
 
@@ -118,7 +118,7 @@ Every platform must be correctly identified from URL hostname.
 | Read current value | 🧪 | N/A | 🧪 | N/A | N/A | N/A | N/A | N/A | N/A |
 | All 5 edge styles | 🧪 | 🧪 | 🧪 | 🧪 | 🧪 | 🧪 | 🧪 | 🧪 | 🧪 |
 | text-shadow generation | 🧪 | 🧪 | 🧪 | 🧪 | 🧪 | 🧪 | 🧪 | 🧪 | 🧪 |
-| E2E verification | ✅ | ✅ | ✅ | ✅ | ❌ | ✅ | ✅ | ✅ | ✅ |
+| E2E verification | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
 
 ---
 
@@ -284,7 +284,7 @@ Every platform must be correctly identified from URL hostname.
 |----------|----------|--------|----------|
 | Platform Detection | 27 (3 per platform) | 27 | **100%** |
 | Style Settings (unit) | 81 (9 settings × 9 platforms) | 81 | **100%** |
-| Style Settings (E2E) | 81 | 63 tested + 18 untested | **78%** |
+| Style Settings (E2E) | 81 | 78 tested + 3 untested | **96%** |
 | Preset System | 12 | 12 | **100%** |
 | Per-Site Settings | 11 | 11 | **100%** |
 | Live Update | 8 | 8 | **100%** |
@@ -292,7 +292,7 @@ Every platform must be correctly identified from URL hostname.
 | Popup UI | 17 | 17 | **100%** |
 | Injection/Bridge | 31 | 31 | **100%** |
 | Background | 5 | 5 | **100%** |
-| **Total** | **297** | **279 tested** | **94%** |
+| **Total** | **297** | **294 tested** | **99%** |
 
 ---
 
@@ -300,15 +300,15 @@ Every platform must be correctly identified from URL hostname.
 
 | Suite | Platform | Assertions | Type |
 |-------|----------|------------|------|
-| youtube.e2e.js | YouTube | 14 | Live site |
-| dropout.e2e.js | Dropout | 22 | Live site |
-| nebula.e2e.js | Nebula | 25 | Live site |
-| vimeo.e2e.js | Vimeo | 30 | Embedded player |
-| max.e2e.js | Max/HBO | 17 | Mock inject on free page |
-| disneyplus.e2e.js | Disney+ | 24 | DOM-mock (Shadow DOM) |
-| netflix.e2e.js | Netflix | 22 | DOM-mock |
-| crunchyroll.e2e.js | Crunchyroll | 19 | DOM-mock |
-| primevideo.e2e.js | Prime Video | 20 | DOM-mock |
-| presets.e2e.js | Cross-platform | 24 | Feature (Vimeo) |
-| per-site.e2e.js | Cross-platform | 17 | Feature (Vimeo) |
-| **Total** | **9 platforms + 2 features** | **234** | |
+| youtube.e2e.js | YouTube | 17 | Live site |
+| dropout.e2e.js | Dropout | 38 | Live site |
+| nebula.e2e.js | Nebula | 39 | Live site |
+| vimeo.e2e.js | Vimeo | 33 | Embedded player |
+| max.e2e.js | Max/HBO | 28 | Mock inject on free page |
+| disneyplus.e2e.js | Disney+ | 33 | DOM-mock (Shadow DOM) |
+| netflix.e2e.js | Netflix | 31 | DOM-mock |
+| crunchyroll.e2e.js | Crunchyroll | 28 | DOM-mock |
+| primevideo.e2e.js | Prime Video | 28 | DOM-mock |
+| presets.e2e.js | Cross-platform | 25 | Feature (Vimeo) |
+| per-site.e2e.js | Cross-platform | 18 | Feature (Vimeo) |
+| **Total** | **9 platforms + 2 features** | **318** | |
