@@ -282,14 +282,23 @@ async function handleSave(): Promise<void> {
     if (siteScope && currentPlatform) {
       // Per-site mode: save to site overrides
       await saveSiteOverride(currentPlatform, fullSettings, null);
+      // Update local cache so badge comparisons use fresh data
+      allSiteOverrides = {
+        ...allSiteOverrides,
+        [currentPlatform]: { settings: fullSettings, activePreset: null },
+      };
     } else {
       // Global mode: save to chrome.storage.sync directly
       if (typeof chrome !== 'undefined') {
         await chrome.storage.sync.set({ ...settings, activePreset: null });
       }
+      // Update local cache so badge comparisons use fresh data
+      globalSettings = fullSettings;
     }
 
     updatePresetIndicator(settings);
+    updateOverrideBadges();
+    updateSiteIndicators();
     updatePreview();
 
     // Notify content scripts directly so live updates work even when
@@ -544,10 +553,19 @@ async function handleSaveAsPreset(): Promise<void> {
     // Also persist the active preset id
     if (siteScope && currentPlatform) {
       await saveSiteOverride(currentPlatform, fullSettings, newPreset.id);
+      // Update local cache so badge comparisons use fresh data
+      allSiteOverrides = {
+        ...allSiteOverrides,
+        [currentPlatform]: { settings: fullSettings, activePreset: newPreset.id },
+      };
     } else {
       await applyPreset(fullSettings, newPreset.id);
+      // Update local cache so badge comparisons use fresh data
+      globalSettings = fullSettings;
     }
 
+    updateOverrideBadges();
+    updateSiteIndicators();
     showMessage(`Saved "${name.trim()}"`, 'success');
   } catch (error) {
     console.error('Failed to save custom preset:', error);
@@ -568,9 +586,16 @@ async function handlePresetChange(presetId: string): Promise<void> {
     if (siteScope && currentPlatform) {
       // Per-site mode: store preset in site override
       await saveSiteOverride(currentPlatform, preset.settings, preset.id);
+      // Update local cache so badge comparisons use fresh data
+      allSiteOverrides = {
+        ...allSiteOverrides,
+        [currentPlatform]: { settings: preset.settings, activePreset: preset.id },
+      };
     } else {
       // Global mode: save as before
       await applyPreset(preset.settings, preset.id);
+      // Update local cache so badge comparisons use fresh data
+      globalSettings = { ...DEFAULTS, ...preset.settings };
     }
 
     populateForm(preset.settings);

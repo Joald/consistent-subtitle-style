@@ -1175,6 +1175,53 @@ describe('Popup UI Integration', () => {
       expect(arrowIdx).toBeGreaterThan(-1);
       expect(badgeIdx).toBeLessThan(arrowIdx);
     });
+
+    it('clears badge after global save updates cached globalSettings', async () => {
+      // Regression test: saving in global mode must update the local
+      // globalSettings cache so that updateOverrideBadges() uses fresh data.
+      // Previously, the cache was stale after save, and badges persisted
+      // until the popup was reopened.
+      mockActiveTab('https://www.youtube.com/watch?v=abc');
+
+      const globalSettings = { ...ALL_AUTO, fontColor: 'white' };
+      const siteSettings = { ...ALL_AUTO, fontColor: 'red' };
+
+      vi.mocked(chrome.storage.sync.get).mockImplementation(async (keys: unknown) => {
+        if (typeof keys === 'string' && keys === 'siteSettings') {
+          return {
+            siteSettings: {
+              youtube: { settings: siteSettings, activePreset: null },
+            },
+          };
+        }
+        return globalSettings;
+      });
+
+      await triggerInit();
+
+      // Badge should exist (per-site red ≠ global white)
+      let badge = document
+        .querySelector('[data-id="font-color"]')
+        ?.querySelector('.override-badge');
+      expect(badge).not.toBeNull();
+
+      // Switch to global mode
+      const globalBtn = document.getElementById('scope-global');
+      globalBtn!.click();
+
+      // Change the global fontColor to 'red' (matching per-site) and save
+      const fontColorSelect = document.querySelector<HTMLElement>('[data-id="font-color"]');
+      const redOption = fontColorSelect!.querySelector<HTMLElement>(
+        '.select-option[data-value="red"]',
+      );
+      redOption!.click();
+      // Wait for async handleSave to complete
+      await new Promise((r) => setTimeout(r, 50));
+
+      // Badge should be gone: global is now 'red', matching per-site 'red'
+      badge = document.querySelector('[data-id="font-color"]')?.querySelector('.override-badge');
+      expect(badge).toBeNull();
+    });
   });
 
   describe('site indicator icons in dropdown options', () => {
