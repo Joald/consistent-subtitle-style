@@ -200,26 +200,22 @@ async function run() {
       `got: ${font}`,
     );
 
-    // Font size → 200%
-    console.log('\n── Font size → 200% ──');
-    const baseSize = await page.evaluate((sel) => {
-      const el = document.querySelector(sel);
-      return el ? parseFloat(getComputedStyle(el).fontSize) : 16;
-    }, SUB_SEL);
+    // Font size → 200% (uses transform: scale() on container, not font-size CSS)
+    console.log('\n── Font size → 200% (transform: scale) ──');
 
     await setStorage(browser, extId, { fontSize: '200%' });
 
-    const size = await waitForStyle(
+    const transform = await waitForStyle(
       page,
-      SUB_SEL,
-      'fontSize',
-      (v) => v && parseFloat(v) > baseSize,
+      WINDOW_SEL,
+      'transform',
+      (v) => v && v !== 'none' && v.includes('matrix'),
       { timeoutMs: 10_000 },
     );
     assert(
-      size && parseFloat(size) > baseSize,
-      'Font size → 200%',
-      `base: ${baseSize}px, got: ${size}`,
+      transform && transform !== 'none',
+      'Font size → 200% applies transform: scale(2) on container',
+      `got transform: ${transform}`,
     );
 
     // Background color → green

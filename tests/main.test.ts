@@ -1634,4 +1634,319 @@ describe('SubtitleStylerApp', () => {
       expect(log['fontColor']!.details).toBe('Font color set to red');
     });
   });
+
+  // ── Font-size transform: scale() fix ──
+
+  describe('fontSize transform: scale() for CSS-only platforms', () => {
+    function makeNetflixConfig(): PlatformConfig {
+      return {
+        name: 'Netflix',
+        css: {
+          subtitleContainerSelector: '.player-timedtext',
+          selectors: {
+            subtitle: '.player-timedtext-text-container span',
+            background: '.player-timedtext-text-container',
+            window: '.player-timedtext',
+          },
+        },
+      };
+    }
+
+    it('converts fontSize 150% to transform: scale(1.5) on container', async () => {
+      await setupMocks({
+        settings: { ...ALL_AUTO, fontSize: '150%' },
+        config: makeNetflixConfig(),
+        cssRules: [],
+      });
+      await initMain();
+
+      const el = getStyleElement();
+      expect(el).not.toBeNull();
+      expect(el!.textContent).toContain(
+        '.player-timedtext { transform: scale(1.5); transform-origin: center bottom; }',
+      );
+    });
+
+    it('does NOT emit font-size CSS rule when using transform', async () => {
+      await setupMocks({
+        settings: { ...ALL_AUTO, fontSize: '150%' },
+        config: makeNetflixConfig(),
+        cssRules: [],
+      });
+      await initMain();
+
+      // generateCombinedCssRules should have been called WITHOUT fontSize
+      // in the subtitle settings (it was deleted before the call)
+      const subtitleCalls = generateCombinedCssRulesMock.mock.calls.filter(
+        (c: unknown[]) => c[0] === 'subtitle',
+      );
+      for (const call of subtitleCalls) {
+        const settings = call[1] as Record<string, string>;
+        expect(settings).not.toHaveProperty('fontSize');
+      }
+    });
+
+    it('converts fontSize 200% to transform: scale(2)', async () => {
+      await setupMocks({
+        settings: { ...ALL_AUTO, fontSize: '200%' },
+        config: makeNetflixConfig(),
+        cssRules: [],
+      });
+      await initMain();
+
+      const el = getStyleElement();
+      expect(el!.textContent).toContain('transform: scale(2)');
+    });
+
+    it('converts fontSize 50% to transform: scale(0.5)', async () => {
+      await setupMocks({
+        settings: { ...ALL_AUTO, fontSize: '50%' },
+        config: makeNetflixConfig(),
+        cssRules: [],
+      });
+      await initMain();
+
+      const el = getStyleElement();
+      expect(el!.textContent).toContain('transform: scale(0.5)');
+    });
+
+    it('converts fontSize 300% to transform: scale(3)', async () => {
+      await setupMocks({
+        settings: { ...ALL_AUTO, fontSize: '300%' },
+        config: makeNetflixConfig(),
+        cssRules: [],
+      });
+      await initMain();
+
+      const el = getStyleElement();
+      expect(el!.textContent).toContain('transform: scale(3)');
+    });
+
+    it('converts fontSize 400% to transform: scale(4)', async () => {
+      await setupMocks({
+        settings: { ...ALL_AUTO, fontSize: '400%' },
+        config: makeNetflixConfig(),
+        cssRules: [],
+      });
+      await initMain();
+
+      const el = getStyleElement();
+      expect(el!.textContent).toContain('transform: scale(4)');
+    });
+
+    it('converts fontSize 75% to transform: scale(0.75)', async () => {
+      await setupMocks({
+        settings: { ...ALL_AUTO, fontSize: '75%' },
+        config: makeNetflixConfig(),
+        cssRules: [],
+      });
+      await initMain();
+
+      const el = getStyleElement();
+      expect(el!.textContent).toContain('transform: scale(0.75)');
+    });
+
+    it('does NOT apply transform when fontSize is 100% (no-op)', async () => {
+      await setupMocks({
+        settings: { ...ALL_AUTO, fontSize: '100%' },
+        config: makeNetflixConfig(),
+        cssRules: [],
+      });
+      await initMain();
+
+      const el = getStyleElement();
+      if (el) {
+        expect(el.textContent).not.toContain('transform');
+      }
+    });
+
+    it('does NOT apply transform when fontSize is auto', async () => {
+      await setupMocks({
+        settings: { ...ALL_AUTO },
+        config: makeNetflixConfig(),
+        cssRules: [],
+      });
+      await initMain();
+
+      const el = getStyleElement();
+      if (el) {
+        expect(el.textContent).not.toContain('transform');
+      }
+    });
+
+    it('uses correct subtitleContainerSelector for each platform', async () => {
+      const platforms = [
+        {
+          name: 'Netflix',
+          container: '.player-timedtext',
+          selectors: {
+            subtitle: '.player-timedtext-text-container span',
+            background: '.player-timedtext-text-container',
+            window: '.player-timedtext',
+          },
+        },
+        {
+          name: 'Vimeo',
+          container: '.vp-captions',
+          selectors: {
+            subtitle: '.vp-captions .captions-text',
+            background: '.vp-captions .captions-text',
+            window: '.vp-captions',
+          },
+        },
+        {
+          name: 'Prime Video',
+          container: '.atvwebplayersdk-captions-overlay',
+          selectors: {
+            subtitle: '.atvwebplayersdk-captions-text',
+            background: '.atvwebplayersdk-captions-region',
+            window: '.atvwebplayersdk-captions-overlay',
+          },
+        },
+        {
+          name: 'Max',
+          container: '[class^="CaptionWindow"]',
+          selectors: {
+            subtitle: '[class^="TextCue"]',
+            background: '[data-testid="CueBoxContainer"]',
+            window: '[class^="CaptionWindow"]',
+          },
+        },
+        {
+          name: 'Crunchyroll',
+          container: '.bmpui-ui-subtitle-overlay',
+          selectors: {
+            subtitle: '.bmpui-ui-subtitle-label',
+            background: '.bmpui-ui-subtitle-label',
+            window: '.bmpui-ui-subtitle-overlay',
+          },
+        },
+      ];
+
+      for (const { name, container, selectors } of platforms) {
+        await setupMocks({
+          settings: { ...ALL_AUTO, fontSize: '150%' },
+          config: {
+            name,
+            css: { subtitleContainerSelector: container, selectors },
+          },
+          cssRules: [],
+        });
+        await initMain();
+
+        const el = getStyleElement();
+        expect(el).not.toBeNull();
+        expect(el!.textContent).toContain(
+          `${container} { transform: scale(1.5); transform-origin: center bottom; }`,
+        );
+
+        // Clean up for next iteration
+        el?.remove();
+      }
+    });
+
+    it('applies transform alongside other CSS rules', async () => {
+      await setupMocks({
+        settings: { ...ALL_AUTO, fontSize: '150%', fontColor: 'red' },
+        config: makeNetflixConfig(),
+        cssRules: ['color: red !important;'],
+      });
+      await initMain();
+
+      const el = getStyleElement();
+      expect(el).not.toBeNull();
+      // Should have both the color rule and the transform
+      expect(el!.textContent).toContain('color: red !important;');
+      expect(el!.textContent).toContain(
+        '.player-timedtext { transform: scale(1.5); transform-origin: center bottom; }',
+      );
+    });
+
+    it('applies transform on live update via subtitleStylerChanged', async () => {
+      await setupMocks({
+        settings: { ...ALL_AUTO },
+        config: makeNetflixConfig(),
+        cssRules: [],
+      });
+      await initMain();
+
+      const messageHandler = addEventListenerSpy.mock.calls.find(
+        (c: unknown[]) => c[0] === 'message',
+      )?.[1] as (ev: MessageEvent) => void;
+      expect(messageHandler).toBeDefined();
+
+      // Simulate live fontSize change to 200%
+      messageHandler({
+        source: window,
+        data: {
+          type: 'subtitleStylerChanged',
+          data: { fontSize: { newValue: '200%' } },
+        },
+      } as unknown as MessageEvent);
+
+      const el = getStyleElement();
+      expect(el).not.toBeNull();
+      expect(el!.textContent).toContain(
+        '.player-timedtext { transform: scale(2); transform-origin: center bottom; }',
+      );
+    });
+
+    it('does NOT apply transform for platforms with native fontSize handling', async () => {
+      const applySettingMock = vi.fn().mockReturnValue({ success: true, message: 'OK' });
+
+      await setupMocks({
+        settings: { ...ALL_AUTO, fontSize: '150%' },
+        config: {
+          name: 'YouTube',
+          nativeSettings: {
+            fontSize: {
+              applySetting: applySettingMock,
+              getCurrentValue: vi.fn().mockReturnValue(undefined),
+            },
+          },
+          css: {
+            subtitleContainerSelector: '.ytp-caption-window-container',
+            selectors: {
+              subtitle: '.ytp-caption-segment',
+              background: '.ytp-caption-window-container',
+              window: '.ytp-caption-window-container',
+            },
+          },
+          detectNativeCapabilities: () => true,
+        } as unknown as PlatformConfig,
+        cssRules: [],
+      });
+      await initMain();
+
+      // Native handled fontSize, so no CSS transform
+      expect(applySettingMock).toHaveBeenCalledWith('150%');
+      const el = getStyleElement();
+      if (el) {
+        expect(el.textContent).not.toContain('transform');
+      }
+    });
+
+    it('does NOT apply transform when subtitleContainerSelector is missing', async () => {
+      await setupMocks({
+        settings: { ...ALL_AUTO, fontSize: '150%' },
+        config: {
+          name: 'BrokenPlatform',
+          css: {
+            selectors: {
+              subtitle: '.sub',
+              background: '.bg',
+              window: '.win',
+            },
+          },
+        } as unknown as PlatformConfig,
+        cssRules: [],
+      });
+      await initMain();
+
+      const el = getStyleElement();
+      if (el) {
+        expect(el.textContent).not.toContain('transform');
+      }
+    });
+  });
 });
