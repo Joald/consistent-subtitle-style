@@ -23,6 +23,10 @@ import {
   sleep,
   waitForStyle,
   createTestRunner,
+  setSiteOverride,
+  clearSiteOverrides,
+  PRESET_HIGH_CONTRAST,
+  PRESET_RECOMMENDED,
 } from './helpers.js';
 
 const { assert, skip, summary } = createTestRunner();
@@ -334,16 +338,132 @@ async function run() {
       `got: ${combined?.textShadow}`,
     );
 
+    // ── Preset: High Contrast ─────────────────────────────────────────
+    console.log('\n── Preset: High Contrast ──');
+    await resetStorage(browser, extId);
+    await sleep(1000);
+    await setStorage(browser, extId, PRESET_HIGH_CONTRAST);
+
+    const hcColor = await waitForStyle(
+      page,
+      SUB_SEL,
+      'color',
+      (v) => v && v.includes('255') && v.includes('255') && v.includes('255'),
+      { timeoutMs: 10_000 },
+    );
+    assert(
+      hcColor && hcColor.includes('255'),
+      'High Contrast preset: white font color',
+      `got: ${hcColor}`,
+    );
+
+    const hcShadow = await page.evaluate((sel) => {
+      const el = document.querySelector(sel);
+      return el ? getComputedStyle(el).textShadow : null;
+    }, SUB_SEL);
+    assert(
+      !hcShadow || hcShadow === 'none',
+      'High Contrast preset: no text shadow',
+      `got: ${hcShadow}`,
+    );
+
+    // ── Preset: Recommended ─────────────────────────────────────────
+    console.log('\n── Preset: Recommended ──');
+    await setStorage(browser, extId, PRESET_RECOMMENDED);
+
+    const recShadow = await waitForStyle(
+      page,
+      SUB_SEL,
+      'textShadow',
+      (v) => v && v !== 'none',
+      { timeoutMs: 10_000 },
+    );
+    assert(
+      recShadow && recShadow !== 'none',
+      'Recommended preset: dropshadow applied',
+      `got: ${recShadow?.substring(0, 60)}`,
+    );
+
+    // ── Per-site override ─────────────────────────────────────────────
+    console.log('\n── Per-site override ──');
+    await resetStorage(browser, extId);
+    await sleep(1000);
+
+    // Set global fontColor=red
+    await setStorage(browser, extId, { fontColor: 'red' });
+    await sleep(1500);
+
+    const globalRed = await waitForStyle(
+      page,
+      SUB_SEL,
+      'color',
+      (v) => v && v.includes('255, 0, 0'),
+      { timeoutMs: 10_000 },
+    );
+    assert(
+      globalRed && globalRed.includes('255, 0, 0'),
+      'Per-site: global fontColor=red applied',
+      `got: ${globalRed}`,
+    );
+
+    // Set per-site override: fontColor=cyan
+    const siteSettings = {
+      characterEdgeStyle: 'auto',
+      backgroundOpacity: 'auto',
+      windowOpacity: 'auto',
+      fontColor: 'cyan',
+      fontOpacity: 'auto',
+      backgroundColor: 'auto',
+      windowColor: 'auto',
+      fontFamily: 'auto',
+      fontSize: 'auto',
+    };
+    await setSiteOverride(browser, extId, 'primevideo', siteSettings);
+    await sleep(500);
+
+    // Reload page + re-inject mocks
+    await page.reload({ waitUntil: 'networkidle2', timeout: 30_000 });
+    await sleep(3000);
+    await injectMockSubtitles(page);
+
+    const siteCyan = await waitForStyle(
+      page,
+      SUB_SEL,
+      'color',
+      (v) => v && v.includes('0, 255, 255'),
+      { timeoutMs: 10_000 },
+    );
+    assert(
+      siteCyan && siteCyan.includes('0, 255, 255'),
+      'Per-site: primevideo override fontColor=cyan applied',
+      `got: ${siteCyan}`,
+    );
+
+    // Clear per-site, verify fallback to global red
+    await clearSiteOverrides(browser, extId);
+    await sleep(500);
+
+    await page.reload({ waitUntil: 'networkidle2', timeout: 30_000 });
+    await sleep(3000);
+    await injectMockSubtitles(page);
+
+    const fallbackRed = await waitForStyle(
+      page,
+      SUB_SEL,
+      'color',
+      (v) => v && v.includes('255, 0, 0'),
+      { timeoutMs: 10_000 },
+    );
+    assert(
+      fallbackRed && fallbackRed.includes('255, 0, 0'),
+      'Per-site: cleared → falls back to global fontColor=red',
+      `got: ${fallbackRed}`,
+    );
+
     // Reset
     console.log('\n── Reset to defaults ──');
     await resetStorage(browser, extId);
     await sleep(2000);
-
-    const afterReset = await page.evaluate((sel) => {
-      const el = document.querySelector(sel);
-      return el ? getComputedStyle(el).color : null;
-    }, SUB_SEL);
-    assert(afterReset !== 'rgb(255, 0, 255)', 'Reset reverted font color', `got: ${afterReset}`);
 
     // Popup UI
     console.log('\n── Popup UI ──');

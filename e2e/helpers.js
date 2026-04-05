@@ -379,6 +379,83 @@ export async function waitForStyle(page, selector, cssProp, predicate, opts = {}
   return lastValue; // timed out — return last value for assertion message
 }
 
+// ── Per-site override helpers ────────────────────────────────────────────────
+
+/**
+ * Set a per-site override via the extension page.
+ * The siteSettings storage key holds a map: { [platform]: { settings, activePreset } }
+ */
+export async function setSiteOverride(browser, extId, platform, settings, activePreset = null) {
+  const swPage = await browser.newPage();
+  await swPage.goto(`chrome-extension://${extId}/index.html`, {
+    waitUntil: 'networkidle2',
+    timeout: 5000,
+  });
+
+  const result = await swPage.evaluate(
+    async (p, s, ap) => {
+      try {
+        const data = await chrome.storage.sync.get('siteSettings');
+        const existing = data.siteSettings || {};
+        existing[p] = { settings: s, activePreset: ap };
+        await chrome.storage.sync.set({ siteSettings: existing });
+        return { ok: true };
+      } catch (e) {
+        return { ok: false, error: e.message };
+      }
+    },
+    platform,
+    settings,
+    activePreset,
+  );
+
+  await swPage.close();
+  return result.ok;
+}
+
+/**
+ * Clear all per-site overrides.
+ */
+export async function clearSiteOverrides(browser, extId) {
+  const swPage = await browser.newPage();
+  await swPage.goto(`chrome-extension://${extId}/index.html`, {
+    waitUntil: 'networkidle2',
+    timeout: 5000,
+  });
+
+  await swPage.evaluate(async () => {
+    await chrome.storage.sync.set({ siteSettings: {} });
+  });
+
+  await swPage.close();
+}
+
+// ── Preset settings (must match src/presets.ts) ─────────────────────────────
+
+export const PRESET_HIGH_CONTRAST = {
+  characterEdgeStyle: 'none',
+  backgroundOpacity: '75',
+  windowOpacity: 'auto',
+  fontColor: 'white',
+  fontOpacity: 'auto',
+  backgroundColor: 'black',
+  windowColor: 'auto',
+  fontFamily: 'auto',
+  fontSize: 'auto',
+};
+
+export const PRESET_RECOMMENDED = {
+  characterEdgeStyle: 'dropshadow',
+  backgroundOpacity: '0',
+  windowOpacity: '0',
+  fontColor: 'auto',
+  fontOpacity: 'auto',
+  backgroundColor: 'auto',
+  windowColor: 'auto',
+  fontFamily: 'proportional-sans-serif',
+  fontSize: 'auto',
+};
+
 // ── Test runner helpers ──────────────────────────────────────────────────────
 
 export function createTestRunner() {
