@@ -311,6 +311,78 @@ async function run() {
       `got: ${shadow?.substring(0, 60)}`,
     );
 
+    // Font opacity → 50% with yellow color
+    console.log('\n── Font opacity 50% (color-mix) ──');
+    await setStorage(browser, extId, { fontColor: 'yellow', fontOpacity: '50' });
+
+    const fontOpacity = await waitForStyle(
+      page,
+      SUB_SEL,
+      'color',
+      (v) => v && v.includes('0.5'),
+      { timeoutMs: 10_000 },
+    );
+    assert(
+      fontOpacity && fontOpacity.includes('0.5'),
+      'Font color+opacity produces semi-transparent color',
+      `got: ${fontOpacity}`,
+    );
+    const isFontYellow = fontOpacity && (
+      (fontOpacity.includes('255') && fontOpacity.includes('255, 0')) ||
+      fontOpacity.includes('srgb 1 1 0')
+    );
+    assert(isFontYellow, 'Font opacity preserves yellow hue', `got: ${fontOpacity}`);
+
+    // Background opacity → 75% with blue color
+    console.log('\n── Background opacity 75% (color-mix) ──');
+    await setStorage(browser, extId, { backgroundColor: 'blue', backgroundOpacity: '75' });
+
+    let bgOpacity = await waitForStyle(
+      page,
+      BG_SEL,
+      'backgroundColor',
+      (v) => v && v.includes('0.75'),
+      { timeoutMs: 10_000 },
+    );
+    if (!bgOpacity || !bgOpacity.includes('0.75')) {
+      // Fallback: check window or subtitle element
+      bgOpacity = await waitForStyle(
+        page,
+        WINDOW_SEL,
+        'backgroundColor',
+        (v) => v && v.includes('0.75'),
+        { timeoutMs: 5_000 },
+      );
+    }
+    assert(
+      bgOpacity && bgOpacity.includes('0.75'),
+      'Background color+opacity produces 75% alpha',
+      `got: ${bgOpacity}`,
+    );
+
+    // Window opacity → 50% with green color
+    console.log('\n── Window opacity 50% (color-mix) ──');
+    await setStorage(browser, extId, { backgroundColor: 'auto', backgroundOpacity: 'auto' });
+    await sleep(1000);
+    await setStorage(browser, extId, { windowColor: 'green', windowOpacity: '50' });
+
+    const windowOpacity = await waitForStyle(
+      page,
+      WINDOW_SEL,
+      'backgroundColor',
+      (v) => v && v.includes('0.5'),
+      { timeoutMs: 10_000 },
+    );
+    assert(
+      windowOpacity && windowOpacity.includes('0.5'),
+      'Window color+opacity produces 50% alpha',
+      `got: ${windowOpacity}`,
+    );
+
+    // Reset before combined test
+    await resetStorage(browser, extId);
+    await sleep(1000);
+
     // Combined settings
     console.log('\n── Combined settings ──');
     await setStorage(browser, extId, {
