@@ -18,6 +18,10 @@ import {
   sleep,
   waitForStyle,
   createTestRunner,
+  setSiteOverride,
+  clearSiteOverrides,
+  PRESET_HIGH_CONTRAST,
+  PRESET_RECOMMENDED,
 } from './helpers.js';
 
 const { assert, skip, summary } = createTestRunner();
@@ -397,6 +401,151 @@ async function run() {
         combined?.textShadow && combined.textShadow !== 'none',
         'Combined: raised edge style',
         combined?.textShadow,
+      );
+
+      // ── Preset: High Contrast ──────────────────────────────────────
+      console.log('\n🎨  Preset: High Contrast');
+      await resetStorage(browser, extId);
+      await sleep(2000);
+      await setStorage(browser, extId, PRESET_HIGH_CONTRAST);
+
+      const hcColor = await waitForStyle(page, SUB_SEL, 'color', (v) =>
+        v && v.includes('255') && v.includes('255') && v.includes('255'),
+      );
+      assert(
+        hcColor && hcColor.includes('255'),
+        'High Contrast preset: white font color',
+        hcColor,
+      );
+
+      const hcShadow = await page.evaluate((sel) => {
+        const el = document.querySelector(sel);
+        return el ? getComputedStyle(el).textShadow : null;
+      }, SUB_SEL);
+      assert(
+        !hcShadow || hcShadow === 'none',
+        'High Contrast preset: no text shadow',
+        hcShadow,
+      );
+
+      // ── Preset: Recommended ──────────────────────────────────────
+      console.log('\n🎨  Preset: Recommended');
+      await setStorage(browser, extId, PRESET_RECOMMENDED);
+
+      const recShadow = await waitForStyle(
+        page,
+        SUB_SEL,
+        'textShadow',
+        (v) => v && v !== 'none',
+      );
+      assert(
+        recShadow && recShadow !== 'none',
+        'Recommended preset: dropshadow applied',
+        recShadow?.substring(0, 60),
+      );
+
+      // ── Per-site override ──────────────────────────────────────────
+      console.log('\n🌐  Per-site override');
+      await resetStorage(browser, extId);
+      await sleep(1000);
+
+      // Set global fontColor=red
+      await setStorage(browser, extId, { fontColor: 'red' });
+      const globalRed = await waitForStyle(page, SUB_SEL, 'color', (v) =>
+        v && v.includes('255, 0, 0'),
+      );
+      assert(
+        globalRed && globalRed.includes('255, 0, 0'),
+        'Per-site: global fontColor=red applied',
+        globalRed,
+      );
+
+      // Set per-site override: fontColor=cyan for nebula
+      const siteOverride = {
+        characterEdgeStyle: 'auto',
+        backgroundOpacity: 'auto',
+        windowOpacity: 'auto',
+        fontColor: 'cyan',
+        fontOpacity: 'auto',
+        backgroundColor: 'auto',
+        windowColor: 'auto',
+        fontFamily: 'auto',
+        fontSize: 'auto',
+      };
+      await setSiteOverride(browser, extId, 'nebula', siteOverride);
+      await sleep(500);
+
+      // Reload to test per-site init path
+      await page.reload({ waitUntil: 'networkidle2', timeout: 30_000 });
+      await sleep(3000);
+
+      // Re-enable subtitles after reload
+      await page.evaluate(() => {
+        const v = document.querySelector('video');
+        if (v?.textTracks) {
+          for (const t of v.textTracks) {
+            if (t.kind === 'subtitles' || t.kind === 'captions') t.mode = 'showing';
+          }
+        }
+      });
+
+      // Wait for subtitle text to reappear
+      for (let i = 0; i < 15; i++) {
+        const txt = await page.evaluate(
+          () => document.querySelector('[data-subtitles-container]')?.textContent?.trim() || '',
+        );
+        if (txt) break;
+        await sleep(1000);
+      }
+
+      const siteCyan = await waitForStyle(
+        page,
+        SUB_SEL,
+        'color',
+        (v) => v && v.includes('0, 255, 255'),
+        { timeoutMs: 10_000 },
+      );
+      assert(
+        siteCyan && siteCyan.includes('0, 255, 255'),
+        'Per-site: nebula override fontColor=cyan applied',
+        siteCyan,
+      );
+
+      // Clear per-site, verify fallback to global red
+      await clearSiteOverrides(browser, extId);
+      await sleep(500);
+
+      await page.reload({ waitUntil: 'networkidle2', timeout: 30_000 });
+      await sleep(3000);
+
+      // Re-enable subtitles
+      await page.evaluate(() => {
+        const v = document.querySelector('video');
+        if (v?.textTracks) {
+          for (const t of v.textTracks) {
+            if (t.kind === 'subtitles' || t.kind === 'captions') t.mode = 'showing';
+          }
+        }
+      });
+      for (let i = 0; i < 15; i++) {
+        const txt = await page.evaluate(
+          () => document.querySelector('[data-subtitles-container]')?.textContent?.trim() || '',
+        );
+        if (txt) break;
+        await sleep(1000);
+      }
+
+      const fallbackRed = await waitForStyle(
+        page,
+        SUB_SEL,
+        'color',
+        (v) => v && v.includes('255, 0, 0'),
+        { timeoutMs: 10_000 },
+      );
+      assert(
+        fallbackRed && fallbackRed.includes('255, 0, 0'),
+        'Per-site: cleared → falls back to global fontColor=red',
+        fallbackRed,
       );
 
       // ── Reset ────────────────────────────────────────────────────────

@@ -16,6 +16,10 @@ import {
   resetStorage,
   sleep,
   createTestRunner,
+  setSiteOverride,
+  clearSiteOverrides,
+  PRESET_HIGH_CONTRAST,
+  PRESET_RECOMMENDED,
 } from './helpers.js';
 
 const { assert, skip, summary } = createTestRunner();
@@ -319,6 +323,110 @@ async function run() {
       afterCombo?.textShadow !== 'none' && afterCombo?.textShadow !== '',
       'Combined: edge style applied',
       afterCombo?.textShadow,
+    );
+
+    // ── Preset: High Contrast ─────────────────────────────────────────
+    console.log('\n🎨  Preset: High Contrast');
+    await resetStorage(browser, extId);
+    await sleep(2000);
+    await setStorage(browser, extId, PRESET_HIGH_CONTRAST);
+    await sleep(3000);
+
+    const hcStyles = await getCaptionStyles(page);
+    assert(
+      hcStyles?.color === 'rgb(255, 255, 255)',
+      'High Contrast preset: white font color',
+      hcStyles?.color,
+    );
+    assert(
+      !hcStyles?.textShadow || hcStyles?.textShadow === 'none',
+      'High Contrast preset: no text shadow',
+      hcStyles?.textShadow,
+    );
+
+    // ── Preset: Recommended ─────────────────────────────────────────
+    console.log('\n🎨  Preset: Recommended');
+    await setStorage(browser, extId, PRESET_RECOMMENDED);
+    await sleep(3000);
+
+    const recStyles = await getCaptionStyles(page);
+    assert(
+      recStyles?.textShadow && recStyles?.textShadow !== 'none',
+      'Recommended preset: dropshadow applied',
+      recStyles?.textShadow?.substring(0, 60),
+    );
+
+    // ── Per-site override ─────────────────────────────────────────────
+    console.log('\n🌐  Per-site override');
+    await resetStorage(browser, extId);
+    await sleep(1000);
+
+    // Set global fontColor=red
+    await setStorage(browser, extId, { fontColor: 'red' });
+    await sleep(3000);
+
+    const globalRedStyles = await getCaptionStyles(page);
+    assert(
+      globalRedStyles?.color === 'rgb(255, 0, 0)',
+      'Per-site: global fontColor=red applied',
+      globalRedStyles?.color,
+    );
+
+    // Set per-site override: fontColor=cyan for dropout
+    const siteOverride = {
+      characterEdgeStyle: 'auto',
+      backgroundOpacity: 'auto',
+      windowOpacity: 'auto',
+      fontColor: 'cyan',
+      fontOpacity: 'auto',
+      backgroundColor: 'auto',
+      windowColor: 'auto',
+      fontFamily: 'auto',
+      fontSize: 'auto',
+    };
+    await setSiteOverride(browser, extId, 'dropout', siteOverride);
+    await sleep(500);
+
+    // Reload to test per-site init path
+    await page.reload({ waitUntil: 'networkidle2', timeout: 30_000 });
+    await sleep(5000);
+
+    // Wait for captions to reappear
+    for (let i = 0; i < 15; i++) {
+      const hasCaptions = await page.evaluate(
+        () => !!document.querySelector('.vp-captions'),
+      );
+      if (hasCaptions) break;
+      await sleep(1000);
+    }
+
+    const siteCyanStyles = await getCaptionStyles(page);
+    assert(
+      siteCyanStyles?.color === 'rgb(0, 255, 255)',
+      'Per-site: dropout override fontColor=cyan applied',
+      siteCyanStyles?.color,
+    );
+
+    // Clear per-site, verify fallback to global red
+    await clearSiteOverrides(browser, extId);
+    await sleep(500);
+
+    await page.reload({ waitUntil: 'networkidle2', timeout: 30_000 });
+    await sleep(5000);
+
+    for (let i = 0; i < 15; i++) {
+      const hasCaptions = await page.evaluate(
+        () => !!document.querySelector('.vp-captions'),
+      );
+      if (hasCaptions) break;
+      await sleep(1000);
+    }
+
+    const fallbackRedStyles = await getCaptionStyles(page);
+    assert(
+      fallbackRedStyles?.color === 'rgb(255, 0, 0)',
+      'Per-site: cleared → falls back to global fontColor=red',
+      fallbackRedStyles?.color,
     );
 
     // ── Reset ────────────────────────────────────────────────────────────
