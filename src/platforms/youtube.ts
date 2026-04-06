@@ -72,10 +72,19 @@ function getYouTubePlayers(): YouTubePlayerElement[] {
 
 function getCurrentYouTubeSettings(): YouTubeDisplaySettings | null {
   try {
+    // Skip embedded players
+    if (window.self !== window.top && !window.location.pathname.startsWith('/watch')) {
+      return null;
+    }
+
     const players = getYouTubePlayers();
     for (const player of players) {
-      if (typeof player.getSubtitlesUserSettings === 'function') {
-        return player.getSubtitlesUserSettings();
+      try {
+        if (typeof player.getSubtitlesUserSettings === 'function') {
+          return player.getSubtitlesUserSettings();
+        }
+      } catch {
+        // Embedded player with broken API — skip
       }
     }
     return null;
@@ -89,13 +98,26 @@ function applyYouTubeSetting(
   updateSettings: Partial<YouTubeDisplaySettings>,
 ): SettingApplicationReport {
   try {
+    // Skip embedded players (e.g. YouTube previews on Google Search)
+    // They have .html5-video-player but lack the full caption API
+    if (window.self !== window.top && !window.location.pathname.startsWith('/watch')) {
+      return {
+        success: false,
+        message: 'Skipped: embedded YouTube player without full caption API',
+      };
+    }
+
     const players = getYouTubePlayers();
     let appliedCount = 0;
 
     for (const player of players) {
-      if (typeof player.updateSubtitlesUserSettings === 'function') {
-        player.updateSubtitlesUserSettings(updateSettings);
-        appliedCount++;
+      try {
+        if (typeof player.updateSubtitlesUserSettings === 'function') {
+          player.updateSubtitlesUserSettings(updateSettings);
+          appliedCount++;
+        }
+      } catch (playerError) {
+        debug.error('YouTube player setting failed (likely embedded/lite player):', playerError);
       }
     }
 
