@@ -10,6 +10,7 @@ import { getAvailablePresets, getPresetById, detectActivePreset } from '../prese
 import { loadSiteOverride, saveSiteOverride, loadAllSiteOverrides } from '../site-settings.js';
 import { loadCustomPresets, saveCustomPreset, deleteCustomPreset } from '../custom-presets.js';
 import { getPlatformDoc } from '../platform-docs.js';
+import { platformIconHtml } from '../platform-icons.js';
 import type { CustomPreset } from '../custom-presets.js';
 import type { SiteSettingsMap } from '../site-settings.js';
 import type { Platform } from '../platforms/index.js';
@@ -232,7 +233,7 @@ function updateSiteIndicators(): void {
         for (const platform of matchingPlatforms) {
           const badge = document.createElement('span');
           badge.className = 'site-indicator';
-          badge.textContent = PLATFORM_SHORT_NAMES[platform];
+          badge.innerHTML = platformIconHtml(platform, 12);
           badge.title = `${PLATFORM_DISPLAY_NAMES[platform]} uses this setting`;
           badge.dataset['platform'] = platform;
           indicatorContainer.appendChild(badge);
@@ -859,7 +860,8 @@ function buildScopeToggle(): void {
   siteBtn.type = 'button';
   siteBtn.id = 'scope-site';
   siteBtn.className = 'scope-btn' + (siteScope ? ' active' : '');
-  siteBtn.textContent = PLATFORM_DISPLAY_NAMES[currentPlatform];
+  siteBtn.innerHTML =
+    platformIconHtml(currentPlatform, 14) + ' ' + PLATFORM_DISPLAY_NAMES[currentPlatform];
 
   globalBtn.addEventListener('click', () => {
     if (!siteScope) return;
@@ -929,7 +931,7 @@ function buildPlatformIndicator(): void {
 
   if (currentPlatform) {
     indicator.className = 'platform-indicator supported';
-    iconSpan.textContent = '✅';
+    iconSpan.innerHTML = platformIconHtml(currentPlatform, 18);
     textSpan.textContent = `${PLATFORM_DISPLAY_NAMES[currentPlatform]} — supported`;
 
     // Add info button for supported platforms

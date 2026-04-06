@@ -533,7 +533,7 @@ describe('Popup UI Integration', () => {
       expect(scopeGroup).toBeTruthy();
 
       const siteBtn = document.getElementById('scope-site');
-      expect(siteBtn!.textContent).toBe('YouTube');
+      expect(siteBtn!.textContent).toContain('YouTube');
     });
 
     it('detects Netflix from active tab URL', async () => {
@@ -541,7 +541,7 @@ describe('Popup UI Integration', () => {
       await triggerInit();
 
       const siteBtn = document.getElementById('scope-site');
-      expect(siteBtn!.textContent).toBe('Netflix');
+      expect(siteBtn!.textContent).toContain('Netflix');
     });
 
     it('detects Disney+ from active tab URL', async () => {
@@ -549,7 +549,7 @@ describe('Popup UI Integration', () => {
       await triggerInit();
 
       const siteBtn = document.getElementById('scope-site');
-      expect(siteBtn!.textContent).toBe('Disney+');
+      expect(siteBtn!.textContent).toContain('Disney+');
     });
 
     it('detects Prime Video from primevideo.com', async () => {
@@ -557,7 +557,7 @@ describe('Popup UI Integration', () => {
       await triggerInit();
 
       const siteBtn = document.getElementById('scope-site');
-      expect(siteBtn!.textContent).toBe('Prime Video');
+      expect(siteBtn!.textContent).toContain('Prime Video');
     });
 
     it('detects Prime Video from amazon.com/gp/video', async () => {
@@ -565,7 +565,7 @@ describe('Popup UI Integration', () => {
       await triggerInit();
 
       const siteBtn = document.getElementById('scope-site');
-      expect(siteBtn!.textContent).toBe('Prime Video');
+      expect(siteBtn!.textContent).toContain('Prime Video');
     });
 
     it('detects Dropout from dropout.tv', async () => {
@@ -573,7 +573,7 @@ describe('Popup UI Integration', () => {
       await triggerInit();
 
       const siteBtn = document.getElementById('scope-site');
-      expect(siteBtn!.textContent).toBe('Dropout');
+      expect(siteBtn!.textContent).toContain('Dropout');
     });
 
     it('detects Dropout from vhx.tv', async () => {
@@ -581,7 +581,7 @@ describe('Popup UI Integration', () => {
       await triggerInit();
 
       const siteBtn = document.getElementById('scope-site');
-      expect(siteBtn!.textContent).toBe('Dropout');
+      expect(siteBtn!.textContent).toContain('Dropout');
     });
 
     it('detects Max from max.com', async () => {
@@ -589,7 +589,7 @@ describe('Popup UI Integration', () => {
       await triggerInit();
 
       const siteBtn = document.getElementById('scope-site');
-      expect(siteBtn!.textContent).toBe('Max');
+      expect(siteBtn!.textContent).toContain('Max');
     });
 
     it('detects Crunchyroll from crunchyroll.com', async () => {
@@ -597,7 +597,7 @@ describe('Popup UI Integration', () => {
       await triggerInit();
 
       const siteBtn = document.getElementById('scope-site');
-      expect(siteBtn!.textContent).toBe('Crunchyroll');
+      expect(siteBtn!.textContent).toContain('Crunchyroll');
     });
 
     it('detects Nebula from nebula.tv', async () => {
@@ -605,7 +605,7 @@ describe('Popup UI Integration', () => {
       await triggerInit();
 
       const siteBtn = document.getElementById('scope-site');
-      expect(siteBtn!.textContent).toBe('Nebula');
+      expect(siteBtn!.textContent).toContain('Nebula');
     });
 
     it('detects Vimeo from vimeo.com', async () => {
@@ -613,7 +613,7 @@ describe('Popup UI Integration', () => {
       await triggerInit();
 
       const siteBtn = document.getElementById('scope-site');
-      expect(siteBtn!.textContent).toBe('Vimeo');
+      expect(siteBtn!.textContent).toContain('Vimeo');
     });
 
     it('does not build scope toggle for unknown sites', async () => {
@@ -648,7 +648,7 @@ describe('Popup UI Integration', () => {
       expect(indicator.classList.contains('hidden')).toBe(false);
 
       const icon = indicator.querySelector('.platform-indicator-icon')!;
-      expect(icon.textContent).toBe('✅');
+      expect(icon.querySelector('.platform-icon')).not.toBeNull();
 
       const text = indicator.querySelector('.platform-indicator-text')!;
       expect(text.textContent).toContain('YouTube');
@@ -1574,9 +1574,11 @@ describe('Popup UI Integration', () => {
       const indicators = redOption!.querySelectorAll('.site-indicator');
       expect(indicators.length).toBe(2);
 
-      const platformTexts = Array.from(indicators).map((i) => i.textContent);
-      expect(platformTexts).toContain('NF');
-      expect(platformTexts).toContain('VM');
+      const platformTexts = Array.from(indicators).map(
+        (i) => (i as HTMLElement).dataset['platform'],
+      );
+      expect(platformTexts).toContain('netflix');
+      expect(platformTexts).toContain('vimeo');
     });
 
     it('does not show indicators for the current platform', async () => {
@@ -1605,7 +1607,8 @@ describe('Popup UI Integration', () => {
       const redOption = fontColorSelect!.querySelector('.select-option[data-value="red"]');
       const indicators = redOption!.querySelectorAll('.site-indicator');
       expect(indicators.length).toBe(1);
-      expect(indicators[0]!.textContent).toBe('NF');
+      expect(indicators[0]!.querySelector('.platform-icon')).not.toBeNull();
+      expect((indicators[0] as HTMLElement).dataset['platform']).toBe('netflix');
     });
 
     it('does not show indicators when override matches global value', async () => {
@@ -1675,14 +1678,14 @@ describe('Popup UI Integration', () => {
       const cyanOption = fontColorSelect!.querySelector('.select-option[data-value="cyan"]');
       const cyanIndicators = cyanOption!.querySelectorAll('.site-indicator');
       expect(cyanIndicators.length).toBe(1);
-      expect(cyanIndicators[0]!.textContent).toBe('NF');
+      expect((cyanIndicators[0] as HTMLElement).dataset['platform']).toBe('netflix');
 
       // NF indicator on "150%" in font-size dropdown
       const fontSizeSelect = document.querySelector('[data-id="font-size"]');
       const sizeOption = fontSizeSelect!.querySelector('.select-option[data-value="150%"]');
       const sizeIndicators = sizeOption!.querySelectorAll('.site-indicator');
       expect(sizeIndicators.length).toBe(1);
-      expect(sizeIndicators[0]!.textContent).toBe('NF');
+      expect((sizeIndicators[0] as HTMLElement).dataset['platform']).toBe('netflix');
 
       // No NF indicator on "auto" in font-color (matches global)
       const autoOption = fontColorSelect!.querySelector('.select-option[data-value="auto"]');
@@ -1740,7 +1743,7 @@ describe('Popup UI Integration', () => {
       const indicator = casualOption!.querySelector<HTMLElement>('.site-indicator');
       expect(indicator).not.toBeNull();
       expect(indicator!.dataset['platform']).toBe('disneyplus');
-      expect(indicator!.textContent).toBe('D+');
+      expect(indicator!.querySelector('.platform-icon')).not.toBeNull();
     });
 
     it('shows no indicators on non-platform pages', async () => {
@@ -1765,7 +1768,7 @@ describe('Popup UI Integration', () => {
       const redOption = fontColorSelect!.querySelector('.select-option[data-value="red"]');
       const indicators = redOption!.querySelectorAll('.site-indicator');
       expect(indicators.length).toBe(1);
-      expect(indicators[0]!.textContent).toBe('NF');
+      expect((indicators[0] as HTMLElement).dataset['platform']).toBe('netflix');
     });
 
     it('shows indicators for many platforms on one option', async () => {
@@ -1796,11 +1799,11 @@ describe('Popup UI Integration', () => {
       const indicators = whiteOption!.querySelectorAll('.site-indicator');
       expect(indicators.length).toBe(4);
 
-      const texts = Array.from(indicators).map((i) => i.textContent);
-      expect(texts).toContain('NF');
-      expect(texts).toContain('VM');
-      expect(texts).toContain('MX');
-      expect(texts).toContain('DO');
+      const platforms = Array.from(indicators).map((i) => (i as HTMLElement).dataset['platform']);
+      expect(platforms).toContain('netflix');
+      expect(platforms).toContain('vimeo');
+      expect(platforms).toContain('max');
+      expect(platforms).toContain('dropout');
     });
   });
 
