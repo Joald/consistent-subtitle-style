@@ -499,7 +499,8 @@ describe('youtube error paths', () => {
 
     const result = youtube.nativeSettings?.fontColor.applySetting('white' as AnySettingValue);
     expect(result?.success).toBe(false);
-    expect(result?.message).toContain('Failed');
+    // Per-player try/catch: error is caught silently, player skipped → 0 applied
+    expect(result?.message).toContain('No active YouTube players found');
   });
 
   it('getCurrentValue returns auto when no players in DOM', () => {

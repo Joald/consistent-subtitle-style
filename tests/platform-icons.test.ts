@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { PLATFORM_ICONS, platformIconHtml } from '../src/platform-icons.js';
+import { PLATFORM_ICONS, platformIconHtml, faviconUrl } from '../src/platform-icons.js';
 import type { Platform } from '../src/platforms/index.js';
 
 const ALL_PLATFORMS: Platform[] = [
@@ -15,36 +15,48 @@ const ALL_PLATFORMS: Platform[] = [
 ];
 
 describe('platform-icons', () => {
-  describe('PLATFORM_ICONS', () => {
+  describe('PLATFORM_ICONS (legacy)', () => {
     it('has an entry for every platform', () => {
       for (const p of ALL_PLATFORMS) {
         expect(PLATFORM_ICONS[p]).toBeDefined();
         expect(typeof PLATFORM_ICONS[p]).toBe('string');
       }
     });
+  });
 
-    it.each(ALL_PLATFORMS)('%s icon is valid SVG markup', (platform) => {
-      const svg = PLATFORM_ICONS[platform];
-      expect(svg).toContain('<svg');
-      expect(svg).toContain('</svg>');
-      expect(svg).toContain('viewBox');
-      expect(svg).toContain('xmlns');
+  describe('faviconUrl', () => {
+    it.each(ALL_PLATFORMS)('returns a Google favicon CDN URL for %s', (platform) => {
+      const url = faviconUrl(platform);
+      expect(url).toMatch(/^https:\/\/www\.google\.com\/s2\/favicons\?domain=/);
+      expect(url).toContain('&sz=');
     });
 
-    it.each(ALL_PLATFORMS)('%s icon uses 16×16 viewBox', (platform) => {
-      const svg = PLATFORM_ICONS[platform];
-      expect(svg).toMatch(/viewBox="0 0 16 16"/);
+    it('uses default size of 16', () => {
+      const url = faviconUrl('youtube');
+      expect(url).toContain('sz=16');
     });
 
-    it('every icon has a distinct fill colour (brand colour)', () => {
-      const re = /fill="(#[A-Fa-f0-9]{6})"/;
-      const fills = ALL_PLATFORMS.map((p) => {
-        const match = re.exec(PLATFORM_ICONS[p]);
-        return match ? match[1] : undefined;
-      });
-      // At least most should be unique (some might overlap but generally distinct)
-      const uniqueFills = new Set(fills.filter(Boolean));
-      expect(uniqueFills.size).toBeGreaterThanOrEqual(7); // allow some overlap
+    it('respects custom size', () => {
+      const url = faviconUrl('youtube', 32);
+      expect(url).toContain('sz=32');
+    });
+
+    it('maps youtube to youtube.com', () => {
+      expect(faviconUrl('youtube')).toContain('domain=youtube.com');
+    });
+
+    it('maps dropout to dropout.tv', () => {
+      expect(faviconUrl('dropout')).toContain('domain=dropout.tv');
+    });
+
+    it('maps nebula to nebula.tv', () => {
+      expect(faviconUrl('nebula')).toContain('domain=nebula.tv');
+    });
+
+    it('each platform has a distinct domain', () => {
+      const domains = ALL_PLATFORMS.map((p) => faviconUrl(p));
+      const unique = new Set(domains);
+      expect(unique.size).toBe(ALL_PLATFORMS.length);
     });
   });
 
@@ -52,7 +64,7 @@ describe('platform-icons', () => {
     it('returns HTML with a .platform-icon wrapper', () => {
       const html = platformIconHtml('youtube');
       expect(html).toContain('class="platform-icon"');
-      expect(html).toContain('<svg');
+      expect(html).toContain('<img');
     });
 
     it('uses default size of 14px', () => {
@@ -72,12 +84,22 @@ describe('platform-icons', () => {
       expect(html).toContain('aria-hidden="true"');
     });
 
-    it.each(ALL_PLATFORMS)('generates valid HTML for %s', (platform) => {
+    it.each(ALL_PLATFORMS)('generates valid HTML with <img> for %s', (platform) => {
       const html = platformIconHtml(platform);
       expect(html).toContain('class="platform-icon"');
-      expect(html).toContain('<svg');
-      expect(html).toContain('</svg>');
+      expect(html).toContain('<img');
+      expect(html).toContain('src="https://www.google.com/s2/favicons');
       expect(html).toContain('</span>');
+    });
+
+    it('uses sz=16 for small icons (size <= 16)', () => {
+      const html = platformIconHtml('youtube', 12);
+      expect(html).toContain('sz=16');
+    });
+
+    it('uses sz=32 for larger icons (size > 16)', () => {
+      const html = platformIconHtml('youtube', 20);
+      expect(html).toContain('sz=32');
     });
   });
 });
