@@ -9,6 +9,7 @@ import { generateCombinedCssRules } from '../css-mappings.js';
 import { getAvailablePresets, getPresetById, detectActivePreset } from '../presets.js';
 import { loadSiteOverride, saveSiteOverride, loadAllSiteOverrides } from '../site-settings.js';
 import { loadCustomPresets, saveCustomPreset, deleteCustomPreset } from '../custom-presets.js';
+import { getPlatformDoc } from '../platform-docs.js';
 import type { CustomPreset } from '../custom-presets.js';
 import type { SiteSettingsMap } from '../site-settings.js';
 import type { Platform } from '../platforms/index.js';
@@ -930,14 +931,105 @@ function buildPlatformIndicator(): void {
     indicator.className = 'platform-indicator supported';
     iconSpan.textContent = '✅';
     textSpan.textContent = `${PLATFORM_DISPLAY_NAMES[currentPlatform]} — supported`;
+
+    // Add info button for supported platforms
+    const infoBtn = document.createElement('button');
+    infoBtn.type = 'button';
+    infoBtn.id = 'platform-info-btn';
+    infoBtn.className = 'platform-indicator-info';
+    infoBtn.textContent = 'i';
+    infoBtn.title = 'Platform details';
+    infoBtn.setAttribute('aria-label', `${PLATFORM_DISPLAY_NAMES[currentPlatform]} details`);
+    infoBtn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      toggleDocsPanel();
+    });
+
+    indicator.appendChild(iconSpan);
+    indicator.appendChild(textSpan);
+    indicator.appendChild(infoBtn);
   } else {
     indicator.className = 'platform-indicator unsupported';
     iconSpan.textContent = '⚠️';
     textSpan.textContent = 'This site is not supported';
+
+    indicator.appendChild(iconSpan);
+    indicator.appendChild(textSpan);
+  }
+}
+
+/**
+ * Toggle the docs panel visibility, populating content if needed.
+ */
+function toggleDocsPanel(): void {
+  const panel = document.getElementById('docs-panel');
+  if (!panel) return;
+
+  if (panel.classList.contains('hidden')) {
+    populateDocsPanel();
+    panel.classList.remove('hidden');
+  } else {
+    panel.classList.add('hidden');
+  }
+}
+
+/**
+ * Populate the docs panel with data for the current platform.
+ */
+function populateDocsPanel(): void {
+  if (!currentPlatform) return;
+
+  const doc = getPlatformDoc(currentPlatform);
+  if (!doc) return;
+
+  const title = document.querySelector('.docs-panel-title');
+  if (title) title.textContent = `${doc.name} — How it works`;
+
+  const approach = document.getElementById('docs-approach');
+  if (approach) approach.textContent = doc.approach;
+
+  const supported = document.getElementById('docs-supported');
+  if (supported) {
+    supported.innerHTML = '';
+    for (const feature of doc.supported) {
+      const li = document.createElement('li');
+      li.textContent = feature;
+      supported.appendChild(li);
+    }
   }
 
-  indicator.appendChild(iconSpan);
-  indicator.appendChild(textSpan);
+  const limitations = document.getElementById('docs-limitations');
+  if (limitations) {
+    limitations.innerHTML = '';
+    for (const limitation of doc.limitations) {
+      const li = document.createElement('li');
+      li.textContent = limitation;
+      limitations.appendChild(li);
+    }
+  }
+
+  const notesSection = document.getElementById('docs-notes-section');
+  const notesEl = document.getElementById('docs-notes');
+  if (notesSection && notesEl) {
+    if (doc.notes) {
+      notesSection.classList.remove('hidden');
+      notesEl.textContent = doc.notes;
+    } else {
+      notesSection.classList.add('hidden');
+    }
+  }
+
+  // Wire up close button
+  const closeBtn = document.getElementById('docs-close-btn');
+  if (closeBtn) {
+    // Remove old listener by cloning
+    const newClose = closeBtn.cloneNode(true) as HTMLElement;
+    closeBtn.parentNode?.replaceChild(newClose, closeBtn);
+    newClose.addEventListener('click', () => {
+      const panel = document.getElementById('docs-panel');
+      panel?.classList.add('hidden');
+    });
+  }
 }
 
 async function initializePopup(): Promise<void> {
