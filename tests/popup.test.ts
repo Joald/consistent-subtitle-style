@@ -771,8 +771,20 @@ describe('Popup UI Integration', () => {
       expect(text.textContent).toContain('not supported');
     });
 
-    it('indicator has correct structure with icon and text spans', async () => {
+    it('indicator has correct structure with icon, text, and info button on supported sites', async () => {
       mockActiveTab('https://www.youtube.com/watch?v=abc');
+      await triggerInit();
+
+      const indicator = document.getElementById('platform-indicator')!;
+      const children = indicator.children;
+      expect(children.length).toBe(3);
+      expect(children[0]!.className).toBe('platform-indicator-icon');
+      expect(children[1]!.className).toBe('platform-indicator-text');
+      expect(children[2]!.className).toBe('platform-indicator-info');
+    });
+
+    it('indicator has only icon and text on unsupported sites (no info button)', async () => {
+      mockActiveTab('https://www.example.com/');
       await triggerInit();
 
       const indicator = document.getElementById('platform-indicator')!;
@@ -780,6 +792,162 @@ describe('Popup UI Integration', () => {
       expect(children.length).toBe(2);
       expect(children[0]!.className).toBe('platform-indicator-icon');
       expect(children[1]!.className).toBe('platform-indicator-text');
+    });
+  });
+
+  describe('platform docs panel', () => {
+    afterEach(() => {
+      clearTabsMock();
+    });
+
+    it('docs panel starts hidden', async () => {
+      mockActiveTab('https://www.youtube.com/watch?v=abc');
+      await triggerInit();
+
+      const panel = document.getElementById('docs-panel')!;
+      expect(panel.classList.contains('hidden')).toBe(true);
+    });
+
+    it('clicking info button opens docs panel', async () => {
+      mockActiveTab('https://www.youtube.com/watch?v=abc');
+      await triggerInit();
+
+      const infoBtn = document.getElementById('platform-info-btn')!;
+      expect(infoBtn).toBeTruthy();
+
+      infoBtn.click();
+      await new Promise((r) => setTimeout(r, 0));
+
+      const panel = document.getElementById('docs-panel')!;
+      expect(panel.classList.contains('hidden')).toBe(false);
+    });
+
+    it('clicking info button twice toggles panel closed', async () => {
+      mockActiveTab('https://www.youtube.com/watch?v=abc');
+      await triggerInit();
+
+      const infoBtn = document.getElementById('platform-info-btn')!;
+      infoBtn.click();
+      await new Promise((r) => setTimeout(r, 0));
+      expect(document.getElementById('docs-panel')!.classList.contains('hidden')).toBe(false);
+
+      infoBtn.click();
+      await new Promise((r) => setTimeout(r, 0));
+      expect(document.getElementById('docs-panel')!.classList.contains('hidden')).toBe(true);
+    });
+
+    it('close button hides docs panel', async () => {
+      mockActiveTab('https://www.youtube.com/watch?v=abc');
+      await triggerInit();
+
+      const infoBtn = document.getElementById('platform-info-btn')!;
+      infoBtn.click();
+      await new Promise((r) => setTimeout(r, 0));
+
+      const closeBtn = document.getElementById('docs-close-btn')!;
+      closeBtn.click();
+      await new Promise((r) => setTimeout(r, 0));
+
+      expect(document.getElementById('docs-panel')!.classList.contains('hidden')).toBe(true);
+    });
+
+    it('populates YouTube docs correctly', async () => {
+      mockActiveTab('https://www.youtube.com/watch?v=abc');
+      await triggerInit();
+
+      document.getElementById('platform-info-btn')!.click();
+      await new Promise((r) => setTimeout(r, 0));
+
+      const title = document.querySelector('.docs-panel-title')!;
+      expect(title.textContent).toContain('YouTube');
+
+      const approach = document.getElementById('docs-approach')!;
+      expect(approach.textContent).toContain('setCaptionStyle');
+
+      const supported = document.getElementById('docs-supported')!;
+      expect(supported.querySelectorAll('li').length).toBe(9);
+
+      const limitations = document.getElementById('docs-limitations')!;
+      expect(limitations.querySelectorAll('li').length).toBeGreaterThan(0);
+    });
+
+    it('populates Dropout docs with notes section', async () => {
+      mockActiveTab('https://www.dropout.tv/videos/abc');
+      await triggerInit();
+
+      document.getElementById('platform-info-btn')!.click();
+      await new Promise((r) => setTimeout(r, 0));
+
+      const title = document.querySelector('.docs-panel-title')!;
+      expect(title.textContent).toContain('Dropout');
+
+      const approach = document.getElementById('docs-approach')!;
+      expect(approach.textContent).toContain('MutationObserver');
+
+      // Dropout has notes
+      const notesSection = document.getElementById('docs-notes-section')!;
+      expect(notesSection.classList.contains('hidden')).toBe(false);
+
+      const notes = document.getElementById('docs-notes')!;
+      expect(notes.textContent).toContain('Vimeo OTT');
+    });
+
+    it('hides notes section when platform has no notes', async () => {
+      mockActiveTab('https://www.netflix.com/watch/12345');
+      await triggerInit();
+
+      document.getElementById('platform-info-btn')!.click();
+      await new Promise((r) => setTimeout(r, 0));
+
+      const notesSection = document.getElementById('docs-notes-section')!;
+      expect(notesSection.classList.contains('hidden')).toBe(true);
+    });
+
+    it('populates Disney+ docs with Shadow DOM info', async () => {
+      mockActiveTab('https://www.disneyplus.com/video/abc');
+      await triggerInit();
+
+      document.getElementById('platform-info-btn')!.click();
+      await new Promise((r) => setTimeout(r, 0));
+
+      const title = document.querySelector('.docs-panel-title')!;
+      expect(title.textContent).toContain('Disney+');
+
+      const approach = document.getElementById('docs-approach')!;
+      expect(approach.textContent).toContain('Shadow DOM');
+    });
+
+    it('no info button on unsupported sites', async () => {
+      mockActiveTab('https://www.example.com/');
+      await triggerInit();
+
+      const infoBtn = document.getElementById('platform-info-btn');
+      expect(infoBtn).toBeNull();
+    });
+
+    it('supported settings shown as badge list', async () => {
+      mockActiveTab('https://nebula.tv/videos/abc');
+      await triggerInit();
+
+      document.getElementById('platform-info-btn')!.click();
+      await new Promise((r) => setTimeout(r, 0));
+
+      const items = document.querySelectorAll('#docs-supported li');
+      const texts = Array.from(items).map((li) => li.textContent);
+      expect(texts).toContain('Font color');
+      expect(texts).toContain('Font family');
+      expect(texts).toContain('Character edge style');
+      expect(texts).toContain('Background opacity');
+      expect(texts).toContain('Window color');
+    });
+
+    it('info button has accessible label', async () => {
+      mockActiveTab('https://www.youtube.com/watch?v=abc');
+      await triggerInit();
+
+      const infoBtn = document.getElementById('platform-info-btn')!;
+      expect(infoBtn.getAttribute('aria-label')).toContain('YouTube');
+      expect(infoBtn.getAttribute('aria-label')).toContain('details');
     });
   });
 

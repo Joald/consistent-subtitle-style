@@ -583,3 +583,160 @@ hr {
 .platform-indicator-text {
   flex: 1;
 }
+
+.platform-indicator-info {
+  flex-shrink: 0;
+  width: 20px;
+  height: 20px;
+  background: none;
+  border: 1px solid currentColor;
+  border-radius: 50%;
+  color: inherit;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  opacity: 0.7;
+  transition: opacity 0.15s;
+  font-style: italic;
+  font-family: Georgia, 'Times New Roman', serif;
+}
+
+.platform-indicator-info:hover {
+  opacity: 1;
+}
+
+/* Platform docs panel */
+.docs-panel {
+  background: #222;
+  border: 1px solid #3a3a3a;
+  border-radius: 8px;
+  margin-bottom: 12px;
+  overflow: hidden;
+  animation: docs-slide-in 0.2s ease-out;
+}
+
+.docs-panel.hidden {
+  display: none;
+}
+
+@keyframes docs-slide-in {
+  from {
+    opacity: 0;
+    transform: translateY(-8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.docs-panel-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 12px;
+  background: #2a2a2a;
+  border-bottom: 1px solid #333;
+}
+
+.docs-panel-title {
+  font-weight: 600;
+  font-size: 13px;
+  color: #e5e5e5;
+}
+
+.docs-close-btn {
+  background: none;
+  border: none;
+  color: #888;
+  font-size: 14px;
+  cursor: pointer;
+  padding: 0 4px;
+  line-height: 1;
+  transition: color 0.15s;
+}
+
+.docs-close-btn:hover {
+  color: #e5e5e5;
+}
+
+.docs-panel-body {
+  padding: 10px 12px;
+  max-height: 300px;
+  overflow-y: auto;
+}
+
+.docs-section {
+  margin-bottom: 10px;
+}
+
+.docs-section:last-child {
+  margin-bottom: 0;
+}
+
+.docs-section-title {
+  font-size: 11px;
+  color: #888;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin: 0 0 6px 0;
+  font-weight: 600;
+}
+
+.docs-approach {
+  font-size: 12px;
+  color: #ccc;
+  line-height: 1.5;
+  margin: 0;
+}
+
+.docs-supported {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+}
+
+.docs-supported li {
+  font-size: 11px;
+  padding: 2px 8px;
+  background: rgba(34, 197, 94, 0.15);
+  border: 1px solid rgba(34, 197, 94, 0.3);
+  border-radius: 4px;
+  color: #86efac;
+}
+
+.docs-limitations {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.docs-limitations li {
+  font-size: 12px;
+  color: #ccc;
+  line-height: 1.4;
+  padding: 4px 0 4px 16px;
+  position: relative;
+}
+
+.docs-limitations li::before {
+  content: '•';
+  position: absolute;
+  left: 4px;
+  color: #f59e0b;
+}
+
+.docs-notes {
+  font-size: 12px;
+  color: #999;
+  line-height: 1.4;
+  margin: 0;
+  font-style: italic;
+}
