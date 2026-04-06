@@ -456,62 +456,48 @@ hr {
   background: #331a1a;
 }
 
-/* Scope toggle (global vs per-site) */
-.scope-group {
-  margin-bottom: 10px;
-}
-
-.scope-group label {
-  display: block;
-  font-size: 11px;
-  color: #888;
-  margin-bottom: 4px;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-}
-
-.scope-toggle {
+/* Per-setting scope chip — small button next to each dropdown */
+.form-group:has(.scope-chip) {
   display: flex;
-  gap: 0;
-  border: 1px solid #444;
-  border-radius: 6px;
-  overflow: hidden;
+  align-items: flex-start;
+  gap: 6px;
 }
-
-.scope-btn {
+.form-group:has(.scope-chip) .custom-select {
   flex: 1;
-  padding: 6px 10px;
-  background: #1e1e1e;
-  color: #888;
-  border: none;
-  font-size: 12px;
-  cursor: pointer;
+  min-width: 0;
+}
+.scope-chip {
+  width: 28px;
+  height: 28px;
+  flex-shrink: 0;
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  gap: 4px;
+  background: transparent;
+  border: 1px solid #444;
+  border-radius: 6px;
+  cursor: pointer;
+  padding: 0;
+  margin-top: 0;
   transition:
     background 0.15s,
-    color 0.15s;
+    border-color 0.15s;
 }
-.scope-btn .platform-icon svg {
+.scope-chip:hover {
+  background: #2a2a2a;
+  border-color: #666;
+}
+.scope-chip.scope-site {
+  border-color: #5a8fd4;
+  background: rgba(45, 74, 122, 0.3);
+}
+.scope-chip.scope-site:hover {
+  background: rgba(45, 74, 122, 0.5);
+}
+.scope-chip .platform-icon svg,
+.scope-chip .scope-icon svg {
   display: block;
   border-radius: 2px;
-}
-
-.scope-btn:first-child {
-  border-right: 1px solid #444;
-}
-
-.scope-btn:hover {
-  background: #2a2a2a;
-  color: #ccc;
-}
-
-.scope-btn.active {
-  background: #2d4a7a;
-  color: #e0e0e0;
-  font-weight: 600;
 }
 
 /* Override badge — small dot on dropdown triggers for per-site overrides */

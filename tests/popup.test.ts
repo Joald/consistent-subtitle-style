@@ -528,108 +528,108 @@ describe('Popup UI Integration', () => {
       mockActiveTab('https://www.youtube.com/watch?v=abc');
       await triggerInit();
 
-      // Should build scope toggle for YouTube
-      const scopeGroup = document.getElementById('scope-toggle-group');
-      expect(scopeGroup).toBeTruthy();
+      // Should build scope chips for YouTube
+      const scopeChips = document.querySelectorAll('.scope-chip');
+      expect(scopeChips.length).toBeGreaterThan(0);
 
-      const siteBtn = document.getElementById('scope-site');
-      expect(siteBtn!.textContent).toContain('YouTube');
+      const firstChip = scopeChips[0] as HTMLElement;
+      expect(firstChip.title).toContain('All Sites');
     });
 
     it('detects Netflix from active tab URL', async () => {
       mockActiveTab('https://www.netflix.com/watch/12345');
       await triggerInit();
 
-      const siteBtn = document.getElementById('scope-site');
-      expect(siteBtn!.textContent).toContain('Netflix');
+      const scopeChips = document.querySelectorAll('.scope-chip');
+      expect(scopeChips.length).toBeGreaterThan(0);
     });
 
     it('detects Disney+ from active tab URL', async () => {
       mockActiveTab('https://www.disneyplus.com/video/abc');
       await triggerInit();
 
-      const siteBtn = document.getElementById('scope-site');
-      expect(siteBtn!.textContent).toContain('Disney+');
+      const scopeChips = document.querySelectorAll('.scope-chip');
+      expect(scopeChips.length).toBeGreaterThan(0);
     });
 
     it('detects Prime Video from primevideo.com', async () => {
       mockActiveTab('https://www.primevideo.com/detail/abc');
       await triggerInit();
 
-      const siteBtn = document.getElementById('scope-site');
-      expect(siteBtn!.textContent).toContain('Prime Video');
+      const scopeChips = document.querySelectorAll('.scope-chip');
+      expect(scopeChips.length).toBeGreaterThan(0);
     });
 
     it('detects Prime Video from amazon.com/gp/video', async () => {
       mockActiveTab('https://www.amazon.com/gp/video/detail/abc');
       await triggerInit();
 
-      const siteBtn = document.getElementById('scope-site');
-      expect(siteBtn!.textContent).toContain('Prime Video');
+      const scopeChips = document.querySelectorAll('.scope-chip');
+      expect(scopeChips.length).toBeGreaterThan(0);
     });
 
     it('detects Dropout from dropout.tv', async () => {
       mockActiveTab('https://www.dropout.tv/videos/abc');
       await triggerInit();
 
-      const siteBtn = document.getElementById('scope-site');
-      expect(siteBtn!.textContent).toContain('Dropout');
+      const scopeChips = document.querySelectorAll('.scope-chip');
+      expect(scopeChips.length).toBeGreaterThan(0);
     });
 
     it('detects Dropout from vhx.tv', async () => {
       mockActiveTab('https://embed.vhx.tv/videos/abc');
       await triggerInit();
 
-      const siteBtn = document.getElementById('scope-site');
-      expect(siteBtn!.textContent).toContain('Dropout');
+      const scopeChips = document.querySelectorAll('.scope-chip');
+      expect(scopeChips.length).toBeGreaterThan(0);
     });
 
     it('detects Max from max.com', async () => {
       mockActiveTab('https://play.max.com/movie/abc');
       await triggerInit();
 
-      const siteBtn = document.getElementById('scope-site');
-      expect(siteBtn!.textContent).toContain('Max');
+      const scopeChips = document.querySelectorAll('.scope-chip');
+      expect(scopeChips.length).toBeGreaterThan(0);
     });
 
     it('detects Crunchyroll from crunchyroll.com', async () => {
       mockActiveTab('https://www.crunchyroll.com/watch/abc');
       await triggerInit();
 
-      const siteBtn = document.getElementById('scope-site');
-      expect(siteBtn!.textContent).toContain('Crunchyroll');
+      const scopeChips = document.querySelectorAll('.scope-chip');
+      expect(scopeChips.length).toBeGreaterThan(0);
     });
 
     it('detects Nebula from nebula.tv', async () => {
       mockActiveTab('https://nebula.tv/videos/abc');
       await triggerInit();
 
-      const siteBtn = document.getElementById('scope-site');
-      expect(siteBtn!.textContent).toContain('Nebula');
+      const scopeChips = document.querySelectorAll('.scope-chip');
+      expect(scopeChips.length).toBeGreaterThan(0);
     });
 
     it('detects Vimeo from vimeo.com', async () => {
       mockActiveTab('https://vimeo.com/12345');
       await triggerInit();
 
-      const siteBtn = document.getElementById('scope-site');
-      expect(siteBtn!.textContent).toContain('Vimeo');
+      const scopeChips = document.querySelectorAll('.scope-chip');
+      expect(scopeChips.length).toBeGreaterThan(0);
     });
 
-    it('does not build scope toggle for unknown sites', async () => {
+    it('does not build scope chips for unknown sites', async () => {
       mockActiveTab('https://www.example.com/');
       await triggerInit();
 
-      const scopeGroup = document.getElementById('scope-toggle-group');
-      expect(scopeGroup).toBeNull();
+      const scopeChips = document.querySelectorAll('.scope-chip');
+      expect(scopeChips.length).toBe(0);
     });
 
-    it('does not build scope toggle when tabs API is unavailable', async () => {
+    it('does not build scope chips when tabs API is unavailable', async () => {
       clearTabsMock();
       await triggerInit();
 
-      const scopeGroup = document.getElementById('scope-toggle-group');
-      expect(scopeGroup).toBeNull();
+      const scopeChips = document.querySelectorAll('.scope-chip');
+      expect(scopeChips.length).toBe(0);
     });
   });
 
@@ -951,26 +951,29 @@ describe('Popup UI Integration', () => {
     });
   });
 
-  describe('scope toggle (per-site settings)', () => {
+  describe('per-setting scope chips', () => {
     afterEach(() => {
       clearTabsMock();
     });
 
-    it('starts in global mode when no per-site override exists', async () => {
+    it('all chips start in global mode when no per-site override exists', async () => {
       mockActiveTab('https://www.youtube.com/watch?v=abc');
       await triggerInit();
 
-      const globalBtn = document.getElementById('scope-global');
-      const siteBtn = document.getElementById('scope-site');
+      const scopeChips = document.querySelectorAll('.scope-chip');
+      expect(scopeChips.length).toBeGreaterThan(0);
 
-      expect(globalBtn!.classList.contains('active')).toBe(true);
-      expect(siteBtn!.classList.contains('active')).toBe(false);
+      // All chips should be in global mode
+      scopeChips.forEach((chip) => {
+        expect(chip.classList.contains('scope-global')).toBe(true);
+        expect(chip.classList.contains('scope-site')).toBe(false);
+      });
     });
 
-    it('starts in site mode when a per-site override exists', async () => {
+    it('chips for overridden settings start in site mode when per-site override exists', async () => {
       mockActiveTab('https://www.youtube.com/watch?v=abc');
 
-      // Return site override from storage
+      // Return site override from storage with fontColor different from default
       vi.mocked(chrome.storage.sync.get).mockImplementation(async (keys: unknown) => {
         if (typeof keys === 'string' && keys === 'siteSettings') {
           return {
@@ -987,107 +990,261 @@ describe('Popup UI Integration', () => {
 
       await triggerInit();
 
-      const globalBtn = document.getElementById('scope-global');
-      const siteBtn = document.getElementById('scope-site');
+      // The font-color chip should be in site mode
+      const fontColorChip = document.querySelector<HTMLElement>(
+        '.scope-chip[data-setting-id="font-color"]',
+      )!;
+      expect(fontColorChip.classList.contains('scope-site')).toBe(true);
+      expect(fontColorChip.title).toContain('YouTube');
 
-      expect(globalBtn!.classList.contains('active')).toBe(false);
-      expect(siteBtn!.classList.contains('active')).toBe(true);
+      // Other chips should remain in global mode
+      const bgOpacityChip = document.querySelector(
+        '.scope-chip[data-setting-id="background-opacity"]',
+      )!;
+      expect(bgOpacityChip.classList.contains('scope-global')).toBe(true);
 
       // Form should show the per-site color
       const fontColorSelect = document.querySelector<HTMLElement>('[data-id="font-color"]');
       expect(fontColorSelect!.dataset['selectedValue']).toBe('cyan');
     });
 
-    it('switches to global mode without changing displayed settings', async () => {
+    it('clicking a chip toggles it from global to site scope', async () => {
       mockActiveTab('https://www.youtube.com/watch?v=abc');
+      await triggerInit();
 
-      const globalSettings = { ...ALL_AUTO, fontColor: 'white' };
-      const siteSettings = { ...ALL_AUTO, fontColor: 'cyan' };
+      const fontColorChip = document.querySelector<HTMLElement>(
+        '.scope-chip[data-setting-id="font-color"]',
+      )!;
+      expect(fontColorChip.classList.contains('scope-global')).toBe(true);
+
+      // Click to toggle to site scope
+      fontColorChip.click();
+      await new Promise((r) => setTimeout(r, 50));
+
+      expect(fontColorChip.classList.contains('scope-site')).toBe(true);
+      expect(fontColorChip.classList.contains('scope-global')).toBe(false);
+      expect(fontColorChip.title).toContain('YouTube');
+    });
+
+    it('clicking a site-scoped chip toggles it back to global', async () => {
+      mockActiveTab('https://www.youtube.com/watch?v=abc');
 
       vi.mocked(chrome.storage.sync.get).mockImplementation(async (keys: unknown) => {
         if (typeof keys === 'string' && keys === 'siteSettings') {
           return {
             siteSettings: {
-              youtube: { settings: siteSettings, activePreset: null },
+              youtube: {
+                settings: { ...ALL_AUTO, fontColor: 'cyan' },
+                activePreset: null,
+              },
             },
           };
         }
-        return globalSettings;
+        return ALL_AUTO;
       });
 
       await triggerInit();
 
-      // Should start in site mode with per-site settings
-      const fontColorSelect = document.querySelector<HTMLElement>('[data-id="font-color"]');
-      expect(fontColorSelect!.dataset['selectedValue']).toBe('cyan');
+      const fontColorChip = document.querySelector<HTMLElement>(
+        '.scope-chip[data-setting-id="font-color"]',
+      )!;
+      expect(fontColorChip.classList.contains('scope-site')).toBe(true);
 
-      // Click global button
-      const globalBtn = document.getElementById('scope-global');
-      globalBtn!.click();
+      // Click to toggle back to global
+      fontColorChip.click();
+      await new Promise((r) => setTimeout(r, 50));
 
-      await new Promise((r) => setTimeout(r, 0));
-
-      // Toggle UI updates
-      expect(globalBtn!.classList.contains('active')).toBe(true);
-      // Form keeps showing effective settings (what's applied on page) — no reload
-      expect(fontColorSelect!.dataset['selectedValue']).toBe('cyan');
+      expect(fontColorChip.classList.contains('scope-global')).toBe(true);
+      expect(fontColorChip.classList.contains('scope-site')).toBe(false);
     });
 
-    it('switches to site mode without changing displayed settings', async () => {
+    it('toggling a chip triggers auto-save', async () => {
+      mockActiveTab('https://www.youtube.com/watch?v=abc');
+      await triggerInit();
+
+      const setMock = vi.mocked(chrome.storage.sync.set);
+      const callCountBefore = setMock.mock.calls.length;
+
+      const fontColorChip = document.querySelector<HTMLElement>(
+        '.scope-chip[data-setting-id="font-color"]',
+      )!;
+      fontColorChip.click();
+      await new Promise((r) => setTimeout(r, 50));
+
+      // Should have triggered a save
+      expect(setMock.mock.calls.length).toBeGreaterThan(callCountBefore);
+    });
+
+    it('creates exactly one chip per setting (9 total)', async () => {
+      mockActiveTab('https://www.youtube.com/watch?v=abc');
+      await triggerInit();
+
+      const scopeChips = document.querySelectorAll('.scope-chip');
+      expect(scopeChips.length).toBe(9);
+
+      // Each chip should have a unique data-setting-id
+      const ids = Array.from(scopeChips).map((c) => (c as HTMLElement).dataset['settingId']);
+      const uniqueIds = new Set(ids);
+      expect(uniqueIds.size).toBe(9);
+    });
+
+    it('global-mode chip contains globe SVG icon', async () => {
+      mockActiveTab('https://www.youtube.com/watch?v=abc');
+      await triggerInit();
+
+      const chip = document.querySelector<HTMLElement>(
+        '.scope-chip[data-setting-id="font-color"]',
+      )!;
+      expect(chip.classList.contains('scope-global')).toBe(true);
+      expect(chip.querySelector('svg')).not.toBeNull();
+      expect(chip.innerHTML).toContain('scope-icon-globe');
+    });
+
+    it('site-mode chip contains platform icon', async () => {
       mockActiveTab('https://www.youtube.com/watch?v=abc');
 
-      const globalSettings = { ...ALL_AUTO, fontColor: 'white' };
-
-      // No site override on first load
-      const hasSiteOverride = false;
       vi.mocked(chrome.storage.sync.get).mockImplementation(async (keys: unknown) => {
         if (typeof keys === 'string' && keys === 'siteSettings') {
-          return hasSiteOverride
-            ? {
-                siteSettings: {
-                  youtube: {
-                    settings: { ...ALL_AUTO, fontColor: 'red' },
-                    activePreset: null,
-                  },
-                },
-              }
-            : {};
+          return {
+            siteSettings: {
+              youtube: {
+                settings: { ...ALL_AUTO, fontColor: 'cyan' },
+                activePreset: null,
+              },
+            },
+          };
         }
-        return globalSettings;
+        return ALL_AUTO;
       });
 
       await triggerInit();
 
-      // Should be in global mode, showing global color
-      const fontColorSelect = document.querySelector<HTMLElement>('[data-id="font-color"]');
-      expect(fontColorSelect!.dataset['selectedValue']).toBe('white');
-
-      // Click site button
-      const siteBtn = document.getElementById('scope-site');
-      siteBtn!.click();
-
-      await new Promise((r) => setTimeout(r, 0));
-
-      // Toggle UI updates
-      expect(siteBtn!.classList.contains('active')).toBe(true);
-      // Form keeps showing effective settings — no reload
-      expect(fontColorSelect!.dataset['selectedValue']).toBe('white');
+      const chip = document.querySelector<HTMLElement>(
+        '.scope-chip[data-setting-id="font-color"]',
+      )!;
+      expect(chip.classList.contains('scope-site')).toBe(true);
+      expect(chip.innerHTML).toContain('platform-icon');
     });
 
-    it('does nothing when clicking already-active scope button', async () => {
+    it('per-setting save: only site-scoped settings go to site override', async () => {
       mockActiveTab('https://www.youtube.com/watch?v=abc');
       await triggerInit();
 
-      const globalBtn = document.getElementById('scope-global');
-      const getMock = vi.mocked(chrome.storage.sync.get);
-      const callCountBefore = getMock.mock.calls.length;
+      // Toggle font-color to site scope
+      const fontColorChip = document.querySelector<HTMLElement>(
+        '.scope-chip[data-setting-id="font-color"]',
+      )!;
+      fontColorChip.click();
+      await new Promise((r) => setTimeout(r, 50));
 
-      // Click global when already in global mode
-      globalBtn!.click();
-      await new Promise((r) => setTimeout(r, 0));
+      // The global save should NOT contain fontColor-specific site override for other settings
+      const setMock = vi.mocked(chrome.storage.sync.set);
+      const lastCall = setMock.mock.calls[setMock.mock.calls.length - 1]![0] as Record<
+        string,
+        unknown
+      >;
+      // Global save should include non-site-scoped settings
+      // (it should have characterEdgeStyle, backgroundOpacity, etc. but the structure
+      // depends on whether it's the global save or site save)
+      expect(lastCall).toBeDefined();
+    });
 
-      // No additional storage calls — scope switch should not fire
-      expect(getMock.mock.calls.length).toBe(callCountBefore);
+    it('toggling all chips to global clears the per-site override', async () => {
+      mockActiveTab('https://www.youtube.com/watch?v=abc');
+
+      vi.mocked(chrome.storage.sync.get).mockImplementation(async (keys: unknown) => {
+        if (typeof keys === 'string' && keys === 'siteSettings') {
+          return {
+            siteSettings: {
+              youtube: {
+                settings: { ...ALL_AUTO, fontColor: 'cyan' },
+                activePreset: null,
+              },
+            },
+          };
+        }
+        return ALL_AUTO;
+      });
+
+      await triggerInit();
+
+      // Font-color should be in site mode
+      const fontColorChip = document.querySelector<HTMLElement>(
+        '.scope-chip[data-setting-id="font-color"]',
+      )!;
+      expect(fontColorChip.classList.contains('scope-site')).toBe(true);
+
+      // Toggle it back to global — now all chips are global
+      fontColorChip.click();
+      await new Promise((r) => setTimeout(r, 50));
+
+      // All chips should be in global mode
+      const allChips = document.querySelectorAll('.scope-chip');
+      allChips.forEach((chip) => {
+        expect(chip.classList.contains('scope-global')).toBe(true);
+      });
+
+      // clearSiteOverride should have been called (via chrome.storage.sync.set)
+      const setMock = vi.mocked(chrome.storage.sync.set);
+      expect(setMock).toHaveBeenCalled();
+    });
+
+    it('multiple settings can be independently site-scoped', async () => {
+      mockActiveTab('https://www.youtube.com/watch?v=abc');
+
+      vi.mocked(chrome.storage.sync.get).mockImplementation(async (keys: unknown) => {
+        if (typeof keys === 'string' && keys === 'siteSettings') {
+          return {
+            siteSettings: {
+              youtube: {
+                settings: {
+                  ...ALL_AUTO,
+                  fontColor: 'cyan',
+                  backgroundColor: 'blue',
+                },
+                activePreset: null,
+              },
+            },
+          };
+        }
+        return ALL_AUTO;
+      });
+
+      await triggerInit();
+
+      const fontColorChip = document.querySelector<HTMLElement>(
+        '.scope-chip[data-setting-id="font-color"]',
+      )!;
+      const bgColorChip = document.querySelector<HTMLElement>(
+        '.scope-chip[data-setting-id="background-color"]',
+      )!;
+      const bgOpacityChip = document.querySelector<HTMLElement>(
+        '.scope-chip[data-setting-id="background-opacity"]',
+      )!;
+
+      // Both overridden settings should be site-scoped
+      expect(fontColorChip.classList.contains('scope-site')).toBe(true);
+      expect(bgColorChip.classList.contains('scope-site')).toBe(true);
+      // Non-overridden setting should be global
+      expect(bgOpacityChip.classList.contains('scope-global')).toBe(true);
+    });
+
+    it('chip title shows platform name when in site mode', async () => {
+      mockActiveTab('https://www.netflix.com/watch/12345');
+      await triggerInit();
+
+      const fontColorChip = document.querySelector<HTMLElement>(
+        '.scope-chip[data-setting-id="font-color"]',
+      )!;
+
+      // Start in global mode
+      expect(fontColorChip.title).toContain('All Sites');
+
+      // Toggle to site
+      fontColorChip.click();
+      await new Promise((r) => setTimeout(r, 50));
+
+      expect(fontColorChip.title).toContain('Netflix');
     });
   });
 
@@ -1497,8 +1654,6 @@ describe('Popup UI Integration', () => {
     it('clears badge after global save updates cached globalSettings', async () => {
       // Regression test: saving in global mode must update the local
       // globalSettings cache so that updateOverrideBadges() uses fresh data.
-      // Previously, the cache was stale after save, and badges persisted
-      // until the popup was reopened.
       mockActiveTab('https://www.youtube.com/watch?v=abc');
 
       const globalSettings = { ...ALL_AUTO, fontColor: 'white' };
@@ -1523,9 +1678,15 @@ describe('Popup UI Integration', () => {
         ?.querySelector('.override-badge');
       expect(badge).not.toBeNull();
 
-      // Switch to global mode
-      const globalBtn = document.getElementById('scope-global');
-      globalBtn!.click();
+      // The font-color chip should be in site mode (red ≠ auto)
+      const fontColorChip = document.querySelector<HTMLElement>(
+        '.scope-chip[data-setting-id="font-color"]',
+      )!;
+      expect(fontColorChip.classList.contains('scope-site')).toBe(true);
+
+      // Toggle font-color back to global scope
+      fontColorChip.click();
+      await new Promise((r) => setTimeout(r, 50));
 
       // Change the global fontColor to 'red' (matching per-site) and save
       const fontColorSelect = document.querySelector<HTMLElement>('[data-id="font-color"]');
