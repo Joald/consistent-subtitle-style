@@ -486,9 +486,17 @@ hr {
   border: none;
   font-size: 12px;
   cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
   transition:
     background 0.15s,
     color 0.15s;
+}
+.scope-btn .platform-icon svg {
+  display: block;
+  border-radius: 2px;
 }
 
 .scope-btn:first-child {
@@ -530,22 +538,19 @@ hr {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  padding: 1px 4px;
-  background: #333;
-  border: 1px solid #555;
+  padding: 1px;
+  background: transparent;
+  border: none;
   border-radius: 3px;
-  font-size: 9px;
-  font-weight: 600;
-  color: #aaa;
-  letter-spacing: 0.3px;
-  white-space: nowrap;
   cursor: help;
+}
+.site-indicator .platform-icon svg {
+  display: block;
+  border-radius: 2px;
 }
 
 .select-option:hover .site-indicator {
-  background: #444;
-  color: #ccc;
-  border-color: #666;
+  opacity: 1;
 }
 
 /* Platform support indicator */
@@ -578,6 +583,12 @@ hr {
 .platform-indicator-icon {
   font-size: 14px;
   flex-shrink: 0;
+  display: inline-flex;
+  align-items: center;
+}
+.platform-indicator-icon .platform-icon svg {
+  display: block;
+  border-radius: 3px;
 }
 
 .platform-indicator-text {
