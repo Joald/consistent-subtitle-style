@@ -7,7 +7,12 @@ import { loadSettings, applyPreset, DEFAULTS } from '../storage.js';
 import { debug } from '../debug.js';
 import { generateCombinedCssRules } from '../css-mappings.js';
 import { getAvailablePresets, getPresetById, detectActivePreset } from '../presets.js';
-import { loadSiteOverride, saveSiteOverride, loadAllSiteOverrides } from '../site-settings.js';
+import {
+  loadSiteOverride,
+  saveSiteOverride,
+  loadAllSiteOverrides,
+  clearSiteOverride,
+} from '../site-settings.js';
 import { loadCustomPresets, saveCustomPreset, deleteCustomPreset } from '../custom-presets.js';
 import { getPlatformDoc } from '../platform-docs.js';
 import { platformIconHtml } from '../platform-icons.js';
@@ -19,6 +24,13 @@ import type { Platform } from '../platforms/index.js';
 let currentPlatform: Platform | null = null;
 /** Whether we're in per-site mode (true) or global mode (false). */
 let siteScope = false;
+/**
+ * Per-setting scope: tracks whether each setting saves to 'global' or 'site'.
+ * Keys are data-id strings from ID_TO_SETTING_KEY.
+ * When all are 'global', there's no per-site override. When any are 'site',
+ * a per-site override is maintained for just those settings.
+ */
+let settingScopes: Record<string, 'global' | 'site'> = {};
 /** Global settings, cached on init for comparing against per-site overrides. */
 let globalSettings: StorageSettings | null = null;
 /** All per-site overrides, loaded once at init for indicator icons. */
@@ -49,6 +61,11 @@ const PLATFORM_SHORT_NAMES: Record<Platform, string> = {
   netflix: 'NF',
   vimeo: 'VM',
 };
+
+/** Inline SVG globe icon for "All Sites" scope. */
+function globeIconHtml(size = 14): string {
+  return `<span class="scope-icon scope-icon-globe" style="width:${String(size)}px;height:${String(size)}px;display:inline-flex;align-items:center;justify-content:center;flex-shrink:0" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" width="${String(size)}" height="${String(size)}"><circle cx="8" cy="8" r="7" fill="none" stroke="#888" stroke-width="1.5"/><ellipse cx="8" cy="8" rx="3.5" ry="7" fill="none" stroke="#888" stroke-width="1.2"/><line x1="1" y1="8" x2="15" y2="8" stroke="#888" stroke-width="1.2"/></svg></span>`;
+}
 
 const ID_TO_SETTING_KEY: Record<string, keyof StorageSettings> = {
   'character-edge-style': 'characterEdgeStyle',
@@ -245,6 +262,124 @@ function updateSiteIndicators(): void {
   });
 }
 
+/**
+ * Determine initial per-setting scopes based on per-site override data.
+ * A setting is 'site'-scoped if the current platform has a per-site override
+ * whose value for that setting differs from the global value.
+ */
+function initSettingScopes(): void {
+  settingScopes = {};
+  for (const id of Object.keys(ID_TO_SETTING_KEY)) {
+    settingScopes[id] = 'global';
+  }
+
+  if (!currentPlatform || !globalSettings) return;
+
+  const override = allSiteOverrides[currentPlatform];
+  if (!override) return;
+
+  for (const [id, settingKey] of Object.entries(ID_TO_SETTING_KEY)) {
+    const overrideValue = override.settings[settingKey] as string;
+    const globalValue = globalSettings[settingKey] as string;
+    if (overrideValue !== globalValue) {
+      settingScopes[id] = 'site';
+    }
+  }
+
+  // Update the legacy siteScope flag for backward compat
+  siteScope = Object.values(settingScopes).some((s) => s === 'site');
+}
+
+/**
+ * Build scope chip buttons for each setting row.
+ * Each chip shows a globe (global) or platform icon (per-site).
+ * Only built when on a supported platform.
+ */
+function buildScopeChips(): void {
+  if (!currentPlatform) return;
+
+  const allSelects = document.querySelectorAll('.custom-select');
+  allSelects.forEach((selectEl) => {
+    if (!(selectEl instanceof HTMLElement)) return;
+    const id = selectEl.dataset['id'];
+    if (!id || !(id in ID_TO_SETTING_KEY)) return;
+
+    // Don't add duplicate chips
+    const existing = selectEl.parentElement?.querySelector('.scope-chip');
+    if (existing) return;
+
+    const chip = document.createElement('button');
+    chip.type = 'button';
+    chip.className = 'scope-chip';
+    chip.dataset['settingId'] = id;
+
+    const scope = settingScopes[id] ?? 'global';
+    updateScopeChipContent(chip, scope);
+
+    chip.addEventListener('click', (e) => {
+      e.stopPropagation();
+      toggleSettingScope(id);
+    });
+
+    // Insert the chip after the custom-select in the form-group
+    selectEl.parentElement?.appendChild(chip);
+  });
+}
+
+/**
+ * Update the visual content of a scope chip.
+ */
+function updateScopeChipContent(chip: HTMLElement, scope: 'global' | 'site'): void {
+  if (scope === 'site' && currentPlatform) {
+    chip.innerHTML = platformIconHtml(currentPlatform, 14);
+    chip.title = `Saving to ${PLATFORM_DISPLAY_NAMES[currentPlatform]} only`;
+    chip.classList.add('scope-site');
+    chip.classList.remove('scope-global');
+  } else {
+    chip.innerHTML = globeIconHtml(14);
+    chip.title = 'Saving to All Sites';
+    chip.classList.add('scope-global');
+    chip.classList.remove('scope-site');
+  }
+}
+
+/**
+ * Toggle a setting's scope between 'global' and 'site'.
+ */
+function toggleSettingScope(settingId: string): void {
+  if (!currentPlatform) return;
+
+  const current = settingScopes[settingId] ?? 'global';
+  const next = current === 'global' ? 'site' : 'global';
+  settingScopes[settingId] = next;
+
+  // Update the legacy siteScope flag
+  siteScope = Object.values(settingScopes).some((s) => s === 'site');
+
+  // Update the chip visual
+  const chip = document.querySelector(`.scope-chip[data-setting-id="${settingId}"]`);
+  if (chip instanceof HTMLElement) {
+    updateScopeChipContent(chip, next);
+  }
+
+  // Auto-save when scope changes
+  void handleSave();
+}
+
+/**
+ * Refresh all scope chip visuals to match current settingScopes state.
+ */
+function updateScopeChips(): void {
+  if (!currentPlatform) return;
+
+  for (const id of Object.keys(ID_TO_SETTING_KEY)) {
+    const chip = document.querySelector(`.scope-chip[data-setting-id="${id}"]`);
+    if (chip instanceof HTMLElement) {
+      updateScopeChipContent(chip, settingScopes[id] ?? 'global');
+    }
+  }
+}
+
 function collectSettings(): Partial<StorageSettings> {
   const partialSettings: Record<string, string> = {};
 
@@ -280,27 +415,56 @@ async function handleSave(): Promise<void> {
     debug.log(`Saving settings: ${JSON.stringify(settings)}`);
 
     const fullSettings: StorageSettings = { ...DEFAULTS, ...settings };
+    const hasSiteScoped = currentPlatform && Object.values(settingScopes).some((s) => s === 'site');
 
-    if (siteScope && currentPlatform) {
-      // Per-site mode: save to site overrides
-      await saveSiteOverride(currentPlatform, fullSettings, null);
-      // Update local cache so badge comparisons use fresh data
+    // Always save global-scoped settings to global storage.
+    // Build a global settings object using form values for global-scoped settings,
+    // preserving existing global values for site-scoped settings.
+    const globalUpdate: Record<string, string> = {};
+    for (const [id, settingKey] of Object.entries(ID_TO_SETTING_KEY)) {
+      if (settingScopes[id] !== 'site') {
+        globalUpdate[settingKey] = fullSettings[settingKey] as string;
+      }
+    }
+
+    if (Object.keys(globalUpdate).length > 0 && typeof chrome !== 'undefined') {
+      await chrome.storage.sync.set({ ...globalUpdate, activePreset: null });
+    }
+    // Update local cache — merge global updates into existing global settings
+    globalSettings = { ...(globalSettings ?? DEFAULTS), ...globalUpdate } as StorageSettings;
+
+    if (hasSiteScoped && currentPlatform) {
+      // Build per-site override: use form values for site-scoped settings,
+      // global values for global-scoped settings.
+      const siteSettings: StorageSettings = { ...DEFAULTS };
+      for (const [id, settingKey] of Object.entries(ID_TO_SETTING_KEY)) {
+        if (settingScopes[id] === 'site') {
+          (siteSettings as unknown as Record<string, string>)[settingKey] = fullSettings[
+            settingKey
+          ] as string;
+        } else {
+          (siteSettings as unknown as Record<string, string>)[settingKey] = globalSettings[
+            settingKey
+          ] as string;
+        }
+      }
+      await saveSiteOverride(currentPlatform, siteSettings, null);
       allSiteOverrides = {
         ...allSiteOverrides,
-        [currentPlatform]: { settings: fullSettings, activePreset: null },
+        [currentPlatform]: { settings: siteSettings, activePreset: null },
       };
-    } else {
-      // Global mode: save to chrome.storage.sync directly
-      if (typeof chrome !== 'undefined') {
-        await chrome.storage.sync.set({ ...settings, activePreset: null });
-      }
-      // Update local cache so badge comparisons use fresh data
-      globalSettings = fullSettings;
+    } else if (currentPlatform && allSiteOverrides[currentPlatform]) {
+      // No site-scoped settings remain — clear the per-site override
+      await clearSiteOverride(currentPlatform);
+      const { [currentPlatform]: _, ...rest } = allSiteOverrides;
+      void _;
+      allSiteOverrides = rest;
     }
 
     updatePresetIndicator(settings);
     updateOverrideBadges();
     updateSiteIndicators();
+    updateScopeChips();
     updatePreview();
 
     // Notify content scripts directly so live updates work even when
@@ -699,7 +863,13 @@ async function handleSaveAsPreset(): Promise<void> {
     if (select) select.value = newPreset.id;
 
     // Also persist the active preset id
+    // When a preset is applied, set all settings to site scope if we're on a supported platform
+    // and any settings were already site-scoped; otherwise save globally.
     if (siteScope && currentPlatform) {
+      // Mark all settings as site-scoped since preset applies as a whole
+      for (const id of Object.keys(ID_TO_SETTING_KEY)) {
+        settingScopes[id] = 'site';
+      }
       await saveSiteOverride(currentPlatform, fullSettings, newPreset.id);
       // Update local cache so badge comparisons use fresh data
       allSiteOverrides = {
@@ -732,7 +902,10 @@ async function handlePresetChange(presetId: string): Promise<void> {
 
   try {
     if (siteScope && currentPlatform) {
-      // Per-site mode: store preset in site override
+      // Per-site mode: store preset in site override and mark all settings as site-scoped
+      for (const id of Object.keys(ID_TO_SETTING_KEY)) {
+        settingScopes[id] = 'site';
+      }
       await saveSiteOverride(currentPlatform, preset.settings, preset.id);
       // Update local cache so badge comparisons use fresh data
       allSiteOverrides = {
@@ -748,6 +921,7 @@ async function handlePresetChange(presetId: string): Promise<void> {
 
     populateForm(preset.settings);
     updatePreview();
+    updateScopeChips();
     updateDeleteButton(!!preset.isCustom);
     showMessage(`Applied "${preset.name}"`, 'success');
 
@@ -831,85 +1005,6 @@ async function detectActiveTabPlatform(): Promise<Platform | null> {
     // ignore — might not have tabs permission
   }
   return null;
-}
-
-/**
- * Build the scope toggle UI that lets users switch between global and per-site settings.
- */
-function buildScopeToggle(): void {
-  const form = document.getElementById('settings-form');
-  if (!form || !currentPlatform) return;
-
-  const wrapper = document.createElement('div');
-  wrapper.className = 'form-group scope-group';
-  wrapper.id = 'scope-toggle-group';
-
-  const label = document.createElement('label');
-  label.textContent = 'Apply to';
-
-  const toggleContainer = document.createElement('div');
-  toggleContainer.className = 'scope-toggle';
-
-  const globalBtn = document.createElement('button');
-  globalBtn.type = 'button';
-  globalBtn.id = 'scope-global';
-  globalBtn.className = 'scope-btn' + (siteScope ? '' : ' active');
-  globalBtn.textContent = 'All Sites';
-
-  const siteBtn = document.createElement('button');
-  siteBtn.type = 'button';
-  siteBtn.id = 'scope-site';
-  siteBtn.className = 'scope-btn' + (siteScope ? ' active' : '');
-  siteBtn.innerHTML =
-    platformIconHtml(currentPlatform, 14) + ' ' + PLATFORM_DISPLAY_NAMES[currentPlatform];
-
-  globalBtn.addEventListener('click', () => {
-    if (!siteScope) return;
-    siteScope = false;
-    switchScope();
-  });
-
-  siteBtn.addEventListener('click', () => {
-    if (siteScope) return;
-    siteScope = true;
-    switchScope();
-  });
-
-  toggleContainer.appendChild(globalBtn);
-  toggleContainer.appendChild(siteBtn);
-
-  wrapper.appendChild(label);
-  wrapper.appendChild(toggleContainer);
-
-  // Insert before preset selector or first form-group
-  const presetGroup = form.querySelector('.preset-group');
-  const target = presetGroup ?? form.querySelector('.form-group');
-  if (target) {
-    form.insertBefore(wrapper, target);
-  } else {
-    form.prepend(wrapper);
-  }
-}
-
-/**
- * Update the scope toggle button classes.
- */
-function updateScopeUI(): void {
-  const globalBtn = document.getElementById('scope-global');
-  const siteBtn = document.getElementById('scope-site');
-  if (globalBtn) globalBtn.className = 'scope-btn' + (siteScope ? '' : ' active');
-  if (siteBtn) siteBtn.className = 'scope-btn' + (siteScope ? ' active' : '');
-}
-
-/**
- * Switch between global and per-site mode.
- * Only updates the scope toggle UI — the form keeps showing the effective
- * settings (what's actually applied on the current page) regardless of scope.
- * The scope only affects where the *next save* goes.
- */
-function switchScope(): void {
-  updateScopeUI();
-  // Form stays the same — scope only controls save destination.
 }
 
 /**
@@ -1066,13 +1161,14 @@ async function initializePopup(): Promise<void> {
 
     buildPlatformIndicator();
     buildPresetSelector();
-    if (currentPlatform) {
-      buildScopeToggle();
-    }
     populateForm(settings);
     updatePresetIndicator(settings);
 
     setupCustomSelects();
+
+    // Initialize per-setting scopes and build scope chips (after form is populated)
+    initSettingScopes();
+    buildScopeChips();
   } catch (error) {
     console.error('Failed to initialize popup:', error);
     showMessage('Failed to initialize popup', 'error');
