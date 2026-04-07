@@ -13,16 +13,36 @@
 
 ### New Features
 
-- **Per-site settings**: Scope toggle UI in popup — apply styles globally ("All Sites") or per-platform. Per-platform overrides stored in `chrome.storage.sync`. 17 unit tests.
-- **Preset system**: 3 production presets (Recommended, Classic, Minimal) + 6 dev presets. Popup dropdown for quick selection, auto-detection of active preset. 17 unit tests.
-- **Dropout live update**: `broadcastChanges()` + `applyCaptionInlineStyles()` for instant subtitle style updates without page reload.
+- **Per-site settings**: Per-setting scope chips — each setting row has a globe/platform toggle to control whether it applies globally or per-site. Per-platform overrides stored in `chrome.storage.sync`.
+- **Preset system**: 3 production presets (Do Nothing, High Contrast, Recommended) with auto-detection of active preset. Custom presets — save/delete named presets via 💾 button.
+- **Settings import/export**: JSON backup/restore with schema versioning (v1). Export/Import toolbar buttons, file picker, confirmation dialog, automatic UI refresh after import.
+- **Dropout live update**: `broadcastChanges()` + `applyCaptionInlineStyles()` for instant subtitle style updates without page reload. MutationObserver re-applies inline styles when Dropout creates new caption DOM elements.
+- **Platform support indicator**: Green "✅ Supported" banner on supported sites, amber "⚠️ Not supported" on others.
+- **Per-platform documentation**: In-extension ℹ️ info pages for each of the 9 platforms showing approach, supported settings, known limitations.
+- **Platform logos**: Inline SVG brand icons (16×16) throughout the popup — site indicators, scope toggles, platform banner.
+- **Keyboard navigation**: Arrow keys, Enter/Space, Escape for custom dropdowns. Full ARIA attributes (combobox/listbox/option).
+
+### Bug Fixes
+
+- **Dropout opacity bug**: Opacity percentages (0–100) now converted to CSS alpha (0–1). Color+opacity always applied together.
+- **Dropout inline styles lost on caption change**: MutationObserver on `.vp-captions` detects new caption DOM elements and re-applies styles.
+- **Netflix font-size broken**: Replaced `font-size: X%` with `transform: scale(X/100)` — a true visual multiplier. Affects all CSS-only platforms.
+- **Yellow dot badge not clearing**: Save now updates local caches before re-running badge/indicator logic.
+- **YouTube embed crash on Google Search**: Embedded YouTube previews lack full caption API. Fixed with embedded context detection + per-player try/catch.
+- **Backward-compatible import**: v1.0 flat storage dumps are auto-detected and wrapped in v1 schema on import.
 
 ### Improvements
 
-- **Nebula extraction**: Nebula platform extracted to its own module (`src/platforms/nebula.ts`) with 14 dedicated unit tests.
-- **Platform detection tests**: Comprehensive detection tests for all 6 platforms including edge cases (regional domains, legacy domains, subdomain variants). 25 new tests.
-- **CSS mappings tests**: Comprehensive tests for `generateCssRule` and `generateCombinedCssRules` — all color values, font families, edge styles, color+opacity combos, cross-appliesTo filtering, edge cases. 85 new tests.
-- **E2E stability**: Fixed Nebula font-family E2E flake — popup tab was closing before async save completed. Now waits for "Saved!" confirmation.
+- **Nebula extraction**: Platform extracted to its own module with dedicated unit tests.
+- **Override badges**: Amber dot badges on dropdown triggers when current site has per-site overrides differing from global. Platform abbreviation badges inside open dropdowns showing other platforms' per-site values.
+- **Effective values display**: Form always shows what's actually applied (per-site override if exists, otherwise global).
+- **Deterministic line coverage**: Istanbul provider via vitest — 85% lines, 83% stmts, 69% branches, 91% funcs.
+- **Feature coverage analysis**: `docs/FEATURE-COVERAGE.md` — 297 features, 236 tested, 91% coverage of feasible features.
+- **Implementation matrix**: `docs/IMPLEMENTATION-MATRIX.md` — per-site per-feature strategy documentation.
+
+### E2E Test Coverage
+
+Comprehensive E2E tests for all 9 platforms covering: style application, presets, per-site overrides, bgOpacity, windowColor, windowOpacity, textOpacity, and live update. 318+ E2E assertions.
 
 ### Chrome Web Store Prep
 
@@ -30,14 +50,15 @@
 - `store/PRIVACY_POLICY.md` — privacy policy (no data collection)
 - `store/CHECKLIST.md` — submission checklist
 - `store/SCREENSHOTS.md` — screenshot requirements
+- Release zip: `releases/v1.1.0.zip` (269K, 26 files)
 
 ### CI/CD
 
-- GitHub Actions CI workflow prepared (`store/ci-workflow.yml`) — runs lint, typecheck, unit tests, and production build on push/PR. Pending push (PAT lacks `workflow` scope — Jacek needs to commit from his machine or update PAT).
+- GitHub Actions CI workflow prepared (`.github/workflows/ci.yml`) — runs format check, lint, typecheck, unit tests, and production build on push/PR. Node.js 18 on ubuntu-latest.
 
 ### Stats
 
-- **450 unit tests** across 19 test files (up from 62 E2E tests at v1.0)
+- **898 tests** across 24 test files (up from 62 at v1.0)
 - **9 supported platforms**: YouTube, Nebula, Dropout, Prime Video, Max, Crunchyroll, Disney+, Netflix, Vimeo
 - **Zero network requests** — all processing is local
 
