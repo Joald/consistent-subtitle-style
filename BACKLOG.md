@@ -24,6 +24,10 @@
 - [x] **Platform support indicator in popup** — Shows "✅ <Platform> — supported" green banner on supported sites, "⚠️ This site is not supported" amber banner on unsupported. 13 new tests. 741 total tests. Commit: `ee6daaa`
 - [x] **Per-platform documentation pages** — In-extension docs system accessible via ℹ️ info button on platform indicator banner. For each of 9 platforms: approach (CSS injection, native API, Shadow DOM, etc.), supported settings as badge chips, known limitations, and notes. `platformDocs.ts` with structured data, popup panel with toggle/close, animated CSS. 39 unit tests + 12 popup integration tests. 813 total tests. Commit: `cb05d50`
 
+## Settings Import/Export (Done)
+
+- [x] **Import/Export settings** — JSON backup/restore. `settings-io.ts` with `buildExportData()`, `validateImportData()`, `applyImportData()`, `downloadJson()`, `readJsonFile()`. Schema versioning (v1). Popup UI: Export/Import toolbar buttons, file picker, confirmation dialog, automatic UI refresh. 39 new tests. 890 total tests. Commit: `9919e89`
+
 ## Medium Priority
 
 - [x] Nebula font-family E2E flake — fixed: popup tab was closing before async save completed
