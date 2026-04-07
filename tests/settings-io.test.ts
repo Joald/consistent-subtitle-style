@@ -232,6 +232,156 @@ describe('settings-io', () => {
       expect(result.data!.exportedAt).toBe('2026-01-01T00:00:00Z');
     });
 
+    describe('v1.0 backward compatibility', () => {
+      it('accepts a flat v1.0 storage dump (all 9 keys)', () => {
+        const v1Dump = {
+          characterEdgeStyle: 'dropshadow',
+          backgroundOpacity: '75',
+          windowOpacity: '50',
+          fontColor: 'yellow',
+          fontOpacity: '100',
+          backgroundColor: 'black',
+          windowColor: 'auto',
+          fontFamily: 'proportional-sans-serif',
+          fontSize: '150%',
+        };
+        const result = validateImportData(v1Dump);
+        expect(result.valid).toBe(true);
+        expect(result.data!.global.fontColor).toBe('yellow');
+        expect(result.data!.global.fontSize).toBe('150%');
+        expect(result.data!.global.characterEdgeStyle).toBe('dropshadow');
+        expect(result.data!.activePreset).toBeNull();
+        expect(Object.keys(result.data!.siteOverrides)).toHaveLength(0);
+        expect(result.data!.customPresets).toHaveLength(0);
+      });
+
+      it('accepts a partial v1.0 dump (only some keys set)', () => {
+        const v1Partial = {
+          fontColor: 'cyan',
+          fontSize: '200%',
+        };
+        const result = validateImportData(v1Partial);
+        expect(result.valid).toBe(true);
+        expect(result.data!.global.fontColor).toBe('cyan');
+        expect(result.data!.global.fontSize).toBe('200%');
+        // Missing keys filled with defaults
+        expect(result.data!.global.characterEdgeStyle).toBe('auto');
+        expect(result.data!.global.backgroundOpacity).toBe('auto');
+      });
+
+      it('accepts a v1.0 dump with all defaults (all auto)', () => {
+        const v1AllDefaults = {
+          characterEdgeStyle: 'auto',
+          backgroundOpacity: 'auto',
+          windowOpacity: 'auto',
+          fontColor: 'auto',
+          fontOpacity: 'auto',
+          backgroundColor: 'auto',
+          windowColor: 'auto',
+          fontFamily: 'auto',
+          fontSize: 'auto',
+        };
+        const result = validateImportData(v1AllDefaults);
+        expect(result.valid).toBe(true);
+        expect(result.data!.global).toEqual(DEFAULTS);
+      });
+
+      it('handles v1.0 dump with invalid values', () => {
+        const v1Bad = {
+          fontColor: 'rainbow',
+          fontSize: '999%',
+          characterEdgeStyle: 'dropshadow',
+        };
+        const result = validateImportData(v1Bad);
+        expect(result.valid).toBe(true);
+        // Invalid values replaced with defaults
+        expect(result.data!.global.fontColor).toBe('auto');
+        expect(result.data!.global.fontSize).toBe('auto');
+        // Valid value preserved
+        expect(result.data!.global.characterEdgeStyle).toBe('dropshadow');
+      });
+
+      it('accepts a v1.0 dump with a single key', () => {
+        const v1Single = { fontColor: 'yellow' };
+        const result = validateImportData(v1Single);
+        expect(result.valid).toBe(true);
+        expect(result.data!.global.fontColor).toBe('yellow');
+      });
+
+      it('handles v1.1+ storage dump with activePreset and siteSettings', () => {
+        // Post-v1.0 but still flat (raw chrome.storage.sync dump)
+        const dump = {
+          characterEdgeStyle: 'dropshadow',
+          fontColor: 'yellow',
+          backgroundOpacity: '75',
+          windowOpacity: 'auto',
+          fontOpacity: 'auto',
+          backgroundColor: 'auto',
+          windowColor: 'auto',
+          fontFamily: 'auto',
+          fontSize: 'auto',
+          activePreset: 'recommended',
+          siteSettings: {
+            youtube: {
+              settings: { ...DEFAULTS, fontColor: 'cyan' },
+              activePreset: null,
+            },
+          },
+          customPresets: [
+            {
+              id: 'custom-1',
+              name: 'My Preset',
+              settings: DEFAULTS,
+            },
+          ],
+        };
+        const result = validateImportData(dump);
+        expect(result.valid).toBe(true);
+        expect(result.data!.global.fontColor).toBe('yellow');
+        expect(result.data!.activePreset).toBe('recommended');
+        expect(Object.keys(result.data!.siteOverrides)).toHaveLength(1);
+        expect(result.data!.customPresets).toHaveLength(1);
+      });
+
+      it('does NOT treat modern envelope as flat format', () => {
+        const modern = buildValidExport();
+        const result = validateImportData(modern);
+        expect(result.valid).toBe(true);
+        // Should use the global key, not root-level keys
+        expect(result.data!.global.fontColor).toBe('yellow');
+      });
+
+      it('round-trips: export → import flat dump', () => {
+        // Simulate: v1.0 user exports chrome.storage.sync as flat JSON
+        const v1Dump = {
+          characterEdgeStyle: 'outline',
+          backgroundOpacity: '100',
+          windowOpacity: '0',
+          fontColor: 'white',
+          fontOpacity: '75',
+          backgroundColor: 'blue',
+          windowColor: 'red',
+          fontFamily: 'casual',
+          fontSize: '300%',
+        };
+        const result = validateImportData(v1Dump);
+        expect(result.valid).toBe(true);
+
+        // Re-export using modern format
+        const reExported = buildExportData(
+          result.data!.global,
+          result.data!.activePreset,
+          result.data!.siteOverrides,
+          result.data!.customPresets,
+        );
+
+        // Re-import should still work
+        const result2 = validateImportData(reExported);
+        expect(result2.valid).toBe(true);
+        expect(result2.data!.global).toEqual(v1Dump);
+      });
+    });
+
     it('handles site override with non-object settings', () => {
       const overrides = {
         youtube: { settings: 'invalid', activePreset: null },
