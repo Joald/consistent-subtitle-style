@@ -16,6 +16,13 @@ import {
 import { loadCustomPresets, saveCustomPreset, deleteCustomPreset } from '../custom-presets.js';
 import { getPlatformDoc } from '../platform-docs.js';
 import { platformIconHtml } from '../platform-icons.js';
+import {
+  buildExportData,
+  downloadJson,
+  readJsonFile,
+  validateImportData,
+  applyImportData,
+} from '../settings-io.js';
 import type { CustomPreset } from '../custom-presets.js';
 import type { SiteSettingsMap } from '../site-settings.js';
 import type { Platform } from '../platforms/index.js';
@@ -1169,10 +1176,107 @@ async function initializePopup(): Promise<void> {
     // Initialize per-setting scopes and build scope chips (after form is populated)
     initSettingScopes();
     buildScopeChips();
+
+    // Wire up import/export buttons
+    setupImportExport();
   } catch (error) {
     console.error('Failed to initialize popup:', error);
     showMessage('Failed to initialize popup', 'error');
   }
+}
+
+function handleExport(): void {
+  if (!globalSettings) return;
+
+  const activePresetSelect = document.getElementById('preset-select') as HTMLSelectElement | null;
+  const activePreset =
+    activePresetSelect && activePresetSelect.value !== 'custom' ? activePresetSelect.value : null;
+
+  const data = buildExportData(globalSettings, activePreset, allSiteOverrides, customPresets);
+  downloadJson(data);
+  showMessage('Settings exported!', 'success');
+}
+
+async function handleImport(file: File): Promise<void> {
+  try {
+    const raw = await readJsonFile(file);
+    const result = validateImportData(raw);
+
+    if (!result.valid || !result.data) {
+      showMessage('Invalid settings file', 'error');
+      return;
+    }
+
+    if (result.errors.length > 0) {
+      // Warn about non-fatal issues but proceed
+      debug.log(`Import warnings: ${result.errors.join('; ')}`);
+    }
+
+    const confirm = window.confirm(
+      `Import settings?\n\n` +
+        `• Global settings\n` +
+        `• ${String(Object.keys(result.data.siteOverrides).length)} site override(s)\n` +
+        `• ${String(result.data.customPresets.length)} custom preset(s)\n\n` +
+        `This will overwrite your current settings.`,
+    );
+    if (!confirm) return;
+
+    const counts = await applyImportData(result.data);
+
+    // Refresh local state
+    globalSettings = result.data.global;
+    allSiteOverrides = result.data.siteOverrides;
+    customPresets = result.data.customPresets;
+
+    // Refresh the UI
+    refreshPresetDropdown();
+
+    // Determine what to display: if on a platform with override, show that
+    let displaySettings = globalSettings;
+    if (currentPlatform && allSiteOverrides[currentPlatform]) {
+      displaySettings = allSiteOverrides[currentPlatform]!.settings;
+      siteScope = true;
+    } else {
+      siteScope = false;
+    }
+
+    populateForm(displaySettings);
+    updatePresetIndicator(displaySettings);
+    initSettingScopes();
+    buildScopeChips();
+    updateScopeChips();
+
+    showMessage(
+      `Imported! (${String(counts.siteOverrideCount)} sites, ${String(counts.customPresetCount)} presets)`,
+      'success',
+    );
+  } catch (error) {
+    console.error('Import failed:', error);
+    showMessage('Failed to import settings', 'error');
+  }
+}
+
+function setupImportExport(): void {
+  const exportBtn = document.getElementById('export-btn');
+  const importBtn = document.getElementById('import-btn');
+  const fileInput = document.getElementById('import-file-input') as HTMLInputElement | null;
+
+  exportBtn?.addEventListener('click', () => {
+    handleExport();
+  });
+
+  importBtn?.addEventListener('click', () => {
+    fileInput?.click();
+  });
+
+  fileInput?.addEventListener('change', () => {
+    const file = fileInput.files?.[0];
+    if (file) {
+      void handleImport(file);
+      // Reset input so the same file can be re-imported
+      fileInput.value = '';
+    }
+  });
 }
 
 document.addEventListener('DOMContentLoaded', () => {
