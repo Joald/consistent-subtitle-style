@@ -7,6 +7,57 @@ import type { Platform } from './platforms/index.js';
 /** Schema version for forward compatibility. */
 const EXPORT_VERSION = 1;
 
+/**
+ * Keys that existed in v1.0 storage (flat chrome.storage.sync dump).
+ * Used to auto-detect legacy flat format and wrap into envelope.
+ */
+const V1_SETTING_KEYS: readonly string[] = [
+  'characterEdgeStyle',
+  'backgroundOpacity',
+  'windowOpacity',
+  'fontColor',
+  'fontOpacity',
+  'backgroundColor',
+  'windowColor',
+  'fontFamily',
+  'fontSize',
+];
+
+/**
+ * Detect if the input looks like a flat v1.0 chrome.storage.sync dump
+ * (setting keys directly at root level, no version/global wrapper).
+ */
+function isLegacyFlatFormat(obj: Record<string, unknown>): boolean {
+  // Must NOT have the modern envelope keys
+  if ('version' in obj && 'global' in obj) return false;
+
+  // Must have at least one recognized v1.0 setting key
+  return V1_SETTING_KEYS.some((key) => key in obj);
+}
+
+/**
+ * Wrap a flat v1.0 storage dump into the modern export envelope.
+ * Extracts known setting keys into `global`, passes through any
+ * v1.1+ keys (activePreset, siteSettings, customPresets) if present.
+ */
+function wrapLegacyFormat(obj: Record<string, unknown>): Record<string, unknown> {
+  const global: Record<string, unknown> = {};
+  for (const key of V1_SETTING_KEYS) {
+    if (key in obj) {
+      global[key] = obj[key];
+    }
+  }
+
+  return {
+    version: 1,
+    exportedAt: '',
+    global,
+    activePreset: obj['activePreset'] ?? null,
+    siteOverrides: obj['siteSettings'] ?? obj['siteOverrides'] ?? {},
+    customPresets: obj['customPresets'] ?? [],
+  };
+}
+
 const VALID_PLATFORMS: readonly string[] = [
   'youtube',
   'nebula',
@@ -137,7 +188,12 @@ export function validateImportData(raw: unknown): ValidationResult {
     return { valid: false, errors: ['Import data must be a JSON object'] };
   }
 
-  const obj = raw as Record<string, unknown>;
+  let obj = raw as Record<string, unknown>;
+
+  // Auto-detect flat v1.0 storage dumps and wrap into envelope
+  if (isLegacyFlatFormat(obj)) {
+    obj = wrapLegacyFormat(obj);
+  }
 
   // Version check
   if (typeof obj['version'] !== 'number') {
