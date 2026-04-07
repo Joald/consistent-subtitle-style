@@ -27,9 +27,15 @@ Consistent Subtitle Style gives you full control over how subtitles look on your
 
 ⚡ KEY FEATURES
 • Per-site settings: different styles for different platforms, or one global style for everything
+• Per-setting scope control: choose global or per-site scope for each individual setting
 • 3 built-in presets (Recommended, High Contrast, Do Nothing) for quick setup
 • Custom presets: save your own style combos and switch between them instantly
+• Import/Export: backup and restore all settings as JSON — migrate between machines or share configs
 • Per-site override indicators show which settings differ from your global defaults
+• SVG platform icons for quick visual identification
+• In-extension documentation: per-platform info panel with supported settings, approach details, and known limitations
+• Keyboard navigation: full arrow-key/Enter/Escape support for dropdown controls with ARIA attributes
+• Platform detection banner shows whether the current site is supported
 • Live preview in the popup
 • Instant updates — no page reload needed
 • Settings sync across Chrome instances via chrome.storage.sync

@@ -18,6 +18,7 @@ A Chrome extension that applies persistent, customizable subtitle styles across 
 - **Platform documentation**: in-extension ℹ️ info pages for each platform (approach, supported settings, limitations)
 - **Keyboard navigation**: full keyboard support for dropdown menus (Arrow keys, Enter, Escape, ARIA)
 - **Platform detection banner**: shows supported/unsupported status for current site
+- **Import/Export**: backup and restore all settings as JSON with schema versioning
 
 ## Quick Start
 
@@ -95,14 +96,14 @@ Uses CSS injection targeting Netflix's Cadmium player subtitle elements (`player
 npm install          # Install dependencies
 npm run build        # Development build
 npm run build:prod   # Production build
-npm run test         # Run unit tests (851 tests)
+npm run test         # Run unit tests (890 tests)
 npm run ci           # Full CI: format + lint + typecheck + test + build
 npm run release      # Build production zip for CWS submission
 ```
 
 ### Testing
 
-- **Unit tests**: 851 tests across 23 test files (Vitest)
+- **Unit tests**: 890 tests across 24 test files (Vitest)
 - **E2E tests**: 350+ assertions across all 9 platforms + presets + per-site settings (Puppeteer, 11 E2E suites)
 
 ```bash
@@ -123,6 +124,7 @@ src/
 ├── site-settings.ts # Per-site settings CRUD
 ├── presets.ts       # Built-in preset definitions
 ├── custom-presets.ts# Custom preset save/load/delete
+├── settings-io.ts   # Import/export settings (JSON backup/restore)
 ├── platform-docs.ts # Per-platform documentation data
 ├── platform-icons.ts# SVG platform logo components
 ├── platforms/       # Platform-specific handlers

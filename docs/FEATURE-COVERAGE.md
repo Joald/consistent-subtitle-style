@@ -2,7 +2,7 @@
 
 Logical features mapped to test assertions across unit tests and E2E tests.
 
-**Generated**: 2026-04-05 | **707 unit tests** + **318 E2E assertions** across 21 test files + 11 E2E suites
+**Updated**: 2026-04-07 | **890 unit tests** across 24 test files + comprehensive E2E assertions across 11 E2E suites
 
 ## Coverage Legend
 
