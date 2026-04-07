@@ -152,3 +152,9 @@
 - [x] E2E: Crunchyroll per-site override
 - [x] E2E: Disney+ per-site override
 - [x] E2E: Netflix per-site override
+
+#### YouTube E2E gaps (unit-only → E2E)
+
+- [ ] E2E: YouTube windowColor — verify window color change via native API
+- [ ] E2E: YouTube windowOpacity — verify window opacity change via native API
+- [ ] E2E: YouTube textOpacity — verify text opacity change via native API (currently only applyStyles re-fire test)
