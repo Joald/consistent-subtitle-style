@@ -3,7 +3,7 @@
 ## Pre-Submission
 
 - [ ] Merge `fix/dropout-live-settings` → `main`
-- [ ] Verify all 890 unit tests pass on `main`
+- [ ] Verify all 898 unit tests pass on `main`
 - [ ] Verify E2E tests pass on `main`
 - [ ] Run `npm run release` to generate production zip
 - [ ] Test the release zip via "Load unpacked" on a fresh Chrome profile
@@ -41,7 +41,7 @@ No remote code execution. No data collection. No analytics. No network requests.
 - Live preview and instant updates
 - MutationObserver for Dropout caption re-application
 - YouTube embedded player crash protection
-- 890 automated tests (24 test files)
+- 898 automated tests (24 test files)
 
 ## Post-Submission
 
