@@ -155,6 +155,6 @@
 
 #### YouTube E2E gaps (unit-only → E2E)
 
-- [ ] E2E: YouTube windowColor — verify window color change via native API
-- [ ] E2E: YouTube windowOpacity — verify window opacity change via native API
-- [ ] E2E: YouTube textOpacity — verify text opacity change via native API (currently only applyStyles re-fire test)
+- [x] E2E: YouTube windowColor — verify window color change via native API getSubtitlesUserSettings()
+- [x] E2E: YouTube windowOpacity — verify window opacity change via native API getSubtitlesUserSettings()
+- [x] E2E: YouTube textOpacity — verify text opacity change via native API getSubtitlesUserSettings()

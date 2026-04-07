@@ -173,6 +173,69 @@ async function run() {
       'applyStyles() re-fires after fontOpacity change',
     );
 
+    // ── Native API: windowColor ─────────────────────────────────────────
+    console.log('\n🪟  Native API — windowColor → green');
+    await setStorage(browser, extId, { windowColor: 'green' });
+    await sleep(3000);
+
+    const windowColorResult = await page.evaluate(() => {
+      const player = document.querySelector('.html5-video-player');
+      if (!player || typeof player.getSubtitlesUserSettings !== 'function') return { error: 'no player API' };
+      const settings = player.getSubtitlesUserSettings();
+      return { windowColor: settings.windowColor };
+    });
+    if (windowColorResult.error) {
+      skip('windowColor applied via native API', windowColorResult.error);
+    } else {
+      assert(
+        windowColorResult.windowColor === '#0f0',
+        'windowColor applied via native API',
+        `windowColor=${windowColorResult.windowColor} (expected #0f0)`,
+      );
+    }
+
+    // ── Native API: windowOpacity ────────────────────────────────────────
+    console.log('\n🔲  Native API — windowOpacity → 50%');
+    await setStorage(browser, extId, { windowOpacity: '50' });
+    await sleep(3000);
+
+    const windowOpacityResult = await page.evaluate(() => {
+      const player = document.querySelector('.html5-video-player');
+      if (!player || typeof player.getSubtitlesUserSettings !== 'function') return { error: 'no player API' };
+      const settings = player.getSubtitlesUserSettings();
+      return { windowOpacity: settings.windowOpacity };
+    });
+    if (windowOpacityResult.error) {
+      skip('windowOpacity applied via native API', windowOpacityResult.error);
+    } else {
+      assert(
+        windowOpacityResult.windowOpacity === 0.5,
+        'windowOpacity applied via native API',
+        `windowOpacity=${windowOpacityResult.windowOpacity} (expected 0.5)`,
+      );
+    }
+
+    // ── Native API: textOpacity ──────────────────────────────────────────
+    console.log('\n💬  Native API — textOpacity (fontOpacity) → 75%');
+    await setStorage(browser, extId, { fontOpacity: '75' });
+    await sleep(3000);
+
+    const textOpacityResult = await page.evaluate(() => {
+      const player = document.querySelector('.html5-video-player');
+      if (!player || typeof player.getSubtitlesUserSettings !== 'function') return { error: 'no player API' };
+      const settings = player.getSubtitlesUserSettings();
+      return { textOpacity: settings.textOpacity };
+    });
+    if (textOpacityResult.error) {
+      skip('textOpacity applied via native API', textOpacityResult.error);
+    } else {
+      assert(
+        textOpacityResult.textOpacity === 0.75,
+        'textOpacity applied via native API',
+        `textOpacity=${textOpacityResult.textOpacity} (expected 0.75)`,
+      );
+    }
+
     // ── Live update: combined ────────────────────────────────────────────
     console.log('\n🔀  Combined settings change');
     const logsBeforeCombo = consoleLogs.length;
