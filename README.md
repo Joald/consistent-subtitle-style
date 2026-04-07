@@ -10,10 +10,14 @@ A Chrome extension that applies persistent, customizable subtitle styles across 
 
 - **9 customizable style properties**: font color, font family, font size, font opacity, background color, background opacity, window color, window opacity, and character edge style
 - **Per-site settings**: apply different styles to different platforms (or use one global style everywhere)
+- **Per-setting scope control**: toggle each individual setting between global and per-site scope via scope chips
 - **Preset system**: 3 built-in presets (Recommended, High Contrast, Do Nothing) plus custom user-created presets
 - **Live preview**: see style changes in the popup before they're applied
 - **Instant updates**: style changes apply immediately without reloading the page
-- **Per-site override indicators**: badges show which settings differ from global defaults
+- **Per-site override indicators**: amber dot badges on settings that differ from global, with SVG platform logos
+- **Platform documentation**: in-extension ℹ️ info pages for each platform (approach, supported settings, limitations)
+- **Keyboard navigation**: full keyboard support for dropdown menus (Arrow keys, Enter, Escape, ARIA)
+- **Platform detection banner**: shows supported/unsupported status for current site
 
 ## Quick Start
 
@@ -91,18 +95,19 @@ Uses CSS injection targeting Netflix's Cadmium player subtitle elements (`player
 npm install          # Install dependencies
 npm run build        # Development build
 npm run build:prod   # Production build
-npm run test         # Run unit tests (682 tests)
+npm run test         # Run unit tests (851 tests)
 npm run ci           # Full CI: format + lint + typecheck + test + build
+npm run release      # Build production zip for CWS submission
 ```
 
 ### Testing
 
-- **Unit tests**: 682 tests across 21 test files (Vitest)
-- **E2E tests**: 141+ assertions across YouTube, Nebula, Dropout, Vimeo, Max, Prime Video, Crunchyroll, Disney+, Netflix, presets, and per-site settings (Puppeteer)
+- **Unit tests**: 851 tests across 23 test files (Vitest)
+- **E2E tests**: 350+ assertions across all 9 platforms + presets + per-site settings (Puppeteer, 11 E2E suites)
 
 ```bash
 npm run test         # Unit tests
-bun e2e/run.sh       # E2E tests (requires Chrome)
+bash e2e/run.sh      # E2E tests (requires Chrome)
 ```
 
 ## Architecture
@@ -116,10 +121,14 @@ src/
 ├── css-mappings.ts  # CSS property/value mappings for all settings
 ├── storage.ts       # Settings persistence (chrome.storage.sync)
 ├── site-settings.ts # Per-site settings CRUD
+├── presets.ts       # Built-in preset definitions
+├── custom-presets.ts# Custom preset save/load/delete
+├── platform-docs.ts # Per-platform documentation data
+├── platform-icons.ts# SVG platform logo components
 ├── platforms/       # Platform-specific handlers
 │   ├── index.ts     # Platform detection and config registry
-│   ├── nebula.ts    # Nebula CSS selectors
 │   ├── youtube.ts   # YouTube native API integration
+│   ├── nebula.ts    # Nebula CSS selectors
 │   ├── dropout.ts   # Dropout/VHX/Vimeo hybrid handler
 │   ├── primevideo.ts# Prime Video CSS selectors
 │   ├── max.ts       # Max (HBO Max) CSS selectors
@@ -128,8 +137,8 @@ src/
 │   ├── netflix.ts   # Netflix Cadmium player-timedtext selectors
 │   └── vimeo.ts     # Vimeo vp-captions CSS selectors
 ├── types/           # TypeScript type definitions
-├── presets.ts       # Built-in preset definitions
 └── ui/
-    ├── popup.ts     # Popup UI logic (settings, presets, custom presets, per-site)
-    └── styles.css   # Popup styles (dark theme)
+    ├── popup.ts     # Popup UI logic (settings, presets, custom presets, per-site, scope chips)
+    ├── styles.css   # Popup styles (dark theme)
+    └── index.html   # Popup HTML shell
 ```
