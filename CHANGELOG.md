@@ -55,10 +55,11 @@ Comprehensive E2E tests for all 9 platforms covering: style application, presets
 ### CI/CD
 
 - GitHub Actions CI workflow prepared (`.github/workflows/ci.yml`) — runs format check, lint, typecheck, unit tests, and production build on push/PR. Node.js 18 on ubuntu-latest.
+- **Firefox build pipeline**: `npm run build:firefox` (prod build + manifest transform), `npm run release:firefox` (end-to-end Firefox release zip for AMO). Manifest transformer removes Chrome `key`, adds `browser_specific_settings.gecko` with strict_min_version 128.0. 15 unit tests.
 
 ### Stats
 
-- **898 tests** across 24 test files (up from 62 at v1.0)
+- **913 tests** across 25 test files (up from 62 at v1.0)
 - **9 supported platforms**: YouTube, Nebula, Dropout, Prime Video, Max, Crunchyroll, Disney+, Netflix, Vimeo
 - **Zero network requests** — all processing is local
 

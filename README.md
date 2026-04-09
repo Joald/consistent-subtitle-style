@@ -96,14 +96,16 @@ Uses CSS injection targeting Netflix's Cadmium player subtitle elements (`player
 npm install          # Install dependencies
 npm run build        # Development build
 npm run build:prod   # Production build
-npm run test         # Run unit tests (898 tests)
+npm run test         # Run unit tests (913 tests)
 npm run ci           # Full CI: format + lint + typecheck + test + build
 npm run release      # Build production zip for CWS submission
+npm run build:firefox   # Production build with Firefox manifest
+npm run release:firefox # Build Firefox release zip for AMO submission
 ```
 
 ### Testing
 
-- **Unit tests**: 898 tests across 24 test files (Vitest)
+- **Unit tests**: 913 tests across 25 test files (Vitest)
 - **E2E tests**: 350+ assertions across all 9 platforms + presets + per-site settings (Puppeteer, 11 E2E suites)
 
 ```bash
