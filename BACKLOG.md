@@ -34,6 +34,11 @@
 - [x] Preset system — implemented with 3 production presets (Recommended, Classic, Minimal) + 6 dev presets. Popup dropdown, auto-detection, activePreset tracking. 17 unit tests.
 - [x] Per-site settings — implemented with scope toggle UI (All Sites / platform), CRUD for per-platform overrides, 17 unit tests, content script integration
 
+## Firefox Port (Unblocked after CWS)
+
+- [ ] **Firefox extension port** — Research complete at `docs/FIREFOX-PORTING.md`. Low effort (~4-8 hours): conditional manifest build (remove `key`, add `browser_specific_settings.gecko`), test on all 9 platforms, submit to AMO. All APIs are Firefox-compatible via `chrome.*` compat namespace. Minimum Firefox 128.0 for MV3 service worker. Unblocked after Chrome version is live.
+- [ ] **Edge Add-ons submission** — Chrome zip works as-is on Edge. Separate store submission at https://partner.microsoft.com/dashboard/microsoftedge/
+
 ## Pending (Blocked on PAT Scope)
 
 - [ ] GitHub Actions CI workflow — file ready at `store/ci-workflow.yml`, needs PAT with `workflow` scope or manual push from Jacek. Copy to `.github/workflows/ci.yml`.
