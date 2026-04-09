@@ -65,7 +65,10 @@ try {
       { stdio: 'inherit' },
     );
   } else {
-    execSync(`zip -r ../${outputPath} .`, { cwd: buildDir, stdio: 'inherit' });
+    execSync(`zip -r ../${outputPath} . -x "images/*.html" "*.map"`, {
+      cwd: buildDir,
+      stdio: 'inherit',
+    });
   }
 
   console.log(`✅ Firefox release created: ${outputPath}`);

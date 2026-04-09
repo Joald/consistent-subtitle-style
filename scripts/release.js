@@ -27,22 +27,24 @@ try {
 
   const absoluteBuildDir = path.resolve(buildDir);
 
-  // 3. Zip the dist folder contents
+  // 3. Remove existing zip to avoid stale entries
+  if (fs.existsSync(absoluteOutputPath)) {
+    fs.unlinkSync(absoluteOutputPath);
+  }
+
+  // 4. Zip the dist folder contents
 
   console.log(`🗜️  Zipping ${buildDir} to ${outputPath}...`);
 
   if (process.platform === 'win32') {
-    // path.resolve gives us backslashes on Windows which PowerShell likes
-    // We use PowerShell's Compress-Archive
-    // We remove the existing file if it exists because Compress-Archive might fail or append
-    if (fs.existsSync(absoluteOutputPath)) {
-      fs.unlinkSync(absoluteOutputPath);
-    }
     const psCommand = `powershell -Command "Compress-Archive -Path '${absoluteBuildDir}\\*' -DestinationPath '${absoluteOutputPath}' -Force"`;
     execSync(psCommand, { stdio: 'inherit' });
   } else {
     // On Unix-like systems, zip is usually available
-    execSync(`zip -r ../${outputPath} .`, { cwd: buildDir, stdio: 'inherit' });
+    execSync(`zip -r ../${outputPath} . -x "images/*.html" "*.map"`, {
+      cwd: buildDir,
+      stdio: 'inherit',
+    });
   }
 
   console.log(`✅ Release created successfully: ${outputPath}`);
