@@ -21,6 +21,8 @@
     "test:e2e": "bash e2e/run.sh",
     "ci": "npm run format && npm run lint && npm run typecheck && npm run test && npm run build:prod",
     "release": "node scripts/release.js",
+    "build:firefox": "npm run build:prod && node scripts/firefox-manifest.js",
+    "release:firefox": "node scripts/release-firefox.js",
     "prepare": "husky",
     "format:check": "prettier --check ."
   },
