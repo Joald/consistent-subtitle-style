@@ -36,7 +36,8 @@
 
 ## Firefox Port (Unblocked after CWS)
 
-- [ ] **Firefox extension port** — Research complete at `docs/FIREFOX-PORTING.md`. Low effort (~4-8 hours): conditional manifest build (remove `key`, add `browser_specific_settings.gecko`), test on all 9 platforms, submit to AMO. All APIs are Firefox-compatible via `chrome.*` compat namespace. Minimum Firefox 128.0 for MV3 service worker. Unblocked after Chrome version is live.
+- [x] **Firefox build pipeline** — `scripts/firefox-manifest.js` (manifest transformer: removes Chrome `key`, adds `browser_specific_settings.gecko`), `scripts/release-firefox.js` (end-to-end Firefox release builder with validation), `npm run build:firefox` / `npm run release:firefox`, 15 unit tests. 913 total tests. Commit: `ceba6f3`
+- [ ] **Firefox extension port** — Build pipeline done. Remaining: test on all 9 platforms in Firefox, submit to AMO. All APIs Firefox-compatible. Minimum Firefox 128.0. Unblocked after Chrome version is live.
 - [ ] **Edge Add-ons submission** — Chrome zip works as-is on Edge. Separate store submission at https://partner.microsoft.com/dashboard/microsoftedge/
 
 ## Pending (Blocked on PAT Scope)
