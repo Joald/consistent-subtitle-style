@@ -357,10 +357,12 @@ hr {
 }
 
 /* ── Preset selector ─────────────────────────────── */
+
+/* ---- Preset group (at bottom) ---- */
 .preset-group {
-  margin-bottom: 12px;
-  padding-bottom: 12px;
-  border-bottom: 1px solid #333;
+  margin-top: 12px;
+  padding-top: 12px;
+  border-top: 1px solid #333;
 }
 
 .preset-group label {
@@ -738,33 +740,3 @@ hr {
   font-style: italic;
 }
 
-/* ---- Import / Export toolbar ---- */
-.io-toolbar {
-  display: flex;
-  gap: 8px;
-  margin-top: 12px;
-  padding-top: 12px;
-  border-top: 1px solid #333;
-  justify-content: center;
-}
-
-.io-btn {
-  background: transparent;
-  border: 1px solid #555;
-  color: #bbb;
-  padding: 6px 14px;
-  border-radius: 6px;
-  font-size: 12px;
-  cursor: pointer;
-  transition: all 0.15s ease;
-}
-
-.io-btn:hover {
-  background: rgba(255, 255, 255, 0.08);
-  border-color: #888;
-  color: #e5e5e5;
-}
-
-.io-btn:active {
-  background: rgba(255, 255, 255, 0.14);
-}

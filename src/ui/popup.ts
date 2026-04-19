@@ -18,8 +18,6 @@ import { getPlatformDoc } from '../platform-docs.js';
 import { platformIconHtml } from '../platform-icons.js';
 import {
   buildExportData,
-  downloadJson,
-  readJsonFile,
   validateImportData,
   applyImportData,
 } from '../settings-io.js';
@@ -781,13 +779,8 @@ function buildPresetSelector(): void {
   wrapper.appendChild(label);
   wrapper.appendChild(selectRow);
 
-  // Insert before the first .form-group in the form
-  const firstGroup = form.querySelector('.form-group');
-  if (firstGroup) {
-    form.insertBefore(wrapper, firstGroup);
-  } else {
-    form.prepend(wrapper);
-  }
+  // Insert after the last element in the form (at the bottom)
+  form.appendChild(wrapper);
 }
 
 /**
@@ -833,6 +826,22 @@ function populatePresetOptions(select: HTMLSelectElement): void {
     }
     select.appendChild(opt);
   }
+
+  // ── Copy / Paste JSON actions ──
+  const ioSep = document.createElement('option');
+  ioSep.disabled = true;
+  ioSep.textContent = '────────────';
+  select.appendChild(ioSep);
+
+  const copyOpt = document.createElement('option');
+  copyOpt.value = '__copy_json__';
+  copyOpt.textContent = '📋 Copy JSON';
+  select.appendChild(copyOpt);
+
+  const pasteOpt = document.createElement('option');
+  pasteOpt.value = '__paste_json__';
+  pasteOpt.textContent = '📥 Paste JSON';
+  select.appendChild(pasteOpt);
 }
 
 /**
@@ -899,6 +908,16 @@ async function handleSaveAsPreset(): Promise<void> {
 }
 
 async function handlePresetChange(presetId: string): Promise<void> {
+  // ── Clipboard actions ──
+  if (presetId === '__copy_json__') {
+    handleCopyJson();
+    return;
+  }
+  if (presetId === '__paste_json__') {
+    void handlePasteJson();
+    return;
+  }
+
   if (presetId === 'custom') {
     updateDeleteButton(false);
     return;
@@ -1176,16 +1195,16 @@ async function initializePopup(): Promise<void> {
     // Initialize per-setting scopes and build scope chips (after form is populated)
     initSettingScopes();
     buildScopeChips();
-
-    // Wire up import/export buttons
-    setupImportExport();
   } catch (error) {
     console.error('Failed to initialize popup:', error);
     showMessage('Failed to initialize popup', 'error');
   }
 }
 
-function handleExport(): void {
+/**
+ * Copy current settings as JSON to the clipboard.
+ */
+function handleCopyJson(): void {
   if (!globalSettings) return;
 
   const activePresetSelect = document.getElementById('preset-select') as HTMLSelectElement | null;
@@ -1193,34 +1212,65 @@ function handleExport(): void {
     activePresetSelect && activePresetSelect.value !== 'custom' ? activePresetSelect.value : null;
 
   const data = buildExportData(globalSettings, activePreset, allSiteOverrides, customPresets);
-  downloadJson(data);
-  showMessage('Settings exported!', 'success');
+  const json = JSON.stringify(data, null, 2);
+
+  void navigator.clipboard.writeText(json).then(
+    () => {
+      showMessage('Copied to clipboard!', 'success');
+    },
+    () => {
+      showMessage('Failed to copy', 'error');
+    },
+  );
+
+  // Restore previous dropdown value
+  restorePresetDropdownValue();
 }
 
-async function handleImport(file: File): Promise<void> {
+/**
+ * Read JSON from clipboard and apply as settings.
+ */
+async function handlePasteJson(): Promise<void> {
+  // Restore dropdown immediately so it doesn't stay on "Paste JSON"
+  restorePresetDropdownValue();
+
+  let text: string;
   try {
-    const raw = await readJsonFile(file);
-    const result = validateImportData(raw);
+    text = await navigator.clipboard.readText();
+  } catch {
+    showMessage('Clipboard access denied', 'error');
+    return;
+  }
 
-    if (!result.valid || !result.data) {
-      showMessage('Invalid settings file', 'error');
-      return;
-    }
+  if (!text.trim()) {
+    showMessage('Clipboard is empty', 'error');
+    return;
+  }
 
-    if (result.errors.length > 0) {
-      // Warn about non-fatal issues but proceed
-      debug.log(`Import warnings: ${result.errors.join('; ')}`);
-    }
+  let raw: unknown;
+  try {
+    raw = JSON.parse(text);
+  } catch {
+    showMessage('Clipboard does not contain valid JSON', 'error');
+    return;
+  }
 
-    const confirm = window.confirm(
-      `Import settings?\n\n` +
-        `• Global settings\n` +
-        `• ${String(Object.keys(result.data.siteOverrides).length)} site override(s)\n` +
-        `• ${String(result.data.customPresets.length)} custom preset(s)\n\n` +
-        `This will overwrite your current settings.`,
-    );
-    if (!confirm) return;
+  const result = validateImportData(raw);
+  if (!result.valid || !result.data) {
+    showMessage('Invalid settings JSON', 'error');
+    return;
+  }
 
+  const confirm = window.confirm(
+    `Import settings from clipboard?\n\n` +
+      `• Global settings\n` +
+      `• ${String(Object.keys(result.data.siteOverrides).length)} site override(s)\n` +
+      `• ${String(result.data.customPresets.length)} custom preset(s)\n\n` +
+      `This will overwrite your current settings.`,
+  );
+  if (!confirm) return;
+
+  try {
     const counts = await applyImportData(result.data);
 
     // Refresh local state
@@ -1251,32 +1301,21 @@ async function handleImport(file: File): Promise<void> {
       'success',
     );
   } catch (error) {
-    console.error('Import failed:', error);
+    console.error('Paste import failed:', error);
     showMessage('Failed to import settings', 'error');
   }
 }
 
-function setupImportExport(): void {
-  const exportBtn = document.getElementById('export-btn');
-  const importBtn = document.getElementById('import-btn');
-  const fileInput = document.getElementById('import-file-input') as HTMLInputElement | null;
-
-  exportBtn?.addEventListener('click', () => {
-    handleExport();
-  });
-
-  importBtn?.addEventListener('click', () => {
-    fileInput?.click();
-  });
-
-  fileInput?.addEventListener('change', () => {
-    const file = fileInput.files?.[0];
-    if (file) {
-      void handleImport(file);
-      // Reset input so the same file can be re-imported
-      fileInput.value = '';
-    }
-  });
+/**
+ * Restore the preset dropdown to the actual active value (not a copy/paste action).
+ */
+function restorePresetDropdownValue(): void {
+  const select = document.getElementById('preset-select') as HTMLSelectElement | null;
+  if (!select) return;
+  const currentSettings = collectSettings();
+  const full: StorageSettings = { ...DEFAULTS, ...currentSettings };
+  const detected = detectActivePreset(full, __DEV__, customPresets);
+  select.value = detected ?? 'custom';
 }
 
 document.addEventListener('DOMContentLoaded', () => {
