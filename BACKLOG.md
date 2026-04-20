@@ -46,6 +46,8 @@
 
 ## Low Priority
 
+- [x] **HBO Max native API integration** — Researched (2026-04-20): Max/HBO does NOT expose a public subtitle API. No DOM-accessible player methods, no client-side settings storage, no reverse-engineered API in any known extension. Server-side settings require auth, React internals are obfuscated and fragile. CSS injection remains the best approach. See `docs/RESEARCH-MAX-NATIVE-API.md`. Closed as "won't do".
+
 - [x] Add Prime Video subtitle support — CSS-only approach with 11 regional Amazon domains, 16 unit tests
 - [x] Add HBO Max subtitle support — CSS-only approach with CaptionWindow/TextCue/CueBoxContainer selectors, max.com + hbomax.com domains, 15 unit tests
 - [x] Add Crunchyroll subtitle support — CSS-only approach with Bitmovin player selectors, 15 unit tests
