@@ -7,7 +7,7 @@
 - [x] **Yellow dot badge not clearing without popup re-open** — Fixed: `handleSave()` (and `handlePresetChange()`, `handleSaveAsPreset()`) now updates local `globalSettings`/`allSiteOverrides` caches after save, then re-runs `updateOverrideBadges()` + `updateSiteIndicators()`. Regression test added. 708 tests green. Commit: `973d6cd`
 - [x] **Netflix font-size broken** — Fixed: CSS `font-size: X%` replaced with `transform: scale(X/100)` on subtitleContainerSelector. This acts as a true visual multiplier regardless of the platform's original font-size. Affects all CSS-only platforms (Netflix, Vimeo, Prime Video, Max, Crunchyroll, Disney+, Nebula). 14 new unit tests, 5 E2E tests updated. 755 total tests. Commit: `f0937df`
 - [x] Dropout live update — manual verification needed (waiting for Jacek's test)
-- [ ] Merge fix/dropout-live-settings → main
+- [x] Merge fix/dropout-live-settings → main
 
 ## Popup UX Improvements (Unblocked — do one per worker run)
 
