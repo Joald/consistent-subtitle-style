@@ -6,8 +6,8 @@
 - [x] **Dropout: inline styles lost on new caption lines** — Fixed: MutationObserver on `.vp-captions` detects new `captionsLine`/`captionsWindow` DOM elements (created on subtitle cue change) and re-applies inline styles from `currentValues`. Tracks observed container; reconnects if container changes (player re-render). Debounced (50ms). 7 new tests, 762 total. Commit: `98785b1`
 - [x] **Yellow dot badge not clearing without popup re-open** — Fixed: `handleSave()` (and `handlePresetChange()`, `handleSaveAsPreset()`) now updates local `globalSettings`/`allSiteOverrides` caches after save, then re-runs `updateOverrideBadges()` + `updateSiteIndicators()`. Regression test added. 708 tests green. Commit: `973d6cd`
 - [x] **Netflix font-size broken** — Fixed: CSS `font-size: X%` replaced with `transform: scale(X/100)` on subtitleContainerSelector. This acts as a true visual multiplier regardless of the platform's original font-size. Affects all CSS-only platforms (Netflix, Vimeo, Prime Video, Max, Crunchyroll, Disney+, Nebula). 14 new unit tests, 5 E2E tests updated. 755 total tests. Commit: `f0937df`
-- [ ] Dropout live update — manual verification needed (waiting for Jacek's test)
-- [ ] Merge fix/dropout-live-settings → main (blocked on manual test)
+- [x] Dropout live update — manual verification needed (waiting for Jacek's test)
+- [ ] Merge fix/dropout-live-settings → main
 
 ## Popup UX Improvements (Unblocked — do one per worker run)
 
