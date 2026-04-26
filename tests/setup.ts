@@ -7,6 +7,7 @@ const chromeMock = {
     sync: {
       get: vi.fn(),
       set: vi.fn(),
+      remove: vi.fn().mockResolvedValue(undefined),
     },
     onChanged: {
       addListener: vi.fn(),
@@ -20,7 +21,20 @@ const chromeMock = {
   },
 } as unknown as typeof chrome;
 
+// Mock navigator.clipboard (not available in jsdom)
+const clipboardMock = {
+  writeText: vi.fn().mockResolvedValue(undefined),
+  readText: vi.fn().mockResolvedValue(''),
+};
+
 beforeEach(() => {
   vi.stubGlobal('chrome', chromeMock);
   vi.stubGlobal('DEBUG', true);
+  Object.defineProperty(navigator, 'clipboard', {
+    value: clipboardMock,
+    writable: true,
+    configurable: true,
+  });
+  vi.mocked(clipboardMock.writeText).mockResolvedValue(undefined);
+  vi.mocked(clipboardMock.readText).mockResolvedValue('');
 });

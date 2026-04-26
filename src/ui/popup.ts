@@ -16,11 +16,7 @@ import {
 import { loadCustomPresets, saveCustomPreset, deleteCustomPreset } from '../custom-presets.js';
 import { getPlatformDoc } from '../platform-docs.js';
 import { platformIconHtml } from '../platform-icons.js';
-import {
-  buildExportData,
-  validateImportData,
-  applyImportData,
-} from '../settings-io.js';
+import { buildExportData, validateImportData, applyImportData } from '../settings-io.js';
 import type { CustomPreset } from '../custom-presets.js';
 import type { SiteSettingsMap } from '../site-settings.js';
 import type { Platform } from '../platforms/index.js';
@@ -784,6 +780,64 @@ function buildPresetSelector(): void {
 }
 
 /**
+ * Build the import/export section below the preset selector.
+ * Contains a text input for pasting JSON + submit arrow button,
+ * and a "Copy current settings" button.
+ */
+function buildImportExportSection(): void {
+  const form = document.getElementById('settings-form');
+  if (!form) return;
+
+  const section = document.createElement('div');
+  section.className = 'import-export-section';
+
+  // Import row: text input + submit arrow
+  const importRow = document.createElement('div');
+  importRow.className = 'import-row';
+
+  const importInput = document.createElement('input');
+  importInput.type = 'text';
+  importInput.id = 'import-json-input';
+  importInput.className = 'import-json-input';
+  importInput.placeholder = 'paste json here';
+
+  // Submit on Enter key
+  importInput.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      void handlePasteJson();
+    }
+  });
+
+  const submitBtn = document.createElement('button');
+  submitBtn.type = 'button';
+  submitBtn.id = 'import-json-btn';
+  submitBtn.className = 'import-json-btn';
+  submitBtn.textContent = '→';
+  submitBtn.title = 'Import settings from JSON';
+  submitBtn.addEventListener('click', () => {
+    void handlePasteJson();
+  });
+
+  importRow.appendChild(importInput);
+  importRow.appendChild(submitBtn);
+
+  // Copy button
+  const copyBtn = document.createElement('button');
+  copyBtn.type = 'button';
+  copyBtn.id = 'copy-settings-btn';
+  copyBtn.className = 'copy-settings-btn';
+  copyBtn.textContent = '📋 Copy current settings to clipboard';
+  copyBtn.addEventListener('click', () => {
+    handleCopyJson();
+  });
+
+  section.appendChild(importRow);
+  section.appendChild(copyBtn);
+  form.appendChild(section);
+}
+
+/**
  * Populate preset <select> options from built-in + custom presets.
  */
 function populatePresetOptions(select: HTMLSelectElement): void {
@@ -826,22 +880,6 @@ function populatePresetOptions(select: HTMLSelectElement): void {
     }
     select.appendChild(opt);
   }
-
-  // ── Copy / Paste JSON actions ──
-  const ioSep = document.createElement('option');
-  ioSep.disabled = true;
-  ioSep.textContent = '────────────';
-  select.appendChild(ioSep);
-
-  const copyOpt = document.createElement('option');
-  copyOpt.value = '__copy_json__';
-  copyOpt.textContent = '📋 Copy JSON';
-  select.appendChild(copyOpt);
-
-  const pasteOpt = document.createElement('option');
-  pasteOpt.value = '__paste_json__';
-  pasteOpt.textContent = '📥 Paste JSON';
-  select.appendChild(pasteOpt);
 }
 
 /**
@@ -908,16 +946,6 @@ async function handleSaveAsPreset(): Promise<void> {
 }
 
 async function handlePresetChange(presetId: string): Promise<void> {
-  // ── Clipboard actions ──
-  if (presetId === '__copy_json__') {
-    handleCopyJson();
-    return;
-  }
-  if (presetId === '__paste_json__') {
-    void handlePasteJson();
-    return;
-  }
-
   if (presetId === 'custom') {
     updateDeleteButton(false);
     return;
@@ -1187,6 +1215,7 @@ async function initializePopup(): Promise<void> {
 
     buildPlatformIndicator();
     buildPresetSelector();
+    buildImportExportSection();
     populateForm(settings);
     updatePresetIndicator(settings);
 
@@ -1222,28 +1251,19 @@ function handleCopyJson(): void {
       showMessage('Failed to copy', 'error');
     },
   );
-
-  // Restore previous dropdown value
-  restorePresetDropdownValue();
 }
 
 /**
- * Read JSON from clipboard and apply as settings.
+ * Read JSON from the import text field and apply as settings.
  */
 async function handlePasteJson(): Promise<void> {
-  // Restore dropdown immediately so it doesn't stay on "Paste JSON"
-  restorePresetDropdownValue();
+  const importInput = document.getElementById('import-json-input') as HTMLInputElement | null;
+  if (!importInput) return;
 
-  let text: string;
-  try {
-    text = await navigator.clipboard.readText();
-  } catch {
-    showMessage('Clipboard access denied', 'error');
-    return;
-  }
+  const text = importInput.value.trim();
 
-  if (!text.trim()) {
-    showMessage('Clipboard is empty', 'error');
+  if (!text) {
+    showMessage('Paste settings JSON first', 'error');
     return;
   }
 
@@ -1251,7 +1271,7 @@ async function handlePasteJson(): Promise<void> {
   try {
     raw = JSON.parse(text);
   } catch {
-    showMessage('Clipboard does not contain valid JSON', 'error');
+    showMessage('Invalid JSON format', 'error');
     return;
   }
 
@@ -1262,7 +1282,7 @@ async function handlePasteJson(): Promise<void> {
   }
 
   const confirm = window.confirm(
-    `Import settings from clipboard?\n\n` +
+    `Import settings?\n\n` +
       `• Global settings\n` +
       `• ${String(Object.keys(result.data.siteOverrides).length)} site override(s)\n` +
       `• ${String(result.data.customPresets.length)} custom preset(s)\n\n` +
@@ -1296,6 +1316,9 @@ async function handlePasteJson(): Promise<void> {
     buildScopeChips();
     updateScopeChips();
 
+    // Clear the import field after successful import
+    importInput.value = '';
+
     showMessage(
       `Imported! (${String(counts.siteOverrideCount)} sites, ${String(counts.customPresetCount)} presets)`,
       'success',
@@ -1304,18 +1327,6 @@ async function handlePasteJson(): Promise<void> {
     console.error('Paste import failed:', error);
     showMessage('Failed to import settings', 'error');
   }
-}
-
-/**
- * Restore the preset dropdown to the actual active value (not a copy/paste action).
- */
-function restorePresetDropdownValue(): void {
-  const select = document.getElementById('preset-select') as HTMLSelectElement | null;
-  if (!select) return;
-  const currentSettings = collectSettings();
-  const full: StorageSettings = { ...DEFAULTS, ...currentSettings };
-  const detected = detectActivePreset(full, __DEV__, customPresets);
-  select.value = detected ?? 'custom';
 }
 
 document.addEventListener('DOMContentLoaded', () => {

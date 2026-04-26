@@ -2632,4 +2632,251 @@ describe('Popup UI Integration', () => {
       expect(lastCall['backgroundColor']).toBe('green');
     });
   });
+
+  describe('import/export section', () => {
+    it('builds import/export section during initialization', async () => {
+      await triggerInit();
+
+      const section = document.querySelector('.import-export-section');
+      expect(section).toBeTruthy();
+    });
+
+    it('contains import text field with correct placeholder', async () => {
+      await triggerInit();
+
+      const input = document.getElementById('import-json-input') as HTMLInputElement | null;
+      expect(input).toBeTruthy();
+      expect(input!.type).toBe('text');
+      expect(input!.placeholder).toBe('paste json here');
+    });
+
+    it('contains import submit arrow button', async () => {
+      await triggerInit();
+
+      const btn = document.getElementById('import-json-btn');
+      expect(btn).toBeTruthy();
+      expect(btn!.textContent).toBe('→');
+      expect(btn!.title).toContain('Import');
+    });
+
+    it('contains copy settings button', async () => {
+      await triggerInit();
+
+      const btn = document.getElementById('copy-settings-btn');
+      expect(btn).toBeTruthy();
+      expect(btn!.textContent).toContain('Copy current settings');
+    });
+
+    it('preset dropdown does not contain Copy JSON or Paste JSON options', async () => {
+      await triggerInit();
+
+      const presetSelect = document.getElementById('preset-select') as HTMLSelectElement;
+      const options = Array.from(presetSelect.options);
+      const copyOption = options.find((o) => o.value === '__copy_json__');
+      const pasteOption = options.find((o) => o.value === '__paste_json__');
+      expect(copyOption).toBeUndefined();
+      expect(pasteOption).toBeUndefined();
+    });
+
+    it('shows error when importing empty text field', async () => {
+      await triggerInit();
+
+      const btn = document.getElementById('import-json-btn')!;
+      btn.click();
+
+      await new Promise((r) => setTimeout(r, 0));
+
+      const messageEl = document.getElementById('message');
+      expect(messageEl!.textContent).toContain('Paste settings JSON first');
+      expect(messageEl!.classList.contains('error')).toBe(true);
+    });
+
+    it('shows error when importing invalid JSON', async () => {
+      await triggerInit();
+
+      const input = document.getElementById('import-json-input') as HTMLInputElement;
+      input.value = 'not valid json {{{';
+
+      const btn = document.getElementById('import-json-btn')!;
+      btn.click();
+
+      await new Promise((r) => setTimeout(r, 0));
+
+      const messageEl = document.getElementById('message');
+      expect(messageEl!.textContent).toContain('Invalid JSON format');
+      expect(messageEl!.classList.contains('error')).toBe(true);
+    });
+
+    it('shows error when importing valid JSON that is not settings data', async () => {
+      await triggerInit();
+
+      const input = document.getElementById('import-json-input') as HTMLInputElement;
+      input.value = JSON.stringify({ foo: 'bar' });
+
+      // Mock window.confirm in case it gets that far
+      const originalConfirm = globalThis.confirm;
+      globalThis.confirm = vi.fn().mockReturnValue(true);
+
+      const btn = document.getElementById('import-json-btn')!;
+      btn.click();
+
+      await new Promise((r) => setTimeout(r, 0));
+
+      const messageEl = document.getElementById('message');
+      // It should show some error since there's no 'global' key
+      expect(messageEl!.classList.contains('error')).toBe(true);
+
+      globalThis.confirm = originalConfirm;
+    });
+
+    it('imports valid settings JSON and updates the form', async () => {
+      await triggerInit();
+
+      const validExport = {
+        version: 1,
+        exportedAt: new Date().toISOString(),
+        global: {
+          characterEdgeStyle: 'outline',
+          backgroundOpacity: '75',
+          windowOpacity: 'auto',
+          fontColor: 'cyan',
+          fontOpacity: 'auto',
+          backgroundColor: 'auto',
+          windowColor: 'auto',
+          fontFamily: 'casual',
+          fontSize: 'auto',
+        },
+        activePreset: null,
+        siteOverrides: {},
+        customPresets: [],
+      };
+
+      const input = document.getElementById('import-json-input') as HTMLInputElement;
+      input.value = JSON.stringify(validExport);
+
+      // Mock window.confirm to accept
+      const originalConfirm = globalThis.confirm;
+      globalThis.confirm = vi.fn().mockReturnValue(true);
+
+      const btn = document.getElementById('import-json-btn')!;
+      btn.click();
+
+      await new Promise((r) => setTimeout(r, 0));
+
+      const messageEl = document.getElementById('message');
+      expect(messageEl!.textContent).toContain('Imported!');
+      expect(messageEl!.classList.contains('success')).toBe(true);
+
+      // Verify form was updated
+      const fontColorSelect = document.querySelector<HTMLElement>('[data-id="font-color"]');
+      expect(fontColorSelect!.dataset['selectedValue']).toBe('cyan');
+
+      const edgeStyleSelect = document.querySelector<HTMLElement>(
+        '[data-id="character-edge-style"]',
+      );
+      expect(edgeStyleSelect!.dataset['selectedValue']).toBe('outline');
+
+      // Import field should be cleared after successful import
+      expect(input.value).toBe('');
+
+      globalThis.confirm = originalConfirm;
+    });
+
+    it('does not import when user cancels confirmation', async () => {
+      await triggerInit();
+      vi.mocked(chrome.storage.sync.set).mockClear();
+
+      const validExport = {
+        version: 1,
+        exportedAt: new Date().toISOString(),
+        global: {
+          characterEdgeStyle: 'outline',
+          backgroundOpacity: '75',
+          windowOpacity: 'auto',
+          fontColor: 'cyan',
+          fontOpacity: 'auto',
+          backgroundColor: 'auto',
+          windowColor: 'auto',
+          fontFamily: 'casual',
+          fontSize: 'auto',
+        },
+        activePreset: null,
+        siteOverrides: {},
+        customPresets: [],
+      };
+
+      const input = document.getElementById('import-json-input') as HTMLInputElement;
+      input.value = JSON.stringify(validExport);
+
+      // Mock window.confirm to reject
+      const originalConfirm = globalThis.confirm;
+      globalThis.confirm = vi.fn().mockReturnValue(false);
+
+      const btn = document.getElementById('import-json-btn')!;
+      btn.click();
+
+      await new Promise((r) => setTimeout(r, 0));
+
+      // No storage.sync.set calls
+      expect(vi.mocked(chrome.storage.sync.set)).not.toHaveBeenCalled();
+
+      globalThis.confirm = originalConfirm;
+    });
+
+    it('Enter key in import field triggers import', async () => {
+      await triggerInit();
+
+      const input = document.getElementById('import-json-input') as HTMLInputElement;
+      input.value = '';
+
+      // Press Enter with empty field — should show "Paste settings JSON first" error
+      input.dispatchEvent(
+        new KeyboardEvent('keydown', { key: 'Enter', bubbles: true, cancelable: true }),
+      );
+
+      await new Promise((r) => setTimeout(r, 0));
+
+      const messageEl = document.getElementById('message');
+      expect(messageEl!.textContent).toContain('Paste settings JSON first');
+    });
+
+    it('copy button calls clipboard API', async () => {
+      await triggerInit();
+
+      const btn = document.getElementById('copy-settings-btn')!;
+      btn.click();
+
+      await new Promise((r) => setTimeout(r, 0));
+
+      // navigator.clipboard.writeText should have been called
+      expect(navigator.clipboard.writeText).toHaveBeenCalled();
+    });
+
+    it('import row has correct structure (input + submit button)', async () => {
+      await triggerInit();
+
+      const importRow = document.querySelector('.import-row');
+      expect(importRow).toBeTruthy();
+
+      const children = importRow!.children;
+      expect(children.length).toBe(2);
+      expect(children[0]!.id).toBe('import-json-input');
+      expect(children[1]!.id).toBe('import-json-btn');
+    });
+
+    it('section is placed after preset group', async () => {
+      await triggerInit();
+
+      const form = document.getElementById('settings-form')!;
+      const children = Array.from(form.children);
+      const presetGroupIdx = children.findIndex((c) => c.classList.contains('preset-group'));
+      const importExportIdx = children.findIndex((c) =>
+        c.classList.contains('import-export-section'),
+      );
+
+      expect(presetGroupIdx).toBeGreaterThan(-1);
+      expect(importExportIdx).toBeGreaterThan(-1);
+      expect(importExportIdx).toBeGreaterThan(presetGroupIdx);
+    });
+  });
 });
