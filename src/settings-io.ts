@@ -282,6 +282,111 @@ export function validateImportData(raw: unknown): ValidationResult {
 }
 
 /**
+ * A lightweight preset payload: global settings + optional site overrides.
+ * No version envelope, no customPresets array.
+ */
+export interface PresetPayload {
+  global: StorageSettings;
+  siteOverrides: SiteSettingsMap;
+}
+
+/**
+ * Result of validating a preset JSON payload.
+ */
+export interface PresetValidationResult {
+  valid: boolean;
+  error?: string;
+  /** Sanitized data. Only set when valid. */
+  data?: PresetPayload;
+}
+
+/**
+ * Validate a preset-shaped JSON payload.
+ *
+ * Accepts two formats:
+ * 1. Envelope: `{ global: StorageSettings, siteOverrides?: ... }`
+ * 2. Flat: bare `StorageSettings` keys at root (wrapped automatically)
+ *
+ * Returns sanitized data with invalid values replaced by defaults.
+ */
+export function validatePresetJson(raw: unknown): PresetValidationResult {
+  if (raw == null || typeof raw !== 'object') {
+    return { valid: false, error: 'Expected a JSON object' };
+  }
+
+  const obj = raw as Record<string, unknown>;
+
+  // Detect flat StorageSettings (at least one known key, no 'global' wrapper)
+  const isFlatSettings =
+    !('global' in obj) &&
+    V1_SETTING_KEYS.some((key) => key in obj);
+
+  let globalRaw: unknown;
+  let siteOverridesRaw: unknown;
+
+  if (isFlatSettings) {
+    globalRaw = obj;
+    siteOverridesRaw = {};
+  } else if ('global' in obj) {
+    globalRaw = obj['global'];
+    siteOverridesRaw = obj['siteOverrides'] ?? {};
+  } else {
+    return { valid: false, error: 'Missing "global" settings object' };
+  }
+
+  // Validate global settings
+  const { settings: globalSettings, errors: globalErrors } = validateSettings(
+    globalRaw,
+    'global',
+  );
+  if (globalRaw == null || typeof globalRaw !== 'object') {
+    return { valid: false, error: 'Invalid "global" settings' };
+  }
+
+  // Validate site overrides
+  const siteOverrides: SiteSettingsMap = {};
+  const siteErrors: string[] = [];
+  if (siteOverridesRaw != null && typeof siteOverridesRaw === 'object') {
+    const overridesObj = siteOverridesRaw as Record<string, unknown>;
+    for (const [platform, override] of Object.entries(overridesObj)) {
+      if (!VALID_PLATFORMS.includes(platform)) {
+        siteErrors.push(`Unknown platform "${platform}"`);
+        continue;
+      }
+
+      if (override == null || typeof override !== 'object') {
+        siteErrors.push(`${platform}: expected an object`);
+        continue;
+      }
+
+      const overrideObj = override as Record<string, unknown>;
+      const { settings } = validateSettings(
+        overrideObj['settings'],
+        `siteOverrides.${platform}.settings`,
+      );
+
+      if (overrideObj['settings'] != null && typeof overrideObj['settings'] === 'object') {
+        const sitePreset =
+          overrideObj['activePreset'] === null || typeof overrideObj['activePreset'] === 'string'
+            ? overrideObj['activePreset']
+            : null;
+        siteOverrides[platform as Platform] = { settings, activePreset: sitePreset };
+      }
+    }
+  }
+
+  // Log warnings but don't fail
+  if (globalErrors.length > 0 || siteErrors.length > 0) {
+    console.warn('Preset import warnings:', [...globalErrors, ...siteErrors]);
+  }
+
+  return {
+    valid: true,
+    data: { global: globalSettings, siteOverrides },
+  };
+}
+
+/**
  * Build an export payload from the current extension state.
  */
 export function buildExportData(

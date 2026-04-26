@@ -2734,28 +2734,20 @@ describe('Popup UI Integration', () => {
       const input = document.getElementById('import-json-input') as HTMLInputElement;
       input.value = JSON.stringify({ foo: 'bar' });
 
-      // Mock window.confirm in case it gets that far
-      const originalConfirm = globalThis.confirm;
-      globalThis.confirm = vi.fn().mockReturnValue(true);
-
       const btn = document.getElementById('import-json-btn')!;
       btn.click();
 
       await new Promise((r) => setTimeout(r, 0));
 
       const messageEl = document.getElementById('message');
-      // It should show some error since there's no 'global' key
+      // It should show some error since there's no 'global' key and no known settings keys
       expect(messageEl!.classList.contains('error')).toBe(true);
-
-      globalThis.confirm = originalConfirm;
     });
 
-    it('imports valid settings JSON and updates the form', async () => {
+    it('imports valid preset JSON, prompts for name, and saves as custom preset', async () => {
       await triggerInit();
 
-      const validExport = {
-        version: 1,
-        exportedAt: new Date().toISOString(),
+      const validPreset = {
         global: {
           characterEdgeStyle: 'outline',
           backgroundOpacity: '75',
@@ -2767,25 +2759,27 @@ describe('Popup UI Integration', () => {
           fontFamily: 'casual',
           fontSize: 'auto',
         },
-        activePreset: null,
         siteOverrides: {},
-        customPresets: [],
       };
 
       const input = document.getElementById('import-json-input') as HTMLInputElement;
-      input.value = JSON.stringify(validExport);
+      input.value = JSON.stringify(validPreset);
 
-      // Mock window.confirm to accept
-      const originalConfirm = globalThis.confirm;
-      globalThis.confirm = vi.fn().mockReturnValue(true);
+      // Mock window.prompt to return a preset name
+      const originalPrompt = globalThis.prompt;
+      globalThis.prompt = vi.fn().mockReturnValue('My Cool Preset');
 
       const btn = document.getElementById('import-json-btn')!;
       btn.click();
 
       await new Promise((r) => setTimeout(r, 0));
 
+      // Prompt should have been called
+      expect(globalThis.prompt).toHaveBeenCalledWith('Preset name:');
+
       const messageEl = document.getElementById('message');
-      expect(messageEl!.textContent).toContain('Imported!');
+      expect(messageEl!.textContent).toContain('My Cool Preset');
+      expect(messageEl!.textContent).toContain('saved!');
       expect(messageEl!.classList.contains('success')).toBe(true);
 
       // Verify form was updated
@@ -2800,16 +2794,52 @@ describe('Popup UI Integration', () => {
       // Import field should be cleared after successful import
       expect(input.value).toBe('');
 
-      globalThis.confirm = originalConfirm;
+      globalThis.prompt = originalPrompt;
     });
 
-    it('does not import when user cancels confirmation', async () => {
+    it('imports flat StorageSettings JSON (no envelope)', async () => {
+      await triggerInit();
+
+      const flatSettings = {
+        characterEdgeStyle: 'dropshadow',
+        backgroundOpacity: '50',
+        windowOpacity: 'auto',
+        fontColor: 'yellow',
+        fontOpacity: 'auto',
+        backgroundColor: 'black',
+        windowColor: 'auto',
+        fontFamily: 'auto',
+        fontSize: '150%',
+      };
+
+      const input = document.getElementById('import-json-input') as HTMLInputElement;
+      input.value = JSON.stringify(flatSettings);
+
+      const originalPrompt = globalThis.prompt;
+      globalThis.prompt = vi.fn().mockReturnValue('Flat Preset');
+
+      const btn = document.getElementById('import-json-btn')!;
+      btn.click();
+
+      await new Promise((r) => setTimeout(r, 0));
+
+      const messageEl = document.getElementById('message');
+      expect(messageEl!.textContent).toContain('Flat Preset');
+      expect(messageEl!.textContent).toContain('saved!');
+      expect(messageEl!.classList.contains('success')).toBe(true);
+
+      // Verify the font color was applied
+      const fontColorSelect = document.querySelector<HTMLElement>('[data-id="font-color"]');
+      expect(fontColorSelect!.dataset['selectedValue']).toBe('yellow');
+
+      globalThis.prompt = originalPrompt;
+    });
+
+    it('does not import when user cancels name prompt', async () => {
       await triggerInit();
       vi.mocked(chrome.storage.sync.set).mockClear();
 
-      const validExport = {
-        version: 1,
-        exportedAt: new Date().toISOString(),
+      const validPreset = {
         global: {
           characterEdgeStyle: 'outline',
           backgroundOpacity: '75',
@@ -2821,17 +2851,15 @@ describe('Popup UI Integration', () => {
           fontFamily: 'casual',
           fontSize: 'auto',
         },
-        activePreset: null,
         siteOverrides: {},
-        customPresets: [],
       };
 
       const input = document.getElementById('import-json-input') as HTMLInputElement;
-      input.value = JSON.stringify(validExport);
+      input.value = JSON.stringify(validPreset);
 
-      // Mock window.confirm to reject
-      const originalConfirm = globalThis.confirm;
-      globalThis.confirm = vi.fn().mockReturnValue(false);
+      // Mock window.prompt to return null (cancelled)
+      const originalPrompt = globalThis.prompt;
+      globalThis.prompt = vi.fn().mockReturnValue(null);
 
       const btn = document.getElementById('import-json-btn')!;
       btn.click();
@@ -2841,27 +2869,47 @@ describe('Popup UI Integration', () => {
       // No storage.sync.set calls
       expect(vi.mocked(chrome.storage.sync.set)).not.toHaveBeenCalled();
 
-      globalThis.confirm = originalConfirm;
+      globalThis.prompt = originalPrompt;
     });
 
-    it('Enter key in import field triggers import', async () => {
+    it('does not import when user enters empty name', async () => {
       await triggerInit();
+      vi.mocked(chrome.storage.sync.set).mockClear();
+
+      const validPreset = {
+        global: {
+          characterEdgeStyle: 'outline',
+          backgroundOpacity: '75',
+          windowOpacity: 'auto',
+          fontColor: 'cyan',
+          fontOpacity: 'auto',
+          backgroundColor: 'auto',
+          windowColor: 'auto',
+          fontFamily: 'casual',
+          fontSize: 'auto',
+        },
+        siteOverrides: {},
+      };
 
       const input = document.getElementById('import-json-input') as HTMLInputElement;
-      input.value = '';
+      input.value = JSON.stringify(validPreset);
 
-      // Press Enter with empty field — should show "Paste settings JSON first" error
-      input.dispatchEvent(
-        new KeyboardEvent('keydown', { key: 'Enter', bubbles: true, cancelable: true }),
-      );
+      // Mock window.prompt to return empty string
+      const originalPrompt = globalThis.prompt;
+      globalThis.prompt = vi.fn().mockReturnValue('   ');
+
+      const btn = document.getElementById('import-json-btn')!;
+      btn.click();
 
       await new Promise((r) => setTimeout(r, 0));
 
-      const messageEl = document.getElementById('message');
-      expect(messageEl!.textContent).toContain('Paste settings JSON first');
+      // No storage.sync.set calls
+      expect(vi.mocked(chrome.storage.sync.set)).not.toHaveBeenCalled();
+
+      globalThis.prompt = originalPrompt;
     });
 
-    it('copy button calls clipboard API', async () => {
+    it('copy button exports preset format (global + siteOverrides only)', async () => {
       await triggerInit();
 
       const btn = document.getElementById('copy-settings-btn')!;
@@ -2869,8 +2917,21 @@ describe('Popup UI Integration', () => {
 
       await new Promise((r) => setTimeout(r, 0));
 
-      // navigator.clipboard.writeText should have been called
       expect(navigator.clipboard.writeText).toHaveBeenCalled();
+
+      // Verify the JSON format
+      const writtenJson = vi.mocked(navigator.clipboard.writeText).mock.calls[0]?.[0] as string;
+      const parsed = JSON.parse(writtenJson) as Record<string, unknown>;
+
+      // Should have global and siteOverrides
+      expect(parsed).toHaveProperty('global');
+      expect(parsed).toHaveProperty('siteOverrides');
+
+      // Should NOT have version, exportedAt, customPresets, activePreset
+      expect(parsed).not.toHaveProperty('version');
+      expect(parsed).not.toHaveProperty('exportedAt');
+      expect(parsed).not.toHaveProperty('customPresets');
+      expect(parsed).not.toHaveProperty('activePreset');
     });
 
     it('import row has correct structure (input + submit button)', async () => {

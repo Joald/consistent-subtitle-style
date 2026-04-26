@@ -1,6 +1,7 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import {
   validateImportData,
+  validatePresetJson,
   buildExportData,
   applyImportData,
   readJsonFile,
@@ -625,6 +626,99 @@ describe('settings-io', () => {
 
       appendChildSpy.mockRestore();
       removeChildSpy.mockRestore();
+    });
+  });
+
+  describe('validatePresetJson', () => {
+    it('accepts envelope format with global + siteOverrides', () => {
+      const result = validatePresetJson({
+        global: SAMPLE_SETTINGS,
+        siteOverrides: {},
+      });
+      expect(result.valid).toBe(true);
+      expect(result.data).toBeTruthy();
+      expect(result.data!.global).toEqual(SAMPLE_SETTINGS);
+      expect(result.data!.siteOverrides).toEqual({});
+    });
+
+    it('accepts envelope format without siteOverrides', () => {
+      const result = validatePresetJson({
+        global: SAMPLE_SETTINGS,
+      });
+      expect(result.valid).toBe(true);
+      expect(result.data!.siteOverrides).toEqual({});
+    });
+
+    it('accepts flat StorageSettings at root level', () => {
+      const result = validatePresetJson({ ...SAMPLE_SETTINGS });
+      expect(result.valid).toBe(true);
+      expect(result.data!.global).toEqual(SAMPLE_SETTINGS);
+      expect(result.data!.siteOverrides).toEqual({});
+    });
+
+    it('accepts envelope with site overrides', () => {
+      const result = validatePresetJson({
+        global: SAMPLE_SETTINGS,
+        siteOverrides: {
+          youtube: { settings: SAMPLE_SETTINGS, activePreset: null },
+        },
+      });
+      expect(result.valid).toBe(true);
+      expect(result.data!.siteOverrides).toHaveProperty('youtube');
+    });
+
+    it('rejects null', () => {
+      const result = validatePresetJson(null);
+      expect(result.valid).toBe(false);
+      expect(result.error).toBeTruthy();
+    });
+
+    it('rejects non-object', () => {
+      const result = validatePresetJson('hello');
+      expect(result.valid).toBe(false);
+    });
+
+    it('rejects object with no global and no known settings keys', () => {
+      const result = validatePresetJson({ foo: 'bar' });
+      expect(result.valid).toBe(false);
+      expect(result.error).toContain('global');
+    });
+
+    it('sanitizes invalid values in global settings to defaults', () => {
+      const result = validatePresetJson({
+        global: {
+          ...SAMPLE_SETTINGS,
+          fontColor: 'neon-pink', // invalid
+        },
+      });
+      expect(result.valid).toBe(true);
+      // Invalid value should be replaced with default
+      expect(result.data!.global.fontColor).toBe(DEFAULTS.fontColor);
+    });
+
+    it('ignores unknown platforms in siteOverrides', () => {
+      const result = validatePresetJson({
+        global: SAMPLE_SETTINGS,
+        siteOverrides: {
+          fakeplatform: { settings: SAMPLE_SETTINGS, activePreset: null },
+          youtube: { settings: SAMPLE_SETTINGS, activePreset: null },
+        },
+      });
+      expect(result.valid).toBe(true);
+      expect(result.data!.siteOverrides).not.toHaveProperty('fakeplatform');
+      expect(result.data!.siteOverrides).toHaveProperty('youtube');
+    });
+
+    it('handles partial flat settings (fills missing with defaults)', () => {
+      const result = validatePresetJson({
+        fontColor: 'cyan',
+        fontSize: '200%',
+      });
+      expect(result.valid).toBe(true);
+      expect(result.data!.global.fontColor).toBe('cyan');
+      expect(result.data!.global.fontSize).toBe('200%');
+      // Missing keys filled with defaults
+      expect(result.data!.global.fontFamily).toBe(DEFAULTS.fontFamily);
     });
   });
 });

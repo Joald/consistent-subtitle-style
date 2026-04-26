@@ -16,7 +16,7 @@ import {
 import { loadCustomPresets, saveCustomPreset, deleteCustomPreset } from '../custom-presets.js';
 import { getPlatformDoc } from '../platform-docs.js';
 import { platformIconHtml } from '../platform-icons.js';
-import { buildExportData, validateImportData, applyImportData } from '../settings-io.js';
+import { validatePresetJson } from '../settings-io.js';
 import type { CustomPreset } from '../custom-presets.js';
 import type { SiteSettingsMap } from '../site-settings.js';
 import type { Platform } from '../platforms/index.js';
@@ -1375,21 +1375,19 @@ async function initializePopup(): Promise<void> {
 }
 
 /**
- * Copy current settings as JSON to the clipboard.
+ * Copy current settings as a preset JSON to the clipboard.
+ * Exports only global StorageSettings + site overrides (no version envelope,
+ * no custom presets array).
  */
 function handleCopyJson(): void {
   if (!globalSettings) return;
 
-  const presetContainer = document.getElementById('preset-select');
-  const activePreset = presetContainer
-    ? ((): string | null => {
-        const val = getCustomSelectValue(presetContainer);
-        return val !== 'custom' ? val : null;
-      })()
-    : null;
+  const payload: { global: StorageSettings; siteOverrides: typeof allSiteOverrides } = {
+    global: { ...globalSettings },
+    siteOverrides: { ...allSiteOverrides },
+  };
 
-  const data = buildExportData(globalSettings, activePreset, allSiteOverrides, customPresets);
-  const json = JSON.stringify(data, null, 2);
+  const json = JSON.stringify(payload, null, 2);
 
   void navigator.clipboard.writeText(json).then(
     () => {
@@ -1402,7 +1400,8 @@ function handleCopyJson(): void {
 }
 
 /**
- * Read JSON from the import text field and apply as settings.
+ * Read JSON from the import text field, validate as a preset, prompt for a
+ * name, and save as a new custom preset.
  */
 async function handlePasteJson(): Promise<void> {
   const importInput = document.getElementById('import-json-input') as HTMLInputElement | null;
@@ -1423,33 +1422,45 @@ async function handlePasteJson(): Promise<void> {
     return;
   }
 
-  const result = validateImportData(raw);
+  const result = validatePresetJson(raw);
   if (!result.valid || !result.data) {
-    showMessage('Invalid settings JSON', 'error');
+    showMessage(result.error ?? 'Invalid preset JSON', 'error');
     return;
   }
 
-  const confirm = window.confirm(
-    `Import settings?\n\n` +
-      `• Global settings\n` +
-      `• ${String(Object.keys(result.data.siteOverrides).length)} site override(s)\n` +
-      `• ${String(result.data.customPresets.length)} custom preset(s)\n\n` +
-      `This will overwrite your current settings.`,
-  );
-  if (!confirm) return;
+  // Prompt for a preset name
+  const name = window.prompt('Preset name:');
+  if (!name || !name.trim()) return;
 
   try {
-    const counts = await applyImportData(result.data);
+    // Save as a new custom preset (global settings)
+    const newPreset = await saveCustomPreset(name.trim(), result.data.global);
+    customPresets = await loadCustomPresets();
 
-    // Refresh local state
+    // Merge imported site overrides into storage if present
+    const importedOverrides = result.data.siteOverrides;
+    const importedPlatforms = Object.keys(importedOverrides);
+    if (importedPlatforms.length > 0) {
+      // Merge into existing site overrides
+      for (const [platform, override] of Object.entries(importedOverrides)) {
+        if (override) {
+          allSiteOverrides[platform as Platform] = override;
+        }
+      }
+      await chrome.storage.sync.set({ siteSettings: allSiteOverrides });
+    }
+
+    // Apply the preset's global settings as the current settings
     globalSettings = result.data.global;
-    allSiteOverrides = result.data.siteOverrides;
-    customPresets = result.data.customPresets;
+    await chrome.storage.sync.set({
+      ...globalSettings,
+      activePreset: newPreset.id,
+    });
 
     // Refresh the UI
     refreshPresetDropdown();
 
-    // Determine what to display: if on a platform with override, show that
+    // Determine what to display
     let displaySettings = globalSettings;
     if (currentPlatform && allSiteOverrides[currentPlatform]) {
       displaySettings = allSiteOverrides[currentPlatform]!.settings;
@@ -1464,16 +1475,15 @@ async function handlePasteJson(): Promise<void> {
     buildScopeChips();
     updateScopeChips();
 
-    // Clear the import field after successful import
+    // Clear the import field
     importInput.value = '';
 
-    showMessage(
-      `Imported! (${String(counts.siteOverrideCount)} sites, ${String(counts.customPresetCount)} presets)`,
-      'success',
-    );
+    const siteCount = importedPlatforms.length;
+    const siteMsg = siteCount > 0 ? ` + ${String(siteCount)} site override(s)` : '';
+    showMessage(`Preset "${name.trim()}" saved!${siteMsg}`, 'success');
   } catch (error) {
-    console.error('Paste import failed:', error);
-    showMessage('Failed to import settings', 'error');
+    console.error('Preset import failed:', error);
+    showMessage('Failed to import preset', 'error');
   }
 }
 
