@@ -123,29 +123,31 @@ describe('Popup UI Integration', () => {
     it('builds preset dropdown during initialization', async () => {
       await triggerInit();
 
-      const presetSelect = document.getElementById('preset-select') as HTMLSelectElement | null;
+      const presetSelect = document.getElementById('preset-select');
       expect(presetSelect).toBeTruthy();
-      expect(presetSelect!.tagName).toBe('SELECT');
+      expect(presetSelect!.classList.contains('custom-select')).toBe(true);
 
-      // Should have Custom + 3 production + separator + 6 dev presets = 11 options
-      const options = presetSelect!.querySelectorAll('option');
+      // Should have Custom + 3 production + separator + 6 dev presets as .select-option divs
+      const options = presetSelect!.querySelectorAll('.select-option');
       expect(options.length).toBeGreaterThanOrEqual(4); // custom + 3 production at minimum
     });
 
     it('includes "Custom" as the first option', async () => {
       await triggerInit();
 
-      const presetSelect = document.getElementById('preset-select') as HTMLSelectElement;
-      const firstOption = presetSelect.querySelector('option');
-      expect(firstOption!.value).toBe('custom');
+      const presetSelect = document.getElementById('preset-select')!;
+      const firstOption = presetSelect.querySelector('.select-option');
+      expect(firstOption!.getAttribute('data-value')).toBe('custom');
       expect(firstOption!.textContent).toBe('Custom');
     });
 
     it('marks recommended preset with a star', async () => {
       await triggerInit();
 
-      const presetSelect = document.getElementById('preset-select') as HTMLSelectElement;
-      const recommendedOption = presetSelect.querySelector('option[value="recommended"]');
+      const presetSelect = document.getElementById('preset-select')!;
+      const recommendedOption = presetSelect.querySelector(
+        '.select-option[data-value="recommended"]',
+      );
       expect(recommendedOption).toBeTruthy();
       expect(recommendedOption!.textContent).toContain('★');
     });
@@ -153,8 +155,10 @@ describe('Popup UI Integration', () => {
     it('includes dev presets when __DEV__ is true', async () => {
       await triggerInit();
 
-      const presetSelect = document.getElementById('preset-select') as HTMLSelectElement;
-      const devOption = presetSelect.querySelector('option[value="dev-high-contrast"]');
+      const presetSelect = document.getElementById('preset-select')!;
+      const devOption = presetSelect.querySelector(
+        '.select-option[data-value="dev-high-contrast"]',
+      );
       expect(devOption).toBeTruthy();
     });
 
@@ -170,8 +174,8 @@ describe('Popup UI Integration', () => {
 
       await triggerInit();
 
-      const presetSelect = document.getElementById('preset-select') as HTMLSelectElement;
-      expect(presetSelect.value).toBe('recommended');
+      const presetSelect = document.getElementById('preset-select')!;
+      expect(presetSelect.dataset['selectedValue']).toBe('recommended');
     });
 
     it('shows "custom" when settings do not match any preset', async () => {
@@ -183,16 +187,18 @@ describe('Popup UI Integration', () => {
 
       await triggerInit();
 
-      const presetSelect = document.getElementById('preset-select') as HTMLSelectElement;
-      expect(presetSelect.value).toBe('custom');
+      const presetSelect = document.getElementById('preset-select')!;
+      expect(presetSelect.dataset['selectedValue']).toBe('custom');
     });
 
     it('applies preset settings when a preset is selected', async () => {
       await triggerInit();
 
-      const presetSelect = document.getElementById('preset-select') as HTMLSelectElement;
-      presetSelect.value = 'recommended';
-      presetSelect.dispatchEvent(new Event('change'));
+      const presetSelect = document.getElementById('preset-select')!;
+      const recommendedOption = presetSelect.querySelector<HTMLElement>(
+        '.select-option[data-value="recommended"]',
+      )!;
+      recommendedOption.click();
 
       await new Promise((r) => setTimeout(r, 0));
 
@@ -209,9 +215,11 @@ describe('Popup UI Integration', () => {
     it('saves preset via chrome.storage.sync when applying a preset', async () => {
       await triggerInit();
 
-      const presetSelect = document.getElementById('preset-select') as HTMLSelectElement;
-      presetSelect.value = 'classic';
-      presetSelect.dispatchEvent(new Event('change'));
+      const presetSelect = document.getElementById('preset-select')!;
+      const classicOption = presetSelect.querySelector<HTMLElement>(
+        '.select-option[data-value="classic"]',
+      )!;
+      classicOption.click();
 
       await new Promise((r) => setTimeout(r, 0));
 
@@ -230,9 +238,11 @@ describe('Popup UI Integration', () => {
       await triggerInit();
       vi.mocked(chrome.storage.sync.set).mockClear();
 
-      const presetSelect = document.getElementById('preset-select') as HTMLSelectElement;
-      presetSelect.value = 'custom';
-      presetSelect.dispatchEvent(new Event('change'));
+      const presetSelect = document.getElementById('preset-select')!;
+      const customOption = presetSelect.querySelector<HTMLElement>(
+        '.select-option[data-value="custom"]',
+      )!;
+      customOption.click();
 
       await new Promise((r) => setTimeout(r, 0));
 
@@ -252,8 +262,8 @@ describe('Popup UI Integration', () => {
 
       await triggerInit();
 
-      const presetSelect = document.getElementById('preset-select') as HTMLSelectElement;
-      expect(presetSelect.value).toBe('recommended');
+      const presetSelect = document.getElementById('preset-select')!;
+      expect(presetSelect.dataset['selectedValue']).toBe('recommended');
 
       // Change font color manually (breaks the preset match)
       const fontColorSelect = document.querySelector<HTMLElement>('[data-id="font-color"]');
@@ -264,7 +274,7 @@ describe('Popup UI Integration', () => {
 
       await new Promise((r) => setTimeout(r, 0));
 
-      expect(presetSelect.value).toBe('custom');
+      expect(presetSelect.dataset['selectedValue']).toBe('custom');
     });
   });
 
@@ -1271,9 +1281,11 @@ describe('Popup UI Integration', () => {
     it('shows preset name message when applying a preset', async () => {
       await triggerInit();
 
-      const presetSelect = document.getElementById('preset-select') as HTMLSelectElement;
-      presetSelect.value = 'classic';
-      presetSelect.dispatchEvent(new Event('change'));
+      const presetSelect = document.getElementById('preset-select')!;
+      const classicOption = presetSelect.querySelector<HTMLElement>(
+        '.select-option[data-value="classic"]',
+      )!;
+      classicOption.click();
 
       await new Promise((r) => setTimeout(r, 0));
 
@@ -1316,9 +1328,11 @@ describe('Popup UI Integration', () => {
       mockActiveTab('https://www.youtube.com/watch?v=abc');
       await triggerInit();
 
-      const presetSelect = document.getElementById('preset-select') as HTMLSelectElement;
-      presetSelect.value = 'recommended';
-      presetSelect.dispatchEvent(new Event('change'));
+      const presetSelect = document.getElementById('preset-select')!;
+      const recommendedOption = presetSelect.querySelector<HTMLElement>(
+        '.select-option[data-value="recommended"]',
+      )!;
+      recommendedOption.click();
 
       await new Promise((r) => setTimeout(r, 0));
 
@@ -1996,11 +2010,12 @@ describe('Popup UI Integration', () => {
 
       await triggerInit();
 
-      const presetSelect = document.getElementById('preset-select') as HTMLSelectElement;
-      const options = Array.from(presetSelect.options);
-      const separatorOption = options.find((o) => o.textContent?.includes('My Presets'));
+      const presetSelect = document.getElementById('preset-select')!;
+      const separators = presetSelect.querySelectorAll('.select-separator');
+      const separatorOption = Array.from(separators).find((o) =>
+        o.textContent?.includes('My Presets'),
+      );
       expect(separatorOption).toBeTruthy();
-      expect(separatorOption!.disabled).toBe(true);
     });
 
     it('includes custom presets in dropdown', async () => {
@@ -2022,8 +2037,8 @@ describe('Popup UI Integration', () => {
 
       await triggerInit();
 
-      const presetSelect = document.getElementById('preset-select') as HTMLSelectElement;
-      const customOption = presetSelect.querySelector('option[value="custom-1"]');
+      const presetSelect = document.getElementById('preset-select')!;
+      const customOption = presetSelect.querySelector('.select-option[data-value="custom-1"]');
       expect(customOption).toBeTruthy();
       expect(customOption!.textContent).toContain('Cinema Mode');
     });
@@ -2047,9 +2062,9 @@ describe('Popup UI Integration', () => {
 
       await triggerInit();
 
-      const presetSelect = document.getElementById('preset-select') as HTMLSelectElement;
-      const customOption = presetSelect.querySelector<HTMLOptionElement>(
-        'option[value="custom-1"]',
+      const presetSelect = document.getElementById('preset-select')!;
+      const customOption = presetSelect.querySelector<HTMLElement>(
+        '.select-option[data-value="custom-1"]',
       );
       expect(customOption).toBeTruthy();
       expect(customOption!.textContent).toBe('My Preset');
@@ -2117,8 +2132,8 @@ describe('Popup UI Integration', () => {
 
       await triggerInit();
 
-      const presetSelect = document.getElementById('preset-select') as HTMLSelectElement;
-      expect(presetSelect.value).toBe('custom-1');
+      const presetSelect = document.getElementById('preset-select')!;
+      expect(presetSelect.dataset['selectedValue']).toBe('custom-1');
     });
 
     it('saves custom preset when save button is clicked', async () => {
@@ -2196,9 +2211,11 @@ describe('Popup UI Integration', () => {
     it('shows no "My Presets" separator when no custom presets exist', async () => {
       await triggerInit();
 
-      const presetSelect = document.getElementById('preset-select') as HTMLSelectElement;
-      const options = Array.from(presetSelect.options);
-      const separatorOption = options.find((o) => o.textContent?.includes('My Presets'));
+      const presetSelect = document.getElementById('preset-select')!;
+      const separators = presetSelect.querySelectorAll('.select-separator');
+      const separatorOption = Array.from(separators).find((o) =>
+        o.textContent?.includes('My Presets'),
+      );
       expect(separatorOption).toBeUndefined();
     });
 
@@ -2670,10 +2687,14 @@ describe('Popup UI Integration', () => {
     it('preset dropdown does not contain Copy JSON or Paste JSON options', async () => {
       await triggerInit();
 
-      const presetSelect = document.getElementById('preset-select') as HTMLSelectElement;
-      const options = Array.from(presetSelect.options);
-      const copyOption = options.find((o) => o.value === '__copy_json__');
-      const pasteOption = options.find((o) => o.value === '__paste_json__');
+      const presetSelect = document.getElementById('preset-select')!;
+      const options = presetSelect.querySelectorAll('.select-option');
+      const copyOption = Array.from(options).find(
+        (o) => o instanceof HTMLElement && o.dataset['value'] === '__copy_json__',
+      );
+      const pasteOption = Array.from(options).find(
+        (o) => o instanceof HTMLElement && o.dataset['value'] === '__paste_json__',
+      );
       expect(copyOption).toBeUndefined();
       expect(pasteOption).toBeUndefined();
     });

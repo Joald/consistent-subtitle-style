@@ -499,6 +499,8 @@ function setupCustomSelects(): void {
 
   selects.forEach((select) => {
     if (!(select instanceof HTMLElement)) return;
+    // Skip the preset dropdown — it has its own listeners via setupPresetOptionListeners
+    if (select.dataset['id'] === 'preset') return;
     const container = select;
     const trigger = container.querySelector('.select-trigger');
     const options = container.querySelectorAll('.select-option');
@@ -698,8 +700,8 @@ function updateAriaExpanded(container: HTMLElement, expanded: boolean): void {
 }
 
 function updatePresetIndicator(settings: Partial<StorageSettings>): void {
-  const presetSelect = document.getElementById('preset-select') as HTMLSelectElement | null;
-  if (!presetSelect) return;
+  const presetContainer = document.getElementById('preset-select');
+  if (!presetContainer) return;
   // Fill missing keys with 'auto' for detection
   const full: StorageSettings = {
     characterEdgeStyle: 'auto',
@@ -714,7 +716,7 @@ function updatePresetIndicator(settings: Partial<StorageSettings>): void {
     ...settings,
   };
   const detected = detectActivePreset(full, __DEV__, customPresets);
-  presetSelect.value = detected ?? 'custom';
+  setCustomSelectValue(presetContainer, detected ?? 'custom');
 
   // Show delete button only when a custom preset is active
   const isCustom = customPresets.some((cp) => cp.id === detected);
@@ -728,22 +730,46 @@ function buildPresetSelector(): void {
   const wrapper = document.createElement('div');
   wrapper.className = 'form-group preset-group';
 
-  const label = document.createElement('label');
-  label.setAttribute('for', 'preset-select');
-  label.textContent = 'Preset';
-
   const selectRow = document.createElement('div');
   selectRow.className = 'preset-row';
 
-  const select = document.createElement('select');
-  select.id = 'preset-select';
-  select.className = 'preset-select';
+  // Build custom-select container
+  const container = document.createElement('div');
+  container.className = 'custom-select';
+  container.id = 'preset-select';
+  container.dataset['id'] = 'preset';
 
-  populatePresetOptions(select);
+  const trigger = document.createElement('div');
+  trigger.className = 'select-trigger';
+  trigger.tabIndex = 0;
+  trigger.setAttribute('role', 'combobox');
+  trigger.setAttribute('aria-expanded', 'false');
+  trigger.setAttribute('aria-haspopup', 'listbox');
 
-  select.addEventListener('change', () => {
-    void handlePresetChange(select.value);
-  });
+  const nameSpan = document.createElement('span');
+  nameSpan.className = 'select-name';
+  nameSpan.textContent = 'Preset';
+
+  const valueSpan = document.createElement('span');
+  valueSpan.className = 'select-value';
+  valueSpan.textContent = 'Custom';
+
+  const arrowSpan = document.createElement('span');
+  arrowSpan.className = 'select-arrow';
+  arrowSpan.textContent = '▼';
+
+  trigger.appendChild(nameSpan);
+  trigger.appendChild(valueSpan);
+  trigger.appendChild(arrowSpan);
+
+  const optionsContainer = document.createElement('div');
+  optionsContainer.className = 'select-options';
+  optionsContainer.setAttribute('role', 'listbox');
+
+  container.appendChild(trigger);
+  container.appendChild(optionsContainer);
+
+  populatePresetOptions(container);
 
   const saveBtn = document.createElement('button');
   saveBtn.type = 'button';
@@ -763,16 +789,15 @@ function buildPresetSelector(): void {
   deleteBtn.title = 'Delete Custom Preset';
   deleteBtn.style.display = 'none';
   deleteBtn.addEventListener('click', () => {
-    const currentId = select.value;
+    const currentId = getCustomSelectValue(container);
     if (currentId && currentId !== 'custom') {
       void handleDeleteCustomPreset(currentId);
     }
   });
 
-  selectRow.appendChild(select);
+  selectRow.appendChild(container);
   selectRow.appendChild(saveBtn);
   selectRow.appendChild(deleteBtn);
-  wrapper.appendChild(label);
   wrapper.appendChild(selectRow);
 
   // Insert after the last element in the form (at the bottom)
@@ -838,17 +863,22 @@ function buildImportExportSection(): void {
 }
 
 /**
- * Populate preset <select> options from built-in + custom presets.
+ * Populate preset custom-select options from built-in + custom presets.
  */
-function populatePresetOptions(select: HTMLSelectElement): void {
+function populatePresetOptions(container: HTMLElement): void {
+  const optionsContainer = container.querySelector('.select-options');
+  if (!optionsContainer) return;
+
   // Clear existing options
-  select.innerHTML = '';
+  optionsContainer.innerHTML = '';
 
   // "Custom" option (shown when no preset matches)
-  const customOpt = document.createElement('option');
-  customOpt.value = 'custom';
+  const customOpt = document.createElement('div');
+  customOpt.className = 'select-option';
+  customOpt.setAttribute('role', 'option');
+  customOpt.dataset['value'] = 'custom';
   customOpt.textContent = 'Custom';
-  select.appendChild(customOpt);
+  optionsContainer.appendChild(customOpt);
 
   const presets = getAvailablePresets(__DEV__, customPresets);
   let addedDevSeparator = false;
@@ -856,43 +886,157 @@ function populatePresetOptions(select: HTMLSelectElement): void {
 
   for (const preset of presets) {
     if (preset.isCustom && !addedCustomSeparator) {
-      const sep = document.createElement('option');
-      sep.disabled = true;
+      const sep = document.createElement('div');
+      sep.className = 'select-separator';
       sep.textContent = '── My Presets ──';
-      select.appendChild(sep);
+      optionsContainer.appendChild(sep);
       addedCustomSeparator = true;
     }
     if (preset.devOnly && !addedDevSeparator) {
-      const sep = document.createElement('option');
-      sep.disabled = true;
+      const sep = document.createElement('div');
+      sep.className = 'select-separator';
       sep.textContent = '── Dev Presets ──';
-      select.appendChild(sep);
+      optionsContainer.appendChild(sep);
       addedDevSeparator = true;
     }
-    const opt = document.createElement('option');
-    opt.value = preset.id;
+    const opt = document.createElement('div');
+    opt.className = 'select-option';
+    opt.setAttribute('role', 'option');
+    opt.dataset['value'] = preset.id;
     if (preset.isRecommended) {
       opt.textContent = `★ ${preset.name}`;
-    } else if (preset.isCustom) {
-      opt.textContent = preset.name;
     } else {
       opt.textContent = preset.name;
     }
-    select.appendChild(opt);
+    optionsContainer.appendChild(opt);
   }
+
+  // Wire up click handlers on the new options
+  setupPresetOptionListeners(container);
 }
 
 /**
  * Refresh the preset dropdown options (after adding/deleting a custom preset).
  */
+/**
+ * Wire up click handlers for preset custom-select options.
+ * Called after populatePresetOptions rebuilds the option list.
+ */
+function setupPresetOptionListeners(container: HTMLElement): void {
+  const trigger = container.querySelector('.select-trigger');
+  const options = container.querySelectorAll('.select-option');
+
+  // Remove and re-add trigger listener by cloning (avoids duplicates after refresh)
+  if (trigger instanceof HTMLElement && !trigger.dataset['presetWired']) {
+    trigger.addEventListener('click', (e) => {
+      e.stopPropagation();
+      const isOpen = container.classList.contains('open');
+      closeAllSelects();
+      if (!isOpen) {
+        openSelect(container);
+      }
+    });
+
+    // Keyboard navigation on trigger
+    trigger.addEventListener('keydown', (e: KeyboardEvent) => {
+      const isOpen = container.classList.contains('open');
+
+      switch (e.key) {
+        case 'Enter':
+        case ' ': {
+          e.preventDefault();
+          if (isOpen) {
+            const highlighted = container.querySelector('.select-option.highlighted');
+            if (highlighted instanceof HTMLElement) {
+              presetSelectOption(container, highlighted);
+            }
+            closeSelect(container);
+          } else {
+            closeAllSelects();
+            openSelect(container);
+          }
+          break;
+        }
+        case 'Escape': {
+          if (isOpen) {
+            e.preventDefault();
+            closeSelect(container);
+            trigger.focus();
+          }
+          break;
+        }
+        case 'ArrowDown': {
+          e.preventDefault();
+          if (!isOpen) {
+            closeAllSelects();
+            openSelect(container);
+          }
+          highlightNext(container, 1);
+          break;
+        }
+        case 'ArrowUp': {
+          e.preventDefault();
+          if (!isOpen) {
+            closeAllSelects();
+            openSelect(container);
+          }
+          highlightNext(container, -1);
+          break;
+        }
+        case 'Tab': {
+          if (isOpen) {
+            closeSelect(container);
+          }
+          break;
+        }
+      }
+    });
+
+    trigger.dataset['presetWired'] = '1';
+  }
+
+  options.forEach((option) => {
+    if (!(option instanceof HTMLElement)) return;
+    option.addEventListener('click', () => {
+      presetSelectOption(container, option);
+      container.classList.remove('open');
+      updateAriaExpanded(container, false);
+    });
+  });
+}
+
+/**
+ * Select a preset option in the custom-select — updates the display and triggers preset change.
+ */
+function presetSelectOption(container: HTMLElement, option: HTMLElement): void {
+  const value = option.dataset['value'] ?? 'custom';
+  const text = option.textContent.trim();
+
+  container.querySelectorAll('.select-option').forEach((opt) => {
+    opt.classList.remove('selected');
+  });
+  option.classList.add('selected');
+
+  container.dataset['selectedValue'] = value;
+
+  const valueEl = container.querySelector('.select-value');
+  if (valueEl) valueEl.textContent = text;
+
+  container.classList.remove('open');
+  clearHighlight(container);
+  updateAriaExpanded(container, false);
+
+  void handlePresetChange(value);
+}
+
 function refreshPresetDropdown(): void {
-  const select = document.getElementById('preset-select') as HTMLSelectElement | null;
-  if (!select) return;
-  const currentValue = select.value;
-  populatePresetOptions(select);
+  const container = document.getElementById('preset-select');
+  if (!container) return;
+  const currentValue = container.dataset['selectedValue'] ?? 'custom';
+  populatePresetOptions(container);
   // Try to restore previous selection
-  const optionExists = Array.from(select.options).some((o) => o.value === currentValue);
-  select.value = optionExists ? currentValue : 'custom';
+  const optionExists = container.querySelector(`.select-option[data-value="${currentValue}"]`);
+  setCustomSelectValue(container, optionExists ? currentValue : 'custom');
 }
 
 /**
@@ -913,8 +1057,8 @@ async function handleSaveAsPreset(): Promise<void> {
     refreshPresetDropdown();
 
     // Set the dropdown to the new preset
-    const select = document.getElementById('preset-select') as HTMLSelectElement | null;
-    if (select) select.value = newPreset.id;
+    const presetContainer = document.getElementById('preset-select');
+    if (presetContainer) setCustomSelectValue(presetContainer, newPreset.id);
 
     // Also persist the active preset id
     // When a preset is applied, set all settings to site scope if we're on a supported platform
@@ -1236,9 +1380,13 @@ async function initializePopup(): Promise<void> {
 function handleCopyJson(): void {
   if (!globalSettings) return;
 
-  const activePresetSelect = document.getElementById('preset-select') as HTMLSelectElement | null;
-  const activePreset =
-    activePresetSelect && activePresetSelect.value !== 'custom' ? activePresetSelect.value : null;
+  const presetContainer = document.getElementById('preset-select');
+  const activePreset = presetContainer
+    ? ((): string | null => {
+        const val = getCustomSelectValue(presetContainer);
+        return val !== 'custom' ? val : null;
+      })()
+    : null;
 
   const data = buildExportData(globalSettings, activePreset, allSiteOverrides, customPresets);
   const json = JSON.stringify(data, null, 2);
