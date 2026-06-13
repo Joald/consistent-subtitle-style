@@ -1369,10 +1369,18 @@ function toggleDocsPanel(): void {
   if (panel.classList.contains('hidden')) {
     populateDocsPanel();
     panel.classList.remove('hidden');
-    infoBtn?.classList.add('active');
+    if (infoBtn) {
+      infoBtn.classList.add('active');
+      infoBtn.textContent = '✕';
+      infoBtn.title = 'Close';
+    }
   } else {
     panel.classList.add('hidden');
-    infoBtn?.classList.remove('active');
+    if (infoBtn) {
+      infoBtn.classList.remove('active');
+      infoBtn.textContent = 'i';
+      infoBtn.title = 'Platform details';
+    }
   }
 }
 
