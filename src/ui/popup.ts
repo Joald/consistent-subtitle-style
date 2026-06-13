@@ -1523,7 +1523,7 @@ function handleCopyJson(): void {
     siteOverrides: { ...allSiteOverrides },
   };
 
-  const json = JSON.stringify(payload, null, 2);
+  const json = JSON.stringify(payload);
 
   void navigator.clipboard.writeText(json).then(
     () => {
