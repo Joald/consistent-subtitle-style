@@ -147,6 +147,16 @@ function populateForm(settings: StorageSettings): void {
   updatePreview();
 }
 
+/**
+ * Platforms where font opacity only works when a custom font color is set.
+ * These use CSS color-mix() injection — when fontColor is "auto", no color rule
+ * is emitted, so the opacity percentage has no effect.
+ * YouTube and Dropout have native/DOM-based opacity handling that works independently.
+ */
+const OPACITY_NEEDS_CUSTOM_COLOR: ReadonlySet<string> = new Set([
+  'nebula', 'crunchyroll', 'disneyplus', 'max', 'netflix', 'primevideo', 'vimeo',
+]);
+
 function updateOpacityStates(): void {
   const colorEl = document.querySelector('[data-id="font-color"]');
   const opacityEl = document.querySelector('[data-id="font-opacity"]');
@@ -156,7 +166,12 @@ function updateOpacityStates(): void {
     const colorValue = colorEl.dataset['selectedValue'] ?? 'auto';
     const opacityValue = opacityEl.dataset['selectedValue'] ?? 'auto';
 
-    if (colorValue === 'auto' && opacityValue !== 'auto') {
+    if (
+      colorValue === 'auto' &&
+      opacityValue !== 'auto' &&
+      currentPlatform &&
+      OPACITY_NEEDS_CUSTOM_COLOR.has(currentPlatform)
+    ) {
       helpEl?.classList.remove('hidden');
     } else {
       helpEl?.classList.add('hidden');
@@ -1315,7 +1330,7 @@ function buildPlatformIndicator(): void {
   if (currentPlatform) {
     indicator.className = 'platform-indicator supported';
     iconSpan.innerHTML = platformIconHtml(currentPlatform, 18);
-    textSpan.textContent = `${PLATFORM_DISPLAY_NAMES[currentPlatform]} — supported`;
+    textSpan.textContent = PLATFORM_DISPLAY_NAMES[currentPlatform];
 
     // Add info button for supported platforms
     const infoBtn = document.createElement('button');

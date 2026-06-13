@@ -376,7 +376,9 @@ describe('Popup UI Integration', () => {
   });
 
   describe('opacity states', () => {
-    it('shows font-opacity help when font color is auto but opacity is not', async () => {
+    it('shows font-opacity help when font color is auto but opacity is not on CSS platform', async () => {
+      // Warning only shows on CSS-injection platforms (e.g. Nebula), not YouTube/Dropout
+      mockActiveTab('https://nebula.tv/videos/something');
       vi.mocked<() => Promise<Record<string, unknown>>>(chrome.storage.sync.get).mockResolvedValue({
         ...ALL_AUTO,
         fontOpacity: '75',
@@ -386,6 +388,20 @@ describe('Popup UI Integration', () => {
 
       const helpEl = document.getElementById('font-opacity-help');
       expect(helpEl!.classList.contains('hidden')).toBe(false);
+    });
+
+    it('hides font-opacity help on platforms with native opacity support', async () => {
+      // YouTube handles opacity natively — no warning needed
+      mockActiveTab('https://www.youtube.com/watch?v=test');
+      vi.mocked<() => Promise<Record<string, unknown>>>(chrome.storage.sync.get).mockResolvedValue({
+        ...ALL_AUTO,
+        fontOpacity: '75',
+      });
+
+      await triggerInit();
+
+      const helpEl = document.getElementById('font-opacity-help');
+      expect(helpEl!.classList.contains('hidden')).toBe(true);
     });
 
     it('hides font-opacity help when font color is set', async () => {
@@ -409,7 +425,8 @@ describe('Popup UI Integration', () => {
     });
 
     it('toggles font-opacity help dynamically when user changes font color', async () => {
-      // Start with auto color + non-auto opacity → help visible
+      // Start with auto color + non-auto opacity on a CSS platform → help visible
+      mockActiveTab('https://nebula.tv/videos/something');
       vi.mocked<() => Promise<Record<string, unknown>>>(chrome.storage.sync.get).mockResolvedValue({
         ...ALL_AUTO,
         fontOpacity: '50',
@@ -680,7 +697,7 @@ describe('Popup UI Integration', () => {
 
       const text = indicator.querySelector('.platform-indicator-text')!;
       expect(text.textContent).toContain('YouTube');
-      expect(text.textContent).toContain('supported');
+      expect(text.textContent).not.toContain('supported');
     });
 
     it('shows supported indicator on Netflix', async () => {
