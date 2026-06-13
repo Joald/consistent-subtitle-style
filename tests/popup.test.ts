@@ -881,19 +881,22 @@ describe('Popup UI Integration', () => {
       expect(document.getElementById('docs-panel')!.classList.contains('hidden')).toBe(true);
     });
 
-    it('close button hides docs panel', async () => {
+    it('info button toggles docs panel closed', async () => {
       mockActiveTab('https://www.youtube.com/watch?v=abc');
       await triggerInit();
 
       const infoBtn = document.getElementById('platform-info-btn')!;
       infoBtn.click();
       await new Promise((r) => setTimeout(r, 0));
+      expect(document.getElementById('docs-panel')!.classList.contains('hidden')).toBe(false);
+      expect(infoBtn.classList.contains('active')).toBe(true);
 
-      const closeBtn = document.getElementById('docs-close-btn')!;
-      closeBtn.click();
+      // Click info button again to close
+      infoBtn.click();
       await new Promise((r) => setTimeout(r, 0));
 
       expect(document.getElementById('docs-panel')!.classList.contains('hidden')).toBe(true);
+      expect(infoBtn.classList.contains('active')).toBe(false);
     });
 
     it('populates YouTube docs correctly', async () => {

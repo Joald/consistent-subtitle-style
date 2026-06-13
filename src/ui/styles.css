@@ -597,6 +597,12 @@ hr {
   opacity: 1;
 }
 
+.platform-indicator-info.active {
+  opacity: 1;
+  background: currentColor;
+  color: #222;
+}
+
 /* Platform docs panel */
 .docs-panel {
   background: #222;
@@ -611,6 +617,10 @@ hr {
   display: none;
 }
 
+.docs-section.hidden {
+  display: none;
+}
+
 @keyframes docs-slide-in {
   from {
     opacity: 0;
@@ -620,29 +630,6 @@ hr {
     opacity: 1;
     transform: translateY(0);
   }
-}
-
-.docs-panel {
-  position: relative;
-}
-
-.docs-close-btn {
-  position: absolute;
-  top: 6px;
-  right: 6px;
-  background: none;
-  border: none;
-  color: #999;
-  cursor: pointer;
-  font-size: 14px;
-  padding: 4px 6px;
-  border-radius: 4px;
-  z-index: 1;
-}
-
-.docs-close-btn:hover {
-  background: rgba(255, 255, 255, 0.1);
-  color: #e5e5e5;
 }
 
 .docs-panel-body {

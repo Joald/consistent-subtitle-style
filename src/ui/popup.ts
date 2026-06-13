@@ -1363,13 +1363,16 @@ function buildPlatformIndicator(): void {
  */
 function toggleDocsPanel(): void {
   const panel = document.getElementById('docs-panel');
+  const infoBtn = document.getElementById('platform-info-btn');
   if (!panel) return;
 
   if (panel.classList.contains('hidden')) {
     populateDocsPanel();
     panel.classList.remove('hidden');
+    infoBtn?.classList.add('active');
   } else {
     panel.classList.add('hidden');
+    infoBtn?.classList.remove('active');
   }
 }
 
@@ -1438,18 +1441,6 @@ function populateDocsPanel(): void {
     } else {
       notesSection.classList.add('hidden');
     }
-  }
-
-  // Wire up close button
-  const closeBtn = document.getElementById('docs-close-btn');
-  if (closeBtn) {
-    // Remove old listener by cloning
-    const newClose = closeBtn.cloneNode(true) as HTMLElement;
-    closeBtn.parentNode?.replaceChild(newClose, closeBtn);
-    newClose.addEventListener('click', () => {
-      const panel = document.getElementById('docs-panel');
-      panel?.classList.add('hidden');
-    });
   }
 }
 
