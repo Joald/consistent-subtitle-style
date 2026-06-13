@@ -1382,32 +1382,53 @@ function populateDocsPanel(): void {
   const doc = getPlatformDoc(currentPlatform);
   if (!doc) return;
 
-  const title = document.querySelector('.docs-panel-title');
-  if (title) title.textContent = `${doc.name} — How it works`;
-
+  // Approach section
+  const approachSection = document.getElementById('docs-approach-section');
   const approach = document.getElementById('docs-approach');
-  if (approach) approach.textContent = doc.approach;
+  if (approachSection && approach) {
+    if (doc.approach) {
+      approach.textContent = doc.approach;
+      approachSection.classList.remove('hidden');
+    } else {
+      approachSection.classList.add('hidden');
+    }
+  }
 
+  // Supported settings section
+  const supportedSection = document.getElementById('docs-supported-section');
   const supported = document.getElementById('docs-supported');
-  if (supported) {
+  if (supportedSection && supported) {
     supported.innerHTML = '';
-    for (const feature of doc.supported) {
-      const li = document.createElement('li');
-      li.textContent = feature;
-      supported.appendChild(li);
+    if (doc.supported.length > 0) {
+      for (const feature of doc.supported) {
+        const li = document.createElement('li');
+        li.textContent = feature;
+        supported.appendChild(li);
+      }
+      supportedSection.classList.remove('hidden');
+    } else {
+      supportedSection.classList.add('hidden');
     }
   }
 
+  // Limitations section
+  const limitationsSection = document.getElementById('docs-limitations-section');
   const limitations = document.getElementById('docs-limitations');
-  if (limitations) {
+  if (limitationsSection && limitations) {
     limitations.innerHTML = '';
-    for (const limitation of doc.limitations) {
-      const li = document.createElement('li');
-      li.textContent = limitation;
-      limitations.appendChild(li);
+    if (doc.limitations.length > 0) {
+      for (const limitation of doc.limitations) {
+        const li = document.createElement('li');
+        li.textContent = limitation;
+        limitations.appendChild(li);
+      }
+      limitationsSection.classList.remove('hidden');
+    } else {
+      limitationsSection.classList.add('hidden');
     }
   }
 
+  // Notes section
   const notesSection = document.getElementById('docs-notes-section');
   const notesEl = document.getElementById('docs-notes');
   if (notesSection && notesEl) {

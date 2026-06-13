@@ -903,9 +903,6 @@ describe('Popup UI Integration', () => {
       document.getElementById('platform-info-btn')!.click();
       await new Promise((r) => setTimeout(r, 0));
 
-      const title = document.querySelector('.docs-panel-title')!;
-      expect(title.textContent).toContain('YouTube');
-
       const approach = document.getElementById('docs-approach')!;
       expect(approach.textContent).toContain('setCaptionStyle');
 
@@ -922,9 +919,6 @@ describe('Popup UI Integration', () => {
 
       document.getElementById('platform-info-btn')!.click();
       await new Promise((r) => setTimeout(r, 0));
-
-      const title = document.querySelector('.docs-panel-title')!;
-      expect(title.textContent).toContain('Dropout');
 
       const approach = document.getElementById('docs-approach')!;
       expect(approach.textContent).toContain('MutationObserver');
@@ -954,9 +948,6 @@ describe('Popup UI Integration', () => {
 
       document.getElementById('platform-info-btn')!.click();
       await new Promise((r) => setTimeout(r, 0));
-
-      const title = document.querySelector('.docs-panel-title')!;
-      expect(title.textContent).toContain('Disney+');
 
       const approach = document.getElementById('docs-approach')!;
       expect(approach.textContent).toContain('Shadow DOM');
