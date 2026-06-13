@@ -2689,7 +2689,7 @@ describe('Popup UI Integration', () => {
       const input = document.getElementById('import-json-input') as HTMLInputElement | null;
       expect(input).toBeTruthy();
       expect(input!.type).toBe('text');
-      expect(input!.placeholder).toBe('paste json here');
+      expect(input!.placeholder).toBe('Paste settings here');
     });
 
     it('contains import submit arrow button', async () => {

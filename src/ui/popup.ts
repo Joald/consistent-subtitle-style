@@ -1338,7 +1338,7 @@ function buildPlatformIndicator(): void {
     infoBtn.id = 'platform-info-btn';
     infoBtn.className = 'platform-indicator-info';
     infoBtn.textContent = 'i';
-    infoBtn.title = 'Platform details';
+    infoBtn.title = 'Technical details';
     infoBtn.setAttribute('aria-label', `${PLATFORM_DISPLAY_NAMES[currentPlatform]} details`);
     infoBtn.addEventListener('click', (e) => {
       e.stopPropagation();
@@ -1379,7 +1379,7 @@ function toggleDocsPanel(): void {
     if (infoBtn) {
       infoBtn.classList.remove('active');
       infoBtn.textContent = 'i';
-      infoBtn.title = 'Platform details';
+      infoBtn.title = 'Technical details';
     }
   }
 }
