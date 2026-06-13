@@ -11,6 +11,7 @@ import type { SettingsExportData } from '../src/settings-io.js';
 import { DEFAULTS } from '../src/storage.js';
 import type { StorageSettings } from '../src/types/index.js';
 import type { SiteSettingsMap } from '../src/site-settings.js';
+import { toSiteSettings } from '../src/site-settings.js';
 import type { CustomPreset } from '../src/custom-presets.js';
 
 const SAMPLE_SETTINGS: StorageSettings = {
@@ -27,11 +28,11 @@ const SAMPLE_SETTINGS: StorageSettings = {
 
 const SAMPLE_SITE_OVERRIDES: SiteSettingsMap = {
   youtube: {
-    settings: { ...DEFAULTS, fontColor: 'cyan', fontSize: '200%' },
+    settings: toSiteSettings({ ...DEFAULTS, fontColor: 'cyan', fontSize: '200%' }),
     activePreset: null,
   },
   netflix: {
-    settings: { ...DEFAULTS, backgroundColor: 'blue', backgroundOpacity: '50' },
+    settings: toSiteSettings({ ...DEFAULTS, backgroundColor: 'blue', backgroundOpacity: '50' }),
     activePreset: 'recommended',
   },
 };

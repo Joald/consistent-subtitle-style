@@ -823,3 +823,18 @@ hr {
 .copy-settings-btn:active {
   background: #333;
 }
+
+/* Global indicator — globe icon on options matching the global value */
+.global-indicator {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  margin-left: auto;
+  padding-left: 8px;
+  flex-shrink: 0;
+  opacity: 0.5;
+}
+
+.select-option:hover .global-indicator {
+  opacity: 0.8;
+}

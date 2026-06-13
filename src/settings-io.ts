@@ -1,6 +1,7 @@
-import type { StorageSettings } from './types/index.js';
+import type { StorageSettings, SiteSettings, SiteValue } from './types/index.js';
 import type { CustomPreset } from './custom-presets.js';
 import type { SiteSettingsMap } from './site-settings.js';
+import { toSiteSettings } from './site-settings.js';
 import { isValidValue, DEFAULTS } from './storage.js';
 import type { Platform } from './platforms/index.js';
 
@@ -130,6 +131,71 @@ function validateSettings(
 }
 
 /**
+ * Check whether a raw settings object is in the wrapped SiteSettings format
+ * (values are `{ value, enabled }` objects) vs plain StorageSettings (strings).
+ */
+function isWrappedSiteSettings(raw: Record<string, unknown>): boolean {
+  const firstKey = Object.keys(raw)[0];
+  if (!firstKey) return false;
+  const val = raw[firstKey];
+  return val != null && typeof val === 'object' && 'value' in (val as Record<string, unknown>);
+}
+
+/**
+ * Unwrap a SiteSettings object into plain StorageSettings for validation,
+ * returning the enabled flags so they can be re-applied after validation.
+ */
+function unwrapSiteSettings(
+  raw: Record<string, unknown>,
+): { plain: Record<string, unknown>; enabledMap: Record<string, boolean> } {
+  const plain: Record<string, unknown> = {};
+  const enabledMap: Record<string, boolean> = {};
+  for (const [key, val] of Object.entries(raw)) {
+    if (val != null && typeof val === 'object' && 'value' in (val as Record<string, unknown>)) {
+      const sv = val as { value: unknown; enabled: boolean };
+      plain[key] = sv.value;
+      enabledMap[key] = sv.enabled;
+    } else {
+      plain[key] = val;
+      enabledMap[key] = true;
+    }
+  }
+  return { plain, enabledMap };
+}
+
+/**
+ * Validate site override settings, handling both plain and wrapped formats.
+ * Returns validated SiteSettings (wrapped format with enabled flags).
+ */
+function validateSiteOverrideSettings(
+  raw: unknown,
+  context: string,
+): { siteSettings: SiteSettings; errors: string[] } {
+  if (raw == null || typeof raw !== 'object') {
+    return { siteSettings: toSiteSettings({ ...DEFAULTS }), errors: [`${context}: expected an object`] };
+  }
+
+  const rawObj = raw as Record<string, unknown>;
+  const wrapped = isWrappedSiteSettings(rawObj);
+  const { plain, enabledMap } = wrapped
+    ? unwrapSiteSettings(rawObj)
+    : { plain: rawObj, enabledMap: {} as Record<string, boolean> };
+
+  const { settings, errors } = validateSettings(plain, context);
+
+  // Rebuild as SiteSettings: preserve enabled flags if they were present,
+  // otherwise default to all-enabled (legacy import).
+  const result = {} as Record<string, SiteValue<string>>;
+  for (const key of Object.keys(DEFAULTS) as (keyof StorageSettings)[]) {
+    result[key] = {
+      value: settings[key] as string,
+      enabled: key in enabledMap ? enabledMap[key]! : true,
+    };
+  }
+  return { siteSettings: result as SiteSettings, errors };
+}
+
+/**
  * Validate a custom preset entry.
  */
 function validateCustomPreset(
@@ -237,7 +303,7 @@ export function validateImportData(raw: unknown): ValidationResult {
       }
 
       const overrideObj = override as Record<string, unknown>;
-      const { settings, errors: siteErrors } = validateSettings(
+      const { siteSettings, errors: siteErrors } = validateSiteOverrideSettings(
         overrideObj['settings'],
         `siteOverrides.${platform}.settings`,
       );
@@ -249,7 +315,7 @@ export function validateImportData(raw: unknown): ValidationResult {
             ? overrideObj['activePreset']
             : null;
 
-        siteOverrides[platform as Platform] = { settings, activePreset: sitePreset };
+        siteOverrides[platform as Platform] = { settings: siteSettings, activePreset: sitePreset };
       }
     }
   }
@@ -360,7 +426,7 @@ export function validatePresetJson(raw: unknown): PresetValidationResult {
       }
 
       const overrideObj = override as Record<string, unknown>;
-      const { settings } = validateSettings(
+      const { siteSettings } = validateSiteOverrideSettings(
         overrideObj['settings'],
         `siteOverrides.${platform}.settings`,
       );
@@ -370,7 +436,7 @@ export function validatePresetJson(raw: unknown): PresetValidationResult {
           overrideObj['activePreset'] === null || typeof overrideObj['activePreset'] === 'string'
             ? overrideObj['activePreset']
             : null;
-        siteOverrides[platform as Platform] = { settings, activePreset: sitePreset };
+        siteOverrides[platform as Platform] = { settings: siteSettings, activePreset: sitePreset };
       }
     }
   }

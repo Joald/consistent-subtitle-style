@@ -108,6 +108,18 @@ export type ApplicationLog = Record<
 
 export type StorageKey = keyof StorageSettings;
 
+/**
+ * A per-site setting value: wraps the raw value with an enabled flag.
+ * When enabled is false, the global value is used instead, but the
+ * per-site value is preserved for when the user re-enables it.
+ */
+export type SiteValue<T> = { value: T; enabled: boolean };
+
+/**
+ * Full per-site settings map: every StorageSettings key wrapped in SiteValue.
+ */
+export type SiteSettings = { [K in keyof StorageSettings]: SiteValue<StorageSettings[K]> };
+
 export interface YouTubeDisplaySettings {
   background?: string;
   backgroundOpacity?: number;

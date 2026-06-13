@@ -35,6 +35,24 @@ const ALL_AUTO = {
   fontSize: 'auto',
 };
 
+/**
+ * Build a SiteSettings object where only specified overrides are enabled.
+ * All other settings are disabled with their global (ALL_AUTO) value.
+ */
+function makeSiteSettings(
+  overrides: Partial<typeof ALL_AUTO>,
+): Record<string, { value: string; enabled: boolean }> {
+  const result: Record<string, { value: string; enabled: boolean }> = {};
+  for (const [key, value] of Object.entries(ALL_AUTO)) {
+    if (key in overrides) {
+      result[key] = { value: overrides[key as keyof typeof ALL_AUTO]!, enabled: true };
+    } else {
+      result[key] = { value, enabled: false };
+    }
+  }
+  return result;
+}
+
 describe('Popup UI Integration', () => {
   beforeEach(() => {
     // Reset DOM
@@ -989,7 +1007,7 @@ describe('Popup UI Integration', () => {
           return {
             siteSettings: {
               youtube: {
-                settings: { ...ALL_AUTO, fontColor: 'cyan' },
+                settings: makeSiteSettings({ fontColor: 'cyan' }),
                 activePreset: null,
               },
             },
@@ -1044,7 +1062,7 @@ describe('Popup UI Integration', () => {
           return {
             siteSettings: {
               youtube: {
-                settings: { ...ALL_AUTO, fontColor: 'cyan' },
+                settings: makeSiteSettings({ fontColor: 'cyan' }),
                 activePreset: null,
               },
             },
@@ -1118,7 +1136,7 @@ describe('Popup UI Integration', () => {
           return {
             siteSettings: {
               youtube: {
-                settings: { ...ALL_AUTO, fontColor: 'cyan' },
+                settings: makeSiteSettings({ fontColor: 'cyan' }),
                 activePreset: null,
               },
             },
@@ -1167,7 +1185,7 @@ describe('Popup UI Integration', () => {
           return {
             siteSettings: {
               youtube: {
-                settings: { ...ALL_AUTO, fontColor: 'cyan' },
+                settings: makeSiteSettings({ fontColor: 'cyan' }),
                 activePreset: null,
               },
             },
@@ -1207,11 +1225,7 @@ describe('Popup UI Integration', () => {
           return {
             siteSettings: {
               youtube: {
-                settings: {
-                  ...ALL_AUTO,
-                  fontColor: 'cyan',
-                  backgroundColor: 'blue',
-                },
+                settings: makeSiteSettings({ fontColor: 'cyan', backgroundColor: 'blue' }),
                 activePreset: null,
               },
             },
@@ -1927,7 +1941,7 @@ describe('Popup UI Integration', () => {
         if (typeof keys === 'string' && keys === 'siteSettings') {
           return {
             siteSettings: {
-              netflix: { settings: { ...ALL_AUTO, fontColor: 'red' }, activePreset: null },
+              netflix: { settings: makeSiteSettings({ fontColor: 'red' }), activePreset: null },
             },
           };
         }
@@ -1955,7 +1969,7 @@ describe('Popup UI Integration', () => {
       const platformsWithWhite = ['netflix', 'vimeo', 'max', 'dropout'];
       for (const p of platformsWithWhite) {
         overrides[p] = {
-          settings: { ...ALL_AUTO, fontColor: 'white' },
+          settings: makeSiteSettings({ fontColor: 'white' }),
           activePreset: null,
         };
       }
@@ -1999,7 +2013,7 @@ describe('Popup UI Integration', () => {
               {
                 id: 'custom-1',
                 name: 'My Style',
-                settings: { ...ALL_AUTO, fontColor: 'cyan' },
+                settings: makeSiteSettings({ fontColor: 'cyan' }),
               },
             ],
           };
@@ -2026,7 +2040,7 @@ describe('Popup UI Integration', () => {
               {
                 id: 'custom-1',
                 name: 'Cinema Mode',
-                settings: { ...ALL_AUTO, fontColor: 'yellow', fontSize: '200%' },
+                settings: makeSiteSettings({ fontColor: 'yellow', fontSize: '200%' }),
               },
             ],
           };

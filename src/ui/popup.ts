@@ -2,7 +2,7 @@
 // esbuild replaces __DEV__ with a boolean literal at compile time, so this
 // import is completely eliminated from the production bundle.
 if (__DEV__) void import('./mock-chrome.js');
-import type { StorageSettings } from '../types/index.js';
+import type { StorageSettings, SiteSettings, SiteValue } from '../types/index.js';
 import { loadSettings, applyPreset, DEFAULTS } from '../storage.js';
 import { debug } from '../debug.js';
 import { generateCombinedCssRules } from '../css-mappings.js';
@@ -12,13 +12,15 @@ import {
   saveSiteOverride,
   loadAllSiteOverrides,
   clearSiteOverride,
+  toSiteSettings,
+  flattenSiteSettings,
 } from '../site-settings.js';
 import { loadCustomPresets, saveCustomPreset, deleteCustomPreset } from '../custom-presets.js';
 import { getPlatformDoc } from '../platform-docs.js';
 import { platformIconHtml } from '../platform-icons.js';
 import { validatePresetJson } from '../settings-io.js';
 import type { CustomPreset } from '../custom-presets.js';
-import type { SiteSettingsMap } from '../site-settings.js';
+import type { SiteSettingsMap, SiteOverride } from '../site-settings.js';
 import type { Platform } from '../platforms/index.js';
 
 /** Detected platform for the active tab (null when on a non-supported site). */
@@ -141,6 +143,7 @@ function populateForm(settings: StorageSettings): void {
   updateOpacityStates();
   updateOverrideBadges();
   updateSiteIndicators();
+  updateGlobalIndicators();
   updatePreview();
 }
 
@@ -163,8 +166,8 @@ function updateOpacityStates(): void {
 
 /**
  * Update override badges on dropdown triggers.
- * When a per-site override is active and the current setting differs from the
- * global value, we show a small dot badge on the trigger so users can see at a
+ * When a per-site override is active and the setting is enabled per-site,
+ * we show a small dot badge on the trigger so users can see at a
  * glance which settings are overridden for this site.
  */
 function updateOverrideBadges(): void {
@@ -182,10 +185,15 @@ function updateOverrideBadges(): void {
     // Only show badges when we have both global settings and a per-site override
     if (!globalSettings || !currentPlatform) return;
 
-    const currentValue = el.dataset['selectedValue'] ?? 'auto';
-    const globalValue = globalSettings[settingKey] as string;
+    const override = allSiteOverrides[currentPlatform];
+    if (!override) return;
 
-    if (currentValue !== globalValue) {
+    const entry = override.settings[settingKey] as SiteValue<string> | undefined;
+    if (!entry?.enabled) return;
+
+    // Show badge when per-site value differs from global
+    const globalValue = globalSettings[settingKey] as string;
+    if (entry.value !== globalValue) {
       const badge = document.createElement('span');
       badge.className = 'override-badge';
       badge.title = `Per-site override (global: ${globalValue})`;
@@ -203,9 +211,10 @@ function updateOverrideBadges(): void {
 /**
  * Update per-site indicator icons inside dropdown options.
  * For each option in each dropdown, show small platform abbreviation badges
- * for platforms that have a per-site override using that value (when it
+ * for platforms that have an ENABLED per-site override using that value (when it
  * differs from the global value). Excludes the currently active platform
  * since the user already knows they're on it.
+ * Platforms with that setting disabled are not shown.
  */
 function updateSiteIndicators(): void {
   if (!globalSettings) return;
@@ -226,7 +235,7 @@ function updateSiteIndicators(): void {
         el.remove();
       });
 
-      // Find platforms that use this value as a per-site override (different from global)
+      // Find platforms that use this value as an ENABLED per-site override (different from global)
       const matchingPlatforms: Platform[] = [];
       for (const platform of platforms) {
         // Skip the current platform — already shown in scope toggle
@@ -235,11 +244,12 @@ function updateSiteIndicators(): void {
         const override = allSiteOverrides[platform];
         if (!override) continue;
 
-        const overrideValue = override.settings[settingKey] as string;
-        const globalValue = (globalSettings ?? ({} as StorageSettings))[settingKey] as string;
+        const entry = override.settings[settingKey] as SiteValue<string>;
+        // Only show if the setting is enabled AND differs from global AND matches this option
+        if (!entry.enabled) continue;
 
-        // Only show if the override differs from global AND matches this option value
-        if (overrideValue !== globalValue && overrideValue === optionValue) {
+        const globalValue = (globalSettings ?? ({} as StorageSettings))[settingKey] as string;
+        if (entry.value !== globalValue && entry.value === optionValue) {
           matchingPlatforms.push(platform);
         }
       }
@@ -264,9 +274,46 @@ function updateSiteIndicators(): void {
 }
 
 /**
+ * Update global value indicators inside dropdown options.
+ * When on a supported platform, each dropdown option that matches
+ * the global value gets a small globe icon to show "this is global".
+ * Only shown when a per-site override exists (otherwise everything is global).
+ */
+function updateGlobalIndicators(): void {
+  if (!globalSettings || !currentPlatform) return;
+
+  Object.entries(ID_TO_SETTING_KEY).forEach(([id, settingKey]) => {
+    const container = document.querySelector(`[data-id="${id}"]`);
+    if (!container) return;
+
+    const options = container.querySelectorAll('.select-option');
+    const globalValue = globalSettings![settingKey] as string;
+
+    options.forEach((opt) => {
+      if (!(opt instanceof HTMLElement)) return;
+      const optionValue = opt.dataset['value'] ?? 'auto';
+
+      // Remove existing global indicators
+      opt.querySelectorAll('.global-indicator').forEach((el) => {
+        el.remove();
+      });
+
+      // Show globe on the option matching the global value
+      if (optionValue === globalValue) {
+        const indicator = document.createElement('span');
+        indicator.className = 'global-indicator';
+        indicator.innerHTML = globeIconHtml(12);
+        indicator.title = 'Global setting';
+        opt.appendChild(indicator);
+      }
+    });
+  });
+}
+
+/**
  * Determine initial per-setting scopes based on per-site override data.
  * A setting is 'site'-scoped if the current platform has a per-site override
- * whose value for that setting differs from the global value.
+ * with that setting enabled.
  */
 function initSettingScopes(): void {
   settingScopes = {};
@@ -280,9 +327,8 @@ function initSettingScopes(): void {
   if (!override) return;
 
   for (const [id, settingKey] of Object.entries(ID_TO_SETTING_KEY)) {
-    const overrideValue = override.settings[settingKey] as string;
-    const globalValue = globalSettings[settingKey] as string;
-    if (overrideValue !== globalValue) {
+    const entry = override.settings[settingKey] as SiteValue<string>;
+    if (entry.enabled) {
       settingScopes[id] = 'site';
     }
   }
@@ -346,9 +392,14 @@ function updateScopeChipContent(chip: HTMLElement, scope: 'global' | 'site'): vo
 
 /**
  * Toggle a setting's scope between 'global' and 'site'.
+ * Site → Global: shows global value in form, keeps per-site value stored.
+ * Global → Site: restores per-site value from stored override.
  */
 function toggleSettingScope(settingId: string): void {
-  if (!currentPlatform) return;
+  if (!currentPlatform || !globalSettings) return;
+
+  const settingKey = ID_TO_SETTING_KEY[settingId];
+  if (!settingKey) return;
 
   const current = settingScopes[settingId] ?? 'global';
   const next = current === 'global' ? 'site' : 'global';
@@ -363,7 +414,28 @@ function toggleSettingScope(settingId: string): void {
     updateScopeChipContent(chip, next);
   }
 
-  // Auto-save when scope changes
+  // Update the form value based on new scope
+  const el = document.querySelector(`[data-id="${settingId}"]`);
+  if (el instanceof HTMLElement) {
+    if (next === 'global') {
+      // Switching to global: show global value in form (don't save to global)
+      setCustomSelectValue(el, globalSettings[settingKey] as string);
+    } else {
+      // Switching to site: restore per-site value if we have one
+      const override = allSiteOverrides[currentPlatform];
+      if (override) {
+        const entry = override.settings[settingKey] as SiteValue<string>;
+        setCustomSelectValue(el, entry.value);
+      }
+    }
+  }
+
+  updatePreview();
+  updateOverrideBadges();
+  updateSiteIndicators();
+  updateGlobalIndicators();
+
+  // Auto-save the scope change
   void handleSave();
 }
 
@@ -412,47 +484,51 @@ function showMessage(message: string, type: 'info' | 'success' | 'error' = 'info
 
 async function handleSave(): Promise<void> {
   try {
-    const settings = collectSettings();
-    debug.log(`Saving settings: ${JSON.stringify(settings)}`);
+    const formValues = collectSettings();
+    debug.log(`Saving settings: ${JSON.stringify(formValues)}`);
 
-    const fullSettings: StorageSettings = { ...DEFAULTS, ...settings };
+    const fullFormSettings: StorageSettings = { ...DEFAULTS, ...formValues };
     const hasSiteScoped = currentPlatform && Object.values(settingScopes).some((s) => s === 'site');
 
-    // Always save global-scoped settings to global storage.
-    // Build a global settings object using form values for global-scoped settings,
-    // preserving existing global values for site-scoped settings.
+    // Build the global update: only include global-scoped settings' form values.
+    // NEVER write site-scoped values to global storage.
     const globalUpdate: Record<string, string> = {};
     for (const [id, settingKey] of Object.entries(ID_TO_SETTING_KEY)) {
       if (settingScopes[id] !== 'site') {
-        globalUpdate[settingKey] = fullSettings[settingKey] as string;
+        globalUpdate[settingKey] = fullFormSettings[settingKey] as string;
       }
     }
 
     if (Object.keys(globalUpdate).length > 0 && typeof chrome !== 'undefined') {
       await chrome.storage.sync.set({ ...globalUpdate, activePreset: null });
     }
-    // Update local cache — merge global updates into existing global settings
+    // Update local cache — merge only global updates
     globalSettings = { ...(globalSettings ?? DEFAULTS), ...globalUpdate } as StorageSettings;
 
     if (hasSiteScoped && currentPlatform) {
-      // Build per-site override: use form values for site-scoped settings,
-      // global values for global-scoped settings.
-      const siteSettings: StorageSettings = { ...DEFAULTS };
+      // Build SiteSettings: for each key, wrap in SiteValue with the appropriate enabled flag.
+      const existingOverride = allSiteOverrides[currentPlatform];
+      const siteSettings = {} as Record<string, SiteValue<string>>;
+
       for (const [id, settingKey] of Object.entries(ID_TO_SETTING_KEY)) {
-        if (settingScopes[id] === 'site') {
-          (siteSettings as unknown as Record<string, string>)[settingKey] = fullSettings[
-            settingKey
-          ] as string;
+        const isEnabled = settingScopes[id] === 'site';
+        if (isEnabled) {
+          // Use current form value for enabled per-site settings
+          siteSettings[settingKey] = { value: fullFormSettings[settingKey] as string, enabled: true };
         } else {
-          (siteSettings as unknown as Record<string, string>)[settingKey] = globalSettings[
-            settingKey
-          ] as string;
+          // Preserve the stored per-site value (if any), keep it disabled
+          const existing = existingOverride?.settings[settingKey] as SiteValue<string> | undefined;
+          siteSettings[settingKey] = {
+            value: existing?.value ?? (globalSettings[settingKey] as string),
+            enabled: false,
+          };
         }
       }
-      await saveSiteOverride(currentPlatform, siteSettings, null);
+
+      await saveSiteOverride(currentPlatform, siteSettings as SiteSettings, null);
       allSiteOverrides = {
         ...allSiteOverrides,
-        [currentPlatform]: { settings: siteSettings, activePreset: null },
+        [currentPlatform]: { settings: siteSettings as SiteSettings, activePreset: null },
       };
     } else if (currentPlatform && allSiteOverrides[currentPlatform]) {
       // No site-scoped settings remain — clear the per-site override
@@ -462,22 +538,22 @@ async function handleSave(): Promise<void> {
       allSiteOverrides = rest;
     }
 
-    updatePresetIndicator(settings);
+    updatePresetIndicator(formValues);
     updateOverrideBadges();
     updateSiteIndicators();
+    updateGlobalIndicators();
     updateScopeChips();
     updatePreview();
 
     // Notify content scripts directly so live updates work even when
     // chrome.storage.onChanged doesn't fire in cross-origin iframes (e.g. Dropout).
-    // injection.ts already has a handler for 'subtitleStylerPopupUpdate'.
     try {
       const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
       if (tab?.id != null) {
         await chrome.tabs
           .sendMessage(tab.id, {
             type: 'subtitleStylerPopupUpdate',
-            settings,
+            settings: formValues,
           })
           .catch(() => {
             // Tab may not have a content script (e.g. non-matching URL) — ignore.
@@ -688,6 +764,7 @@ function selectOption(container: HTMLElement, option: HTMLElement): void {
   updateOpacityStates();
   updateOverrideBadges();
   updateSiteIndicators();
+  updateGlobalIndicators();
   void handleSave();
 }
 
@@ -1068,11 +1145,12 @@ async function handleSaveAsPreset(): Promise<void> {
       for (const id of Object.keys(ID_TO_SETTING_KEY)) {
         settingScopes[id] = 'site';
       }
-      await saveSiteOverride(currentPlatform, fullSettings, newPreset.id);
+      const siteSettings = toSiteSettings(fullSettings);
+      await saveSiteOverride(currentPlatform, siteSettings, newPreset.id);
       // Update local cache so badge comparisons use fresh data
       allSiteOverrides = {
         ...allSiteOverrides,
-        [currentPlatform]: { settings: fullSettings, activePreset: newPreset.id },
+        [currentPlatform]: { settings: siteSettings, activePreset: newPreset.id },
       };
     } else {
       await applyPreset(fullSettings, newPreset.id);
@@ -1104,11 +1182,12 @@ async function handlePresetChange(presetId: string): Promise<void> {
       for (const id of Object.keys(ID_TO_SETTING_KEY)) {
         settingScopes[id] = 'site';
       }
-      await saveSiteOverride(currentPlatform, preset.settings, preset.id);
+      const siteSettings = toSiteSettings(preset.settings);
+      await saveSiteOverride(currentPlatform, siteSettings, preset.id);
       // Update local cache so badge comparisons use fresh data
       allSiteOverrides = {
         ...allSiteOverrides,
-        [currentPlatform]: { settings: preset.settings, activePreset: preset.id },
+        [currentPlatform]: { settings: siteSettings, activePreset: preset.id },
       };
     } else {
       // Global mode: save as before
@@ -1346,8 +1425,19 @@ async function initializePopup(): Promise<void> {
     if (currentPlatform) {
       const override = await loadSiteOverride(currentPlatform);
       if (override) {
-        siteScope = true;
-        settings = override.settings;
+        // Check if any setting is enabled per-site
+        const hasEnabled = Object.values(override.settings).some(
+          (entry) => (entry as SiteValue<string>).enabled,
+        );
+        siteScope = hasEnabled;
+        // For the form: show per-site value for enabled settings, global for disabled
+        settings = { ...DEFAULTS };
+        for (const key of Object.keys(DEFAULTS) as (keyof StorageSettings)[]) {
+          const entry = override.settings[key] as SiteValue<string>;
+          (settings as unknown as Record<string, string>)[key] = entry.enabled
+            ? entry.value
+            : (globalSettings[key] as string);
+        }
       } else {
         siteScope = false;
         settings = globalSettings;
@@ -1441,10 +1531,17 @@ async function handlePasteJson(): Promise<void> {
     const importedOverrides = result.data.siteOverrides;
     const importedPlatforms = Object.keys(importedOverrides);
     if (importedPlatforms.length > 0) {
-      // Merge into existing site overrides
+      // Merge into existing site overrides, migrating to new format
       for (const [platform, override] of Object.entries(importedOverrides)) {
         if (override) {
-          allSiteOverrides[platform as Platform] = override;
+          // Import may have legacy plain settings — convert to SiteSettings
+          const settings = override.settings;
+          const firstKey = Object.keys(settings)[0];
+          const isLegacy = firstKey && typeof (settings as Record<string, unknown>)[firstKey] === 'string';
+          const migrated: SiteOverride = isLegacy
+            ? { settings: toSiteSettings(settings as unknown as StorageSettings), activePreset: override.activePreset }
+            : override as SiteOverride;
+          allSiteOverrides[platform as Platform] = migrated;
         }
       }
       await chrome.storage.sync.set({ siteSettings: allSiteOverrides });
@@ -1463,7 +1560,15 @@ async function handlePasteJson(): Promise<void> {
     // Determine what to display
     let displaySettings = globalSettings;
     if (currentPlatform && allSiteOverrides[currentPlatform]) {
-      displaySettings = allSiteOverrides[currentPlatform]!.settings;
+      const override = allSiteOverrides[currentPlatform]!;
+      // Show effective values: per-site for enabled, global for disabled
+      displaySettings = { ...DEFAULTS };
+      for (const key of Object.keys(DEFAULTS) as (keyof StorageSettings)[]) {
+        const entry = override.settings[key] as SiteValue<string>;
+        (displaySettings as unknown as Record<string, string>)[key] = entry.enabled
+          ? entry.value
+          : (globalSettings[key] as string);
+      }
       siteScope = true;
     } else {
       siteScope = false;
