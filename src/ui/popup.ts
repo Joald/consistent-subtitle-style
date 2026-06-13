@@ -531,11 +531,22 @@ async function handleSave(): Promise<void> {
         [currentPlatform]: { settings: siteSettings as SiteSettings, activePreset: null },
       };
     } else if (currentPlatform && allSiteOverrides[currentPlatform]) {
-      // No site-scoped settings remain — clear the per-site override
-      await clearSiteOverride(currentPlatform);
-      const { [currentPlatform]: _, ...rest } = allSiteOverrides;
-      void _;
-      allSiteOverrides = rest;
+      // No site-scoped settings remain — keep override with all disabled to preserve
+      // stored per-site values for toggle round-trips (site → global → site).
+      const existingOverride = allSiteOverrides[currentPlatform];
+      const siteSettings = {} as Record<string, SiteValue<string>>;
+      for (const [, settingKey] of Object.entries(ID_TO_SETTING_KEY)) {
+        const existing = existingOverride?.settings[settingKey] as SiteValue<string> | undefined;
+        siteSettings[settingKey] = {
+          value: existing?.value ?? (globalSettings[settingKey] as string),
+          enabled: false,
+        };
+      }
+      await saveSiteOverride(currentPlatform, siteSettings as SiteSettings, null);
+      allSiteOverrides = {
+        ...allSiteOverrides,
+        [currentPlatform]: { settings: siteSettings as SiteSettings, activePreset: null },
+      };
     }
 
     updatePresetIndicator(formValues);
