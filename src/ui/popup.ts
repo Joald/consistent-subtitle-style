@@ -927,7 +927,7 @@ function buildImportExportSection(): void {
   importInput.type = 'text';
   importInput.id = 'import-json-input';
   importInput.className = 'import-json-input';
-  importInput.placeholder = 'Paste JSON here';
+  importInput.placeholder = 'Paste settings here';
 
   // Submit on Enter key
   importInput.addEventListener('keydown', (e) => {
@@ -942,7 +942,7 @@ function buildImportExportSection(): void {
   submitBtn.id = 'import-json-btn';
   submitBtn.className = 'import-json-btn';
   submitBtn.textContent = '→';
-  submitBtn.title = 'Import settings from JSON';
+  submitBtn.title = 'Import settings';
   submitBtn.addEventListener('click', () => {
     void handlePasteJson();
   });
