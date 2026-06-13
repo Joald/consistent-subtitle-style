@@ -622,33 +622,26 @@ hr {
   }
 }
 
-.docs-panel-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 10px 12px;
-  background: #2a2a2a;
-  border-bottom: 1px solid #333;
-}
-
-.docs-panel-title {
-  font-weight: 600;
-  font-size: 13px;
-  color: #e5e5e5;
+.docs-panel {
+  position: relative;
 }
 
 .docs-close-btn {
+  position: absolute;
+  top: 6px;
+  right: 6px;
   background: none;
   border: none;
-  color: #888;
-  font-size: 14px;
+  color: #999;
   cursor: pointer;
-  padding: 0 4px;
-  line-height: 1;
-  transition: color 0.15s;
+  font-size: 14px;
+  padding: 4px 6px;
+  border-radius: 4px;
+  z-index: 1;
 }
 
 .docs-close-btn:hover {
+  background: rgba(255, 255, 255, 0.1);
   color: #e5e5e5;
 }
 
