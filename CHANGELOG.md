@@ -26,7 +26,6 @@
 ### Improvements
 
 - **Override badges**: Visual indicators when a platform has per-site overrides that differ from global settings.
-- **Effective values display**: The popup always shows what's actually applied — per-site override if one exists, otherwise global.
 
 ### CI/CD
 
