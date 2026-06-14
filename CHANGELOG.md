@@ -23,10 +23,6 @@
 - **Platform logos**: Brand icons throughout the popup for quick visual identification.
 - **Keyboard navigation**: Full keyboard support for all custom dropdowns.
 
-### Improvements
-
-- **Override badges**: Visual indicators when a platform has per-site overrides that differ from global settings.
-
 ### CI/CD
 
 - GitHub Actions CI workflow for automated testing on push/PR.
