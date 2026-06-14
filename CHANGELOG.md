@@ -4,6 +4,7 @@
 
 ### New Platforms
 
+- **Dropout**: Direct inline style injection via VHX player API (`dropout.tv`, `embed.vhx.tv`). Live settings updates with `broadcastChanges()` + MutationObserver for new caption elements.
 - **Prime Video**: CSS-only subtitle support for `primevideo.com` + 11 regional Amazon domains (`/gp/video/*` paths).
 - **Max (HBO Max)**: CSS-only subtitle support using `CaptionWindow`/`TextCue`/`CueBoxContainer` selectors. Supports `max.com` + legacy `hbomax.com`.
 - **Crunchyroll**: CSS-only subtitle support via Bitmovin player (`bmpui-ui-subtitle-label`/`bmpui-ui-subtitle-overlay`) selectors.
@@ -21,17 +22,6 @@
 - **Per-platform documentation**: In-extension technical details panel for each of the 9 platforms showing approach, supported settings, known limitations. Empty sections auto-hidden.
 - **Platform logos**: Inline SVG brand icons (16×16) throughout the popup — site indicators, scope toggles, platform banner.
 - **Keyboard navigation**: Arrow keys, Enter/Space, Escape for custom dropdowns. Full ARIA attributes (combobox/listbox/option).
-
-### Bug Fixes
-
-- **Per-site value persistence**: Toggling a setting's scope site→global→site no longer loses the stored per-site value. Override is preserved with `enabled: false` instead of being deleted.
-- **Font-opacity warning scoped to affected platforms**: Help icon now only appears on CSS-injection platforms (Nebula, Crunchyroll, Disney+, Max, Netflix, Prime Video, Vimeo) where `color-mix()` requires a custom font color. YouTube and Dropout handle opacity natively — no warning shown.
-- **Dropout opacity bug**: Opacity percentages (0–100) now converted to CSS alpha (0–1). Color+opacity always applied together.
-- **Dropout inline styles lost on caption change**: MutationObserver on `.vp-captions` detects new caption DOM elements and re-applies styles.
-- **Netflix font-size broken**: Replaced `font-size: X%` with `transform: scale(X/100)` — a true visual multiplier. Affects all CSS-only platforms.
-- **Yellow dot badge not clearing**: Save now updates local caches before re-running badge/indicator logic.
-- **YouTube embed crash on Google Search**: Embedded YouTube previews lack full caption API. Fixed with embedded context detection + per-player try/catch.
-- **Backward-compatible import**: v1.0 flat storage dumps are auto-detected and wrapped in v1 schema on import.
 
 ### Improvements
 
