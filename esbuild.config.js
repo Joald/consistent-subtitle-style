@@ -212,6 +212,53 @@ async function generatePngs() {
       await page.close();
       console.log(`Generated ${size.png}`);
     }
+
+    // Generate Chrome Web Store promo tiles as JPEG (no alpha channel).
+    // Output to store/promo/ — these are dashboard assets, not part of the
+    // shipped extension package.
+    const promos = [
+      {
+        html: 'promo-small-440x280.html',
+        jpg: 'promo-small-440x280.jpg',
+        width: 440,
+        height: 280,
+      },
+      {
+        html: 'promo-marquee-1400x560.html',
+        jpg: 'promo-marquee-1400x560.jpg',
+        width: 1400,
+        height: 560,
+      },
+    ];
+
+    const promoDir = path.resolve('store/promo');
+    await fs.mkdir(promoDir, { recursive: true });
+
+    for (const promo of promos) {
+      const htmlPath = path.resolve('images', promo.html);
+      if (!existsSync(htmlPath)) {
+        console.warn(`Skipping ${promo.html} - not found`);
+        continue;
+      }
+
+      const htmlContent = readFileSync(htmlPath, 'utf8');
+      const page = await browser.newPage();
+
+      await page.setContent(htmlContent, { waitUntil: 'networkidle0' });
+      await page.setViewport({ width: promo.width, height: promo.height, deviceScaleFactor: 1 });
+
+      const outputPath = path.resolve(promoDir, promo.jpg);
+      // JPEG => no alpha channel, satisfies Web Store "24-bit PNG (no alpha) or JPEG"
+      await page.screenshot({
+        path: outputPath,
+        type: 'jpeg',
+        quality: 92,
+        omitBackground: false,
+      });
+
+      await page.close();
+      console.log(`Generated ${promo.jpg}`);
+    }
   } finally {
     await browser.close();
   }

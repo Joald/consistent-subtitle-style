@@ -1,0 +1,83 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <style>
+      html,
+      body {
+        width: 440px;
+        height: 280px;
+        margin: 0;
+        padding: 0;
+        overflow: hidden;
+      }
+      body {
+        font-family: 'Segoe UI', system-ui, sans-serif;
+      }
+      .tile {
+        width: 440px;
+        height: 280px;
+        box-sizing: border-box;
+        background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+        position: relative;
+        overflow: hidden;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        padding: 28px;
+      }
+      .tile::before {
+        content: '';
+        position: absolute;
+        top: -50%;
+        left: -50%;
+        width: 200%;
+        height: 200%;
+        background: radial-gradient(circle, rgba(255, 255, 255, 0.04) 0%, transparent 55%);
+        pointer-events: none;
+      }
+      .wordmark {
+        color: #fff;
+        text-align: center;
+        line-height: 1.18;
+        font-weight: 700;
+        font-size: 38px;
+        letter-spacing: 1px;
+        z-index: 2;
+        text-shadow: 0 2px 8px rgba(0, 0, 0, 0.6);
+      }
+      .wordmark .accent {
+        color: #4fc3f7;
+      }
+      .tagline {
+        margin-top: 14px;
+        color: rgba(255, 255, 255, 0.82);
+        font-size: 15px;
+        font-weight: 500;
+        text-align: center;
+        z-index: 2;
+      }
+      /* mock subtitle bar */
+      .caption {
+        margin-top: 26px;
+        background: rgba(0, 0, 0, 0.78);
+        color: #fff;
+        font-size: 17px;
+        font-weight: 600;
+        padding: 9px 18px;
+        border-radius: 6px;
+        text-shadow: 2px 2px 3px rgba(0, 0, 0, 0.9);
+        z-index: 2;
+        border: 1px solid rgba(255, 255, 255, 0.12);
+      }
+    </style>
+  </head>
+  <body>
+    <div class="tile">
+      <div class="wordmark">Consistent<br />Subtitle <span class="accent">Style</span></div>
+      <div class="tagline">Your subtitles, your way — on every platform</div>
+      <div class="caption">Styled exactly how you like it</div>
+    </div>
+  </body>
+</html>

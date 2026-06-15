@@ -1,0 +1,116 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <style>
+      html,
+      body {
+        width: 1400px;
+        height: 560px;
+        margin: 0;
+        padding: 0;
+        overflow: hidden;
+      }
+      body {
+        font-family: 'Segoe UI', system-ui, sans-serif;
+      }
+      .tile {
+        width: 1400px;
+        height: 560px;
+        box-sizing: border-box;
+        background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+        position: relative;
+        overflow: hidden;
+        display: flex;
+        align-items: center;
+        padding: 0 90px;
+        gap: 70px;
+      }
+      .tile::before {
+        content: '';
+        position: absolute;
+        top: -40%;
+        left: -20%;
+        width: 160%;
+        height: 200%;
+        background: radial-gradient(circle, rgba(255, 255, 255, 0.045) 0%, transparent 55%);
+        pointer-events: none;
+      }
+      .left {
+        flex: 0 0 560px;
+        z-index: 2;
+      }
+      .wordmark {
+        color: #fff;
+        font-weight: 700;
+        font-size: 78px;
+        line-height: 1.1;
+        letter-spacing: 1px;
+        text-shadow: 0 3px 12px rgba(0, 0, 0, 0.6);
+      }
+      .wordmark .accent {
+        color: #4fc3f7;
+      }
+      .tagline {
+        margin-top: 26px;
+        color: rgba(255, 255, 255, 0.85);
+        font-size: 27px;
+        font-weight: 500;
+        line-height: 1.4;
+      }
+      .right {
+        flex: 1;
+        z-index: 2;
+        display: flex;
+        flex-direction: column;
+        gap: 22px;
+        align-items: flex-start;
+      }
+      /* three subtitle samples in different styles to show "customizable" */
+      .cap {
+        font-weight: 700;
+        border-radius: 8px;
+        padding: 14px 26px;
+      }
+      .cap1 {
+        background: rgba(0, 0, 0, 0.8);
+        color: #fff;
+        font-size: 30px;
+        text-shadow: 2px 2px 3px rgba(0, 0, 0, 0.9);
+        border: 1px solid rgba(255, 255, 255, 0.14);
+      }
+      .cap2 {
+        background: rgba(255, 235, 59, 0.12);
+        color: #ffeb3b;
+        font-size: 34px;
+        font-family: Georgia, serif;
+        text-shadow:
+          -2px -2px 0 #000,
+          2px -2px 0 #000,
+          -2px 2px 0 #000,
+          2px 2px 0 #000;
+      }
+      .cap3 {
+        background: rgba(79, 195, 247, 0.16);
+        color: #fff;
+        font-size: 26px;
+        letter-spacing: 0.5px;
+        text-shadow: 4px 4px 8px rgba(0, 0, 0, 0.95);
+        border: 1px solid rgba(79, 195, 247, 0.4);
+      }
+    </style>
+  </head>
+  <body>
+    <div class="tile">
+      <div class="left">
+        <div class="wordmark">Consistent<br />Subtitle <span class="accent">Style</span></div>
+        <div class="tagline">Customize subtitles on every<br />streaming platform — and keep them<br />consistent everywhere.</div>
+      </div>
+      <div class="right">
+        <div class="cap cap1">Crisp white on black</div>
+        <div class="cap cap2">Bold yellow, serif, outlined</div>
+        <div class="cap cap3">Your style, your scope</div>
+      </div>
+    </div>
+  </body>
+</html>
