@@ -2,47 +2,36 @@
 
 ## Short Description (132 chars max)
 
-Customize subtitles on YouTube, Netflix, Disney+, Prime Video, Max, Crunchyroll, Nebula, Dropout & Vimeo. Per-site persistent styles.
+Customize subtitles on YouTube, Netflix, Disney+, Prime Video, Max & more. Per-site styles that stay consistent everywhere.
 
 ## Detailed Description
 
-Consistent Subtitle Style gives you full control over how subtitles look on your favorite streaming platforms — and keeps your preferences consistent everywhere.
+Tired of squinting at tiny subtitles on one site and fighting glaring white text on another? Consistent Subtitle Style lets you set subtitles up exactly how you like them — and keeps them that way across every streaming platform you use.
 
-🎬 SUPPORTED PLATFORMS
-• YouTube — native API integration for the best possible experience
-• Netflix — CSS injection (Cadmium player text-based subtitles)
-• Disney+ — CSS injection + Shadow DOM (disney-web-player custom element)
-• Prime Video — CSS injection across 11 regional Amazon domains
-• Max (HBO Max) — CSS injection (max.com + hbomax.com)
-• Crunchyroll — CSS injection (Bitmovin player)
-• Vimeo — CSS injection (vimeo.com + embedded player)
-• Nebula — CSS injection
-• Dropout — hybrid approach (Vimeo Player API + inline styles + localStorage)
+Set one global look for everything, or fine-tune a different style per site. Your preferences are remembered and reapplied automatically, with no page reloads.
 
-🎨 9 CUSTOMIZABLE PROPERTIES
-• Font color, font family, font size, font opacity
-• Background color, background opacity
-• Window color, window opacity
-• Character edge style (drop shadow, raised, depressed, outline, none)
+🎬 WORKS ON YOUR FAVORITE PLATFORMS
+YouTube, Netflix, Disney+, Prime Video, Max — and 4 more streaming sites.
+Full supported list and per-platform details: https://github.com/Joald/consistent-subtitle-style
 
-⚡ KEY FEATURES
-• Per-site settings: different styles for different platforms, or one global style for everything
-• Per-setting scope control: choose global or per-site scope for each individual setting
-• 3 built-in presets (Recommended, High Contrast, Do Nothing) for quick setup
-• Custom presets: save your own style combos and switch between them instantly
-• Import/Export: backup and restore all settings as JSON — migrate between machines or share configs
-• Per-site override indicators show which settings differ from your global defaults
-• SVG platform icons for quick visual identification
-• In-extension documentation: per-platform info panel with supported settings, approach details, and known limitations
-• Keyboard navigation: full arrow-key/Enter/Escape support for dropdown controls with ARIA attributes
-• Platform detection banner shows whether the current site is supported
-• Live preview in the popup
-• Instant updates — no page reload needed
-• Settings sync across Chrome instances via chrome.storage.sync
+🎨 STYLE EVERYTHING THAT MATTERS
+• Font color, family, size, and opacity
+• Background color and opacity
+• Caption window color and opacity
+• Character edge style — drop shadow, raised, depressed, outline, or none
 
-🔒 PRIVACY
-• No data collection whatsoever
-• No analytics or tracking
-• No network requests — everything stays local
-• Only uses "storage" (to save your preferences) and "activeTab" (to detect which platform you're on)
-• Open source: https://github.com/Joald/consistent-subtitle-style
+⚡ BUILT TO BE FLEXIBLE
+• Global or per-site settings — even per individual setting
+• 3 built-in presets (Recommended, High Contrast, Do Nothing) to get going fast
+• Save your own custom presets and switch between them instantly
+• Import/Export all settings as JSON — back up, restore, or move between machines
+• Clear indicators showing where a site overrides your global defaults
+• Live preview right in the popup, with instant updates — no reload needed
+• Full keyboard navigation with ARIA support
+• Settings sync across your Chrome instances
+
+🔒 PRIVATE BY DESIGN
+• No data collection, no analytics, no tracking
+• No network requests — everything stays on your device
+• Uses only "storage" (to save your preferences) and "activeTab" (to detect the current platform)
+• Fully open source: https://github.com/Joald/consistent-subtitle-style
