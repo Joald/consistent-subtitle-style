@@ -46,20 +46,20 @@ describe('primevideo platform', () => {
       expect(detectPlatform()).toBe('primevideo');
     });
 
-    it('does NOT detect amazon.com without /gp/video path', () => {
+    it('detects amazon.com without /gp/video path as primevideo', () => {
       vi.stubGlobal('location', {
         hostname: 'www.amazon.com',
         pathname: '/dp/B08H7ZF8Y6',
       });
-      expect(detectPlatform()).toBe('unknown');
+      expect(detectPlatform()).toBe('primevideo');
     });
 
-    it('does NOT detect amazon.com shopping pages', () => {
+    it('detects amazon.com shopping pages as primevideo (harmless — CSS targets player-only elements)', () => {
       vi.stubGlobal('location', {
         hostname: 'www.amazon.com',
         pathname: '/s?k=headphones',
       });
-      expect(detectPlatform()).toBe('unknown');
+      expect(detectPlatform()).toBe('primevideo');
     });
   });
 

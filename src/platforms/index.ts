@@ -38,11 +38,7 @@ export function detectPlatform(): Platform | 'unknown' {
   if (hostname.includes('youtube.com')) return 'youtube';
   if (hostname.includes('nebula.tv')) return 'nebula';
   if (hostname.includes('vhx.tv') || hostname.includes('dropout.tv')) return 'dropout';
-  if (
-    hostname.includes('primevideo.com') ||
-    (hostname.includes('amazon.') && window.location.pathname.startsWith('/gp/video'))
-  )
-    return 'primevideo';
+  if (hostname.includes('primevideo.com') || hostname.includes('amazon.')) return 'primevideo';
   if (hostname === 'max.com' || hostname.endsWith('.max.com') || hostname.includes('hbomax.com'))
     return 'max';
   if (hostname.includes('crunchyroll.com')) return 'crunchyroll';

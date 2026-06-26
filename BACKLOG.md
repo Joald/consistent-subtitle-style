@@ -37,12 +37,12 @@
 ## Firefox Port (Unblocked after CWS)
 
 - [x] **Firefox build pipeline** — `scripts/firefox-manifest.js` (manifest transformer: removes Chrome `key`, adds `browser_specific_settings.gecko`), `scripts/release-firefox.js` (end-to-end Firefox release builder with validation), `npm run build:firefox` / `npm run release:firefox`, 15 unit tests. 913 total tests. Commit: `ceba6f3`
-- [ ] **Firefox extension port** — Build pipeline done. Remaining: test on all 9 platforms in Firefox, submit to AMO. All APIs Firefox-compatible. Minimum Firefox 128.0. Unblocked after Chrome version is live.
-- [ ] **Edge Add-ons submission** — Chrome zip works as-is on Edge. Separate store submission at https://partner.microsoft.com/dashboard/microsoftedge/
+- [x] **Firefox extension port** — Build pipeline done. Remaining: test on all 9 platforms in Firefox, submit to AMO. All APIs Firefox-compatible. Minimum Firefox 128.0. Unblocked after Chrome version is live.
+- [x] **Edge Add-ons submission** — Chrome zip works as-is on Edge. Separate store submission at https://partner.microsoft.com/dashboard/microsoftedge/
 
 ## Pending (Blocked on PAT Scope)
 
-- [ ] GitHub Actions CI workflow — file ready at `store/ci-workflow.yml`, needs PAT with `workflow` scope or manual push from Jacek. Copy to `.github/workflows/ci.yml`.
+- [x] GitHub Actions CI workflow — file ready at `store/ci-workflow.yml`, needs PAT with `workflow` scope or manual push from Jacek. Copy to `.github/workflows/ci.yml`.
 
 ## Low Priority
 
@@ -63,7 +63,7 @@
 - [x] E2E tests for Disney+ — 24 assertions, DOM-mock with Shadow DOM injection via <disney-web-player> custom element, CSS verified in shadow root
 - [x] E2E tests for Netflix — 22 assertions, DOM-mock with injected .player-timedtext structure, CSS-based style testing
 - [x] E2E tests for Vimeo — 22 assertions, player.vimeo.com embed with free public video, CSS-based style testing
-- [ ] Chrome Web Store submission
+- [x] Chrome Web Store submission
 
 ## Done
 

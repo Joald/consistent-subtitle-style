@@ -77,9 +77,9 @@ describe('platforms index', () => {
       expect(detectPlatform()).toBe('primevideo');
     });
 
-    it('does not detect amazon.com without /gp/video path', () => {
+    it('detects amazon.com on non-/gp/video paths (player elements are scoped)', () => {
       vi.stubGlobal('location', { hostname: 'www.amazon.com', pathname: '/dp/B08N5WRWNW' });
-      expect(detectPlatform()).toBe('unknown');
+      expect(detectPlatform()).toBe('primevideo');
     });
 
     // Max (HBO Max)
