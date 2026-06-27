@@ -254,7 +254,7 @@ class SubtitleStylerApp {
     if (fontSizeScaleFactor !== null && this.platformConfig.css?.subtitleContainerSelector) {
       const containerSelector = this.platformConfig.css.subtitleContainerSelector;
       cssRules.push(
-        `${containerSelector} { transform: scale(${fontSizeScaleFactor.toString()}); transform-origin: center bottom; }`,
+        `${containerSelector} { transform: scale(${fontSizeScaleFactor.toString()}) !important; transform-origin: center bottom !important; }`,
       );
     }
 
