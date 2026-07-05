@@ -27,12 +27,21 @@ try {
 
   const absoluteBuildDir = path.resolve(buildDir);
 
-  // 3. Remove existing zip to avoid stale entries
+  // 3. Strip the "key" field from dist/manifest.json — CWS manages its own key
+  const distManifestPath = path.join(buildDir, 'manifest.json');
+  const manifest = JSON.parse(fs.readFileSync(distManifestPath, 'utf8'));
+  if (manifest.key) {
+    delete manifest.key;
+    fs.writeFileSync(distManifestPath, JSON.stringify(manifest, null, 2) + '\n');
+    console.log('🔑 Stripped "key" from dist/manifest.json (CWS manages its own)');
+  }
+
+  // 4. Remove existing zip to avoid stale entries
   if (fs.existsSync(absoluteOutputPath)) {
     fs.unlinkSync(absoluteOutputPath);
   }
 
-  // 4. Zip the dist folder contents
+  // 5. Zip the dist folder contents
 
   console.log(`🗜️  Zipping ${buildDir} to ${outputPath}...`);
 
