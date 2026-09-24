@@ -182,3 +182,6 @@
 - Fixed stale popup smoke assertions copy-pasted across 7 e2e files: dropdown
   count 9 → 10 (preset selector added), "Reset" button no longer exists —
   replaced by "Save as Preset" icon button check.
+
+## 2026-09-24 — Version bump 1.2.0 → 1.2.1
+- Nebula selector fix (4-level deep text pill) + weekly live-site E2E CI.
