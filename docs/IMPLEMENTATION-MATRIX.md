@@ -96,7 +96,7 @@ Settings (rows) vs platforms (columns). Each cell shows the implementation strat
 
 | Platform | Subtitle Selector | Background Selector | Window Selector | Container Selector |
 |----------|-------------------|--------------------|-----------------|--------------------|
-| Nebula | `#video-player [data-subtitles-container] > div > div > div` | same | `> div > div` | `#video-player [data-subtitles-container]` |
+| Nebula | `#video-player [data-subtitles-container] > div > div > div > div` | same | `> div > div > div` | `#video-player [data-subtitles-container]` |
 | Dropout | `.vp-captions` | `.vp-captions > span` | `[class*="CaptionsRenderer_module_captionsWindow"]` | `.vp-captions` |
 | Prime Video | `.atvwebplayersdk-captions-text` | `.atvwebplayersdk-captions-region` | `.atvwebplayersdk-captions-overlay` | `.atvwebplayersdk-captions-overlay` |
 | Max | `[class^="TextCue"]` | `[data-testid="CueBoxContainer"]` | `[class^="CaptionWindow"]` | `[class^="CaptionWindow"]` |

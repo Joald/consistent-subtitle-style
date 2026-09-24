@@ -197,3 +197,14 @@ The browser agent can automate the entire development cycle using the `/reload-a
 
 **CRITICAL: Always run `npm run ci` after every edit.**
 **CRITICAL: At the end of each major change, update this AGENTS.md with ACTUALLY NECESSARY info**
+
+### Nebula subtitle DOM is depth-fragile (lesson 2026-09-24)
+
+Nebula renders subtitles as custom React DOM (react-vtt, native cues disabled) with
+Emotion-hashed classes, so selectors must be structural (`[data-subtitles-container] > div > …`).
+Nebula silently added a wrapper div: the text pill moved from the 3rd to the 4th nested
+div. Signature of this failure mode: **bg color/opacity breaks while font color keeps
+working** — `color`/`font-weight` inherit down to the text, `background-color` does not,
+so a too-shallow selector paints an invisible full-width band instead of the pill.
+When only bg styling breaks on Nebula, re-verify the live DOM depth first
+(free video page, no login needed) — don't touch the CSS generation logic.

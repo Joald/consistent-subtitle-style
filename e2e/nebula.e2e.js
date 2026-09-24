@@ -27,7 +27,7 @@ import {
 const { assert, skip, summary } = createTestRunner();
 
 // Selector for Nebula subtitle text
-const SUB_SEL = '#video-player [data-subtitles-container] > div > div > div';
+const SUB_SEL = '#video-player [data-subtitles-container] > div > div > div > div';
 
 async function run() {
   console.log('Launching Chrome with extension…');
@@ -341,7 +341,7 @@ async function run() {
       await setStorage(browser, extId, { backgroundColor: 'auto', backgroundOpacity: 'auto' });
       await sleep(1000);
 
-      const WINDOW_SEL = '#video-player [data-subtitles-container] > div > div';
+      const WINDOW_SEL = '#video-player [data-subtitles-container] > div > div > div';
       await setStorage(browser, extId, { windowColor: 'green', windowOpacity: '50' });
 
       const windowOpacity = await waitForStyle(

@@ -39,10 +39,10 @@ describe('nebula platform', () => {
         '#video-player [data-subtitles-container]',
       );
       expect(config?.css?.selectors.subtitle).toBe(
-        '#video-player [data-subtitles-container] > div > div > div',
+        '#video-player [data-subtitles-container] > div > div > div > div',
       );
       expect(config?.css?.selectors.window).toBe(
-        '#video-player [data-subtitles-container] > div > div',
+        '#video-player [data-subtitles-container] > div > div > div',
       );
     });
 
@@ -76,6 +76,15 @@ describe('nebula platform', () => {
       const subtitleParts = nebula.css?.selectors.subtitle.split(' > ') ?? [];
       const windowParts = nebula.css?.selectors.window.split(' > ') ?? [];
       expect(windowParts.length).toBe(subtitleParts.length - 1);
+    });
+
+    it('targets the innermost text div (four levels below the container)', () => {
+      // 2026-09-24: Nebula added a wrapper div; the text pill with the visible
+      // background is now the 4th nested div. background-color does not inherit,
+      // so targeting a shallower level silently breaks bg color/opacity.
+      const subtitleParts = nebula.css?.selectors.subtitle.split(' > ') ?? [];
+      const divLevels = subtitleParts.filter((p) => p === 'div').length;
+      expect(divLevels).toBe(4);
     });
 
     it('defines baseline CSS with font-weight bold', () => {

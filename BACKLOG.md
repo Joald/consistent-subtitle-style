@@ -2,6 +2,7 @@
 
 ## High Priority
 
+- [x] **Nebula bg opacity/color broken (2026-09-24)** — Fixed: Nebula added a wrapper div to the subtitle DOM; text pill moved from 3rd to 4th nested div under `[data-subtitles-container]`. Selectors in `src/platforms/nebula.ts` shifted one `> div` deeper (subtitle/background → 4 levels, window → 3). Symptom signature: bg color/opacity broke while font color kept working (color inherits, background-color doesn't). New unit test locks the 4-level depth; e2e selectors + IMPLEMENTATION-MATRIX.md updated.
 - [x] **Dropout opacity bug** — fixed: opacity percentages (0–100) now converted to CSS alpha (0–1). Color+opacity always applied together so changing color preserves opacity. 17 new tests, 626 total. Commit: `6061e01`
 - [x] **Dropout: inline styles lost on new caption lines** — Fixed: MutationObserver on `.vp-captions` detects new `captionsLine`/`captionsWindow` DOM elements (created on subtitle cue change) and re-applies inline styles from `currentValues`. Tracks observed container; reconnects if container changes (player re-render). Debounced (50ms). 7 new tests, 762 total. Commit: `98785b1`
 - [x] **Yellow dot badge not clearing without popup re-open** — Fixed: `handleSave()` (and `handlePresetChange()`, `handleSaveAsPreset()`) now updates local `globalSettings`/`allSiteOverrides` caches after save, then re-runs `updateOverrideBadges()` + `updateSiteIndicators()`. Regression test added. 708 tests green. Commit: `973d6cd`
