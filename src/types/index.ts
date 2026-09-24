@@ -113,7 +113,10 @@ export type StorageKey = keyof StorageSettings;
  * When enabled is false, the global value is used instead, but the
  * per-site value is preserved for when the user re-enables it.
  */
-export type SiteValue<T> = { value: T; enabled: boolean };
+export interface SiteValue<T> {
+  value: T;
+  enabled: boolean;
+}
 
 /**
  * Full per-site settings map: every StorageSettings key wrapped in SiteValue.

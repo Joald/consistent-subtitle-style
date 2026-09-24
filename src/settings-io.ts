@@ -145,9 +145,10 @@ function isWrappedSiteSettings(raw: Record<string, unknown>): boolean {
  * Unwrap a SiteSettings object into plain StorageSettings for validation,
  * returning the enabled flags so they can be re-applied after validation.
  */
-function unwrapSiteSettings(
-  raw: Record<string, unknown>,
-): { plain: Record<string, unknown>; enabledMap: Record<string, boolean> } {
+function unwrapSiteSettings(raw: Record<string, unknown>): {
+  plain: Record<string, unknown>;
+  enabledMap: Record<string, boolean>;
+} {
   const plain: Record<string, unknown> = {};
   const enabledMap: Record<string, boolean> = {};
   for (const [key, val] of Object.entries(raw)) {
@@ -172,7 +173,10 @@ function validateSiteOverrideSettings(
   context: string,
 ): { siteSettings: SiteSettings; errors: string[] } {
   if (raw == null || typeof raw !== 'object') {
-    return { siteSettings: toSiteSettings({ ...DEFAULTS }), errors: [`${context}: expected an object`] };
+    return {
+      siteSettings: toSiteSettings({ ...DEFAULTS }),
+      errors: [`${context}: expected an object`],
+    };
   }
 
   const rawObj = raw as Record<string, unknown>;
@@ -383,9 +387,7 @@ export function validatePresetJson(raw: unknown): PresetValidationResult {
   const obj = raw as Record<string, unknown>;
 
   // Detect flat StorageSettings (at least one known key, no 'global' wrapper)
-  const isFlatSettings =
-    !('global' in obj) &&
-    V1_SETTING_KEYS.some((key) => key in obj);
+  const isFlatSettings = !('global' in obj) && V1_SETTING_KEYS.some((key) => key in obj);
 
   let globalRaw: unknown;
   let siteOverridesRaw: unknown;
@@ -401,10 +403,7 @@ export function validatePresetJson(raw: unknown): PresetValidationResult {
   }
 
   // Validate global settings
-  const { settings: globalSettings, errors: globalErrors } = validateSettings(
-    globalRaw,
-    'global',
-  );
+  const { settings: globalSettings, errors: globalErrors } = validateSettings(globalRaw, 'global');
   if (globalRaw == null || typeof globalRaw !== 'object') {
     return { valid: false, error: 'Invalid "global" settings' };
   }

@@ -25,9 +25,7 @@ const STORAGE_KEY = 'siteSettings';
  * Check whether a stored settings object is in the legacy plain format
  * (values are raw strings) vs the new wrapped format (values are {value, enabled}).
  */
-function isLegacySettings(
-  settings: Record<string, unknown>,
-): settings is Record<string, string> {
+function isLegacySettings(settings: Record<string, unknown>): settings is Record<string, string> {
   const firstKey = Object.keys(settings)[0];
   if (!firstKey) return false;
   return typeof settings[firstKey] === 'string';
@@ -39,7 +37,8 @@ function isLegacySettings(
  */
 export function toSiteSettings(plain: StorageSettings): SiteSettings {
   const result = {} as Record<string, SiteValue<string>>;
-  for (const [key, value] of Object.entries(plain)) {
+  const entries = Object.entries(plain) as [string, StorageSettings[keyof StorageSettings]][];
+  for (const [key, value] of entries) {
     result[key] = { value, enabled: true };
   }
   return result as SiteSettings;
@@ -50,10 +49,7 @@ export function toSiteSettings(plain: StorageSettings): SiteSettings {
  * For enabled keys, uses the per-site value.
  * For disabled keys, uses the provided global fallback.
  */
-export function resolveEffective(
-  site: SiteSettings,
-  global: StorageSettings,
-): StorageSettings {
+export function resolveEffective(site: SiteSettings, global: StorageSettings): StorageSettings {
   const result = {} as Record<string, string>;
   for (const key of Object.keys(DEFAULTS) as (keyof StorageSettings)[]) {
     const entry = site[key];
@@ -86,7 +82,8 @@ function migrateOverride(
   if (isLegacySettings(settings)) {
     const plain = settings as unknown as StorageSettings;
     const result = {} as Record<string, SiteValue<string>>;
-    for (const [key, value] of Object.entries(plain)) {
+    const entries = Object.entries(plain) as [string, StorageSettings[keyof StorageSettings]][];
+    for (const [key, value] of entries) {
       const globalVal = global ? (global[key as keyof StorageSettings] as string) : undefined;
       result[key] = {
         value,
@@ -112,7 +109,9 @@ function migrateOverride(
 export async function loadAllSiteOverrides(): Promise<SiteSettingsMap> {
   if (typeof chrome === 'undefined') return {};
   const result = await chrome.storage.sync.get(STORAGE_KEY);
-  const stored = result[STORAGE_KEY] as Record<string, { settings: unknown; activePreset: string | null }> | undefined;
+  const stored = result[STORAGE_KEY] as
+    | Record<string, { settings: unknown; activePreset: string | null }>
+    | undefined;
   if (!stored) return {};
 
   // Load global settings for smart legacy migration (compare per-site vs global)

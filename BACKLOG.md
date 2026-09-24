@@ -173,6 +173,7 @@
 - [x] E2E: YouTube textOpacity — verify text opacity change via native API getSubtitlesUserSettings()
 
 ## 2026-09-24 — Weekly live-site E2E on GitHub Actions
+
 - Added `.github/workflows/e2e-weekly.yml`: runs the no-login live-site suites
   (nebula, youtube, vimeo, crunchyroll, dropout, per-site, presets) every
   Monday 06:00 UTC + manual dispatch. This is the regression net for silent
@@ -184,4 +185,20 @@
   replaced by "Save as Preset" icon button check.
 
 ## 2026-09-24 — Version bump 1.2.0 → 1.2.1
+
 - Nebula selector fix (4-level deep text pill) + weekly live-site E2E CI.
+
+## 2026-09-24 — Pre-commit hooks restored + lint/test debt fixed
+- Husky v9 stubs in `.husky/_/` lost their exec bit → git ignored all hooks
+  ("hook was ignored because it's not set as executable"). Fixed with chmod +x.
+- `npm run ci` (the pre-commit hook) was red on pre-existing issues; fixed all:
+  - tests/main.test.ts: 4 stale expectations missing `!important` in the
+    fontSize transform: scale() rules (intentional in src/main.ts).
+  - src/ui/popup.ts: removed unused imports (clearSiteOverride,
+    flattenSiteSettings), dropped dead `if (override)` guard (validatePresetJson
+    already rejects non-objects), plus `eslint --fix` cleanups.
+  - src/site-settings.ts: typed Object.entries to fix no-unsafe-assignment.
+  - tests/popup.test.ts: replaced non-null-asserted optional chain.
+  - tests/firefox-manifest.test.ts: disabled no-unsafe-argument (file is
+    @ts-nocheck by design — untyped JS build script).
+- Full `npm run ci` (format, lint, typecheck, 944 tests, prod build) green.

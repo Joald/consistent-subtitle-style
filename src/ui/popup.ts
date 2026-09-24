@@ -11,9 +11,7 @@ import {
   loadSiteOverride,
   saveSiteOverride,
   loadAllSiteOverrides,
-  clearSiteOverride,
   toSiteSettings,
-  flattenSiteSettings,
 } from '../site-settings.js';
 import { loadCustomPresets, saveCustomPreset, deleteCustomPreset } from '../custom-presets.js';
 import { getPlatformDoc } from '../platform-docs.js';
@@ -154,7 +152,13 @@ function populateForm(settings: StorageSettings): void {
  * YouTube and Dropout have native/DOM-based opacity handling that works independently.
  */
 const OPACITY_NEEDS_CUSTOM_COLOR: ReadonlySet<string> = new Set([
-  'nebula', 'crunchyroll', 'disneyplus', 'max', 'netflix', 'primevideo', 'vimeo',
+  'nebula',
+  'crunchyroll',
+  'disneyplus',
+  'max',
+  'netflix',
+  'primevideo',
+  'vimeo',
 ]);
 
 function updateOpacityStates(): void {
@@ -529,7 +533,10 @@ async function handleSave(): Promise<void> {
         const isEnabled = settingScopes[id] === 'site';
         if (isEnabled) {
           // Use current form value for enabled per-site settings
-          siteSettings[settingKey] = { value: fullFormSettings[settingKey] as string, enabled: true };
+          siteSettings[settingKey] = {
+            value: fullFormSettings[settingKey] as string,
+            enabled: true,
+          };
         } else {
           // Preserve the stored per-site value (if any), keep it disabled
           const existing = existingOverride?.settings[settingKey] as SiteValue<string> | undefined;
@@ -1566,7 +1573,7 @@ async function handlePasteJson(): Promise<void> {
 
   // Prompt for a preset name
   const name = window.prompt('Preset name:');
-  if (!name || !name.trim()) return;
+  if (!name?.trim()) return;
 
   try {
     // Save as a new custom preset (global settings)
@@ -1578,17 +1585,20 @@ async function handlePasteJson(): Promise<void> {
     const importedPlatforms = Object.keys(importedOverrides);
     if (importedPlatforms.length > 0) {
       // Merge into existing site overrides, migrating to new format
+      // (validatePresetJson already rejects non-object values, so no null guard needed)
       for (const [platform, override] of Object.entries(importedOverrides)) {
-        if (override) {
-          // Import may have legacy plain settings — convert to SiteSettings
-          const settings = override.settings;
-          const firstKey = Object.keys(settings)[0];
-          const isLegacy = firstKey && typeof (settings as Record<string, unknown>)[firstKey] === 'string';
-          const migrated: SiteOverride = isLegacy
-            ? { settings: toSiteSettings(settings as unknown as StorageSettings), activePreset: override.activePreset }
-            : override as SiteOverride;
-          allSiteOverrides[platform as Platform] = migrated;
-        }
+        // Import may have legacy plain settings — convert to SiteSettings
+        const settings = override.settings;
+        const firstKey = Object.keys(settings)[0];
+        const isLegacy =
+          firstKey && typeof (settings as Record<string, unknown>)[firstKey] === 'string';
+        const migrated: SiteOverride = isLegacy
+          ? {
+              settings: toSiteSettings(settings as unknown as StorageSettings),
+              activePreset: override.activePreset,
+            }
+          : override;
+        allSiteOverrides[platform as Platform] = migrated;
       }
       await chrome.storage.sync.set({ siteSettings: allSiteOverrides });
     }

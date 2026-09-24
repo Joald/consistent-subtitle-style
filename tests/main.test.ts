@@ -1663,7 +1663,7 @@ describe('SubtitleStylerApp', () => {
       const el = getStyleElement();
       expect(el).not.toBeNull();
       expect(el!.textContent).toContain(
-        '.player-timedtext { transform: scale(1.5); transform-origin: center bottom; }',
+        '.player-timedtext { transform: scale(1.5) !important; transform-origin: center bottom !important; }',
       );
     });
 
@@ -1837,7 +1837,7 @@ describe('SubtitleStylerApp', () => {
         const el = getStyleElement();
         expect(el).not.toBeNull();
         expect(el!.textContent).toContain(
-          `${container} { transform: scale(1.5); transform-origin: center bottom; }`,
+          `${container} { transform: scale(1.5) !important; transform-origin: center bottom !important; }`,
         );
 
         // Clean up for next iteration
@@ -1858,7 +1858,7 @@ describe('SubtitleStylerApp', () => {
       // Should have both the color rule and the transform
       expect(el!.textContent).toContain('color: red !important;');
       expect(el!.textContent).toContain(
-        '.player-timedtext { transform: scale(1.5); transform-origin: center bottom; }',
+        '.player-timedtext { transform: scale(1.5) !important; transform-origin: center bottom !important; }',
       );
     });
 
@@ -1887,7 +1887,7 @@ describe('SubtitleStylerApp', () => {
       const el = getStyleElement();
       expect(el).not.toBeNull();
       expect(el!.textContent).toContain(
-        '.player-timedtext { transform: scale(2); transform-origin: center bottom; }',
+        '.player-timedtext { transform: scale(2) !important; transform-origin: center bottom !important; }',
       );
     });
 

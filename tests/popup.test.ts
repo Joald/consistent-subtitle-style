@@ -2945,8 +2945,9 @@ describe('Popup UI Integration', () => {
       expect(navigator.clipboard.writeText).toHaveBeenCalled();
 
       // Verify the JSON format
-      const writtenJson = vi.mocked(navigator.clipboard.writeText).mock.calls[0]?.[0] as string;
-      const parsed = JSON.parse(writtenJson) as Record<string, unknown>;
+      const firstCallArg = vi.mocked(navigator.clipboard.writeText).mock.calls[0]?.[0];
+      if (firstCallArg === undefined) throw new Error('clipboard.writeText not called with JSON');
+      const parsed = JSON.parse(firstCallArg) as Record<string, unknown>;
 
       // Should have global and siteOverrides
       expect(parsed).toHaveProperty('global');
