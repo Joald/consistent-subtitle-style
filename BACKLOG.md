@@ -171,3 +171,14 @@
 - [x] E2E: YouTube windowColor — verify window color change via native API getSubtitlesUserSettings()
 - [x] E2E: YouTube windowOpacity — verify window opacity change via native API getSubtitlesUserSettings()
 - [x] E2E: YouTube textOpacity — verify text opacity change via native API getSubtitlesUserSettings()
+
+## 2026-09-24 — Weekly live-site E2E on GitHub Actions
+- Added `.github/workflows/e2e-weekly.yml`: runs the no-login live-site suites
+  (nebula, youtube, vimeo, crunchyroll, dropout, per-site, presets) every
+  Monday 06:00 UTC + manual dispatch. This is the regression net for silent
+  site DOM changes like today's Nebula wrapper-div breakage.
+- Login-gated suites (netflix, disneyplus, max, primevideo) excluded — cannot
+  run unattended.
+- Fixed stale popup smoke assertions copy-pasted across 7 e2e files: dropdown
+  count 9 → 10 (preset selector added), "Reset" button no longer exists —
+  replaced by "Save as Preset" icon button check.

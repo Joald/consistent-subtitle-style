@@ -455,19 +455,17 @@ async function run() {
       const popupInfo = await popupPage.evaluate(() => ({
         title: document.title,
         selectCount: document.querySelectorAll('.custom-select').length,
-        hasResetBtn: !!Array.from(document.querySelectorAll('button')).find((b) =>
-          b.textContent.includes('Reset'),
-        ),
+        hasSavePresetBtn: !!document.querySelector('button[title="Save as Preset"]'),
         hasPreview: !!document.getElementById('preview-text'),
       }));
 
       assert(popupInfo.title === 'Subtitle Styles', 'Popup title is correct');
       assert(
-        popupInfo.selectCount === 9,
-        'Popup has 9 setting dropdowns',
+        popupInfo.selectCount === 10,
+        'Popup has 10 setting dropdowns (9 settings + preset selector)',
         String(popupInfo.selectCount),
       );
-      assert(popupInfo.hasResetBtn, 'Popup has Reset button');
+      assert(popupInfo.hasSavePresetBtn, 'Popup has Save as Preset button');
       assert(popupInfo.hasPreview, 'Popup has live preview element');
     } catch (e) {
       assert(false, 'Popup loads without error', e.message);
