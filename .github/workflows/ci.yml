@@ -1,0 +1,30 @@
+name: CI
+
+# Runs the same gate as the pre-commit hook (npm run ci = format, lint,
+# typecheck, test, prod build). A red check here means main is broken —
+# pair with branch protection (required status checks) to make the server
+# reject merges/pushes that fail it. Note: the server can never detect
+# --no-verify itself (the flag is purely client-side); this check on the
+# *content* is the server-side equivalent.
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  ci:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run CI gate (format, lint, typecheck, test, prod build)
+        run: npm run ci

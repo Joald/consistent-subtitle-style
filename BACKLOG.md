@@ -189,6 +189,7 @@
 - Nebula selector fix (4-level deep text pill) + weekly live-site E2E CI.
 
 ## 2026-09-24 — Pre-commit hooks restored + lint/test debt fixed
+
 - Husky v9 stubs in `.husky/_/` lost their exec bit → git ignored all hooks
   ("hook was ignored because it's not set as executable"). Fixed with chmod +x.
 - `npm run ci` (the pre-commit hook) was red on pre-existing issues; fixed all:
@@ -202,3 +203,15 @@
   - tests/firefox-manifest.test.ts: disabled no-unsafe-argument (file is
     @ts-nocheck by design — untyped JS build script).
 - Full `npm run ci` (format, lint, typecheck, 944 tests, prod build) green.
+
+## 2026-09-24 — --no-verify guard (local CLI) + CI workflow (server signal)
+- New: `~/workspace/scripts/git-no-verify-guard.sh` installed as
+  /usr/local/bin/git (shadows /usr/bin/git via PATH). Refuses
+  `git commit --no-verify` / `-n` (incl. bundles like -nm) and
+  `git push --no-verify`; `git push -n` (dry-run) still allowed.
+  Reinstalled automatically by vm-provisioning/provision.sh after migration
+  (/usr/local/bin is ephemeral).
+- New: `.github/workflows/ci.yml` runs `npm run ci` on every push to main
+  and on PRs. Server can never detect --no-verify itself (flag is purely
+  client-side, not in the push protocol); a required status check on this
+  workflow via branch protection is the server-side equivalent.
