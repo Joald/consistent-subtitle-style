@@ -249,34 +249,27 @@ export async function setStorageViaPopup(browser, extId, settings) {
 /**
  * Reset all settings to "auto" via the popup's Reset button.
  */
-export async function resetStorageViaPopup(browser, extId) {
-  if (!extId) return false;
-
-  const popupPage = await browser.newPage();
+/**
+ * Reset storage to defaults via the extension service worker.
+ *
+ * NOTE: the popup Reset button was removed in 1ae34d8 (redundant with the
+ * Do Nothing preset), so the old click-based reset silently did nothing —
+ * settings leaked between test sections (e.g. fontOpacity '50' surviving
+ * into the combined-settings assertions). Clearing sync storage makes
+ * loadSettings() fall back to DEFAULTS, which is what the old Reset button
+ * did (chrome.storage.sync.set({ ...DEFAULTS, activePreset: null })).
+ */
+export async function resetStorageViaSW(browser, extId) {
   try {
-    await popupPage.goto(`chrome-extension://${extId}/index.html`, {
-      waitUntil: 'networkidle2',
-      timeout: 10_000,
-    });
-    await sleep(500);
-
-    await popupPage.evaluate(() => {
-      const resetBtn = document.getElementById('reset-btn');
-      if (resetBtn) resetBtn.click();
-    });
-
-    // Wait for "Saved!" confirmation after reset too
-    const confirmed = await waitForSaveConfirmation(popupPage);
-    if (!confirmed) {
-      await sleep(1000);
-    }
-
+    const swTarget = await getServiceWorker(browser, extId, 5_000);
+    if (!swTarget) return false;
+    const sw = await swTarget.worker();
+    await sw.evaluate(
+      () => new Promise((resolve) => chrome.storage.sync.clear(() => resolve())),
+    );
     return true;
-  } catch (e) {
-    console.warn(`  ⚠️  Reset via popup failed: ${e.message}`);
+  } catch {
     return false;
-  } finally {
-    await popupPage.close();
   }
 }
 
@@ -339,7 +332,7 @@ export async function setStorage(browser, extId, settings) {
  * Reset storage using the best available method.
  */
 export async function resetStorage(browser, extId) {
-  return resetStorageViaPopup(browser, extId);
+  return resetStorageViaSW(browser, extId);
 }
 
 // ── Style polling helpers ────────────────────────────────────────────────────
