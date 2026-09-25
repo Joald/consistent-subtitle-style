@@ -251,13 +251,8 @@ export async function setStorageViaPopup(browser, extId, settings) {
  */
 /**
  * Reset storage to defaults via the extension service worker.
- *
- * NOTE: the popup Reset button was removed in 1ae34d8 (redundant with the
- * Do Nothing preset), so the old click-based reset silently did nothing —
- * settings leaked between test sections (e.g. fontOpacity '50' surviving
- * into the combined-settings assertions). Clearing sync storage makes
- * loadSettings() fall back to DEFAULTS, which is what the old Reset button
- * did (chrome.storage.sync.set({ ...DEFAULTS, activePreset: null })).
+ * Fallback for resetStorage() — the popup-page clear is primary because MV3
+ * workers go idle and vanish from browser.targets().
  */
 export async function resetStorageViaSW(browser, extId) {
   try {
@@ -331,8 +326,57 @@ export async function setStorage(browser, extId, settings) {
 /**
  * Reset storage using the best available method.
  */
+/**
+ * Reset storage to defaults.
+ *
+ * NOTE: the popup Reset button was removed in 1ae34d8 (redundant with the
+ * Do Nothing preset), so the old click-based reset silently did nothing and
+ * settings leaked between test sections. We clear sync storage directly from
+ * a fresh extension page — deliberately NOT via the service worker, because
+ * MV3 workers go idle/terminate and vanish from browser.targets(), which
+ * made the SW-based clear silently no-op mid-suite. loadSettings() falls
+ * back to DEFAULTS for missing keys, which matches what the old Reset
+ * button did via set({ ...DEFAULTS, activePreset: null }).
+ */
 export async function resetStorage(browser, extId) {
-  return resetStorageViaSW(browser, extId);
+  if (!extId) return false;
+  const popupPage = await browser.newPage();
+  try {
+    await popupPage.goto(`chrome-extension://${extId}/index.html`, {
+      waitUntil: 'domcontentloaded',
+      timeout: 10_000,
+    });
+    const cleared = await popupPage.evaluate(
+      () =>
+        new Promise((resolve) => {
+          try {
+            chrome.storage.sync.clear(() => {
+              resolve(!chrome.runtime.lastError);
+            });
+          } catch {
+            resolve(false);
+          }
+        }),
+    );
+    if (!cleared) {
+      console.warn('  ⚠️  resetStorage: clear() via popup page failed, trying SW');
+      return resetStorageViaSW(browser, extId);
+    }
+    // Verify the wipe actually landed — never silently pretend.
+    const remaining = await popupPage.evaluate(
+      () => new Promise((resolve) => chrome.storage.sync.get(null, (r) => resolve(r || {}))),
+    );
+    if (Object.keys(remaining).length > 0) {
+      console.warn(`  ⚠️  resetStorage: storage not empty after clear: ${JSON.stringify(remaining)}`);
+      return false;
+    }
+    return true;
+  } catch (e) {
+    console.warn(`  ⚠️  resetStorage failed: ${e.message}`);
+    return false;
+  } finally {
+    await popupPage.close();
+  }
 }
 
 // ── Style polling helpers ────────────────────────────────────────────────────
