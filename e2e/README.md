@@ -28,9 +28,9 @@ and sequential execution automatically.
 | ------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | **Browser**   | Actual Chromium, launched by Puppeteer with `--load-extension`                                                                                                                                                                        |
 | **Extension** | Built from `dist/` — full production build, all content scripts, popup, service worker                                                                                                                                                |
-| **Websites**  | Live pages: `embed.vhx.tv` (Dropout), `nebula.tv`, `youtube.com`                                                                                                                                                                      |
-| **Settings**  | Changed via the popup page (`chrome-extension://{id}/index.html`) — clicks the real custom-select dropdowns, which triggers `handleSave()` → `chrome.storage.sync.set()` → `chrome.tabs.sendMessage()`, exactly as a human user would |
-| **Subtitles** | Real captions rendered by each platform's native player                                                                                                                                                                               |
+| **Websites**  | Live pages: `embed.vhx.tv` (Dropout), `nebula.tv`, `youtube.com`, `vimeo.com`, plus the public pages of `netflix.com`, `disneyplus.com`, `hbomax.com`, `crunchyroll.com`                                                                |
+| **Settings**  | Changed via the popup page (`chrome-extension://{id}/index.html`) — clicks the real custom-select dropdowns, which triggers `handleSave()` → `chrome.storage.sync.set()`, exactly as a human user would                                |
+| **Subtitles** | Real captions rendered by each platform's native player — **except** the subscription-gated suites below, which inject platform-shaped mock subtitle DOM                                                                               |
 
 ### What is simulated
 
@@ -38,18 +38,29 @@ and sequential execution automatically.
 | -------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | **Display**          | Xvfb (X Virtual Framebuffer) — a headless X11 server. Chrome renders in a real window, but there is no physical monitor. Screenshots can be captured for debugging. |
 | **User interaction** | Puppeteer drives clicks and navigation. No actual mouse/keyboard.                                                                                                   |
+| **Subtitle DOM**     | `netflix`, `disneyplus`, `max`, `crunchyroll` (and `primevideo`) inject mock subtitle elements replicating each platform's player DOM (e.g. Netflix's `.player-timedtext`, Disney+'s Shadow DOM, Max's selectors). These suites prove host detection, CSS injection on the live domain, and the full styling pipeline — they are **not** full live-player regression. |
 
-### Nothing is mocked
+### Coverage honesty
 
-There are no mock objects, fake DOMs, or stubbed APIs. The extension runs
-in the same environment as a user's browser. If a test passes, the
-feature works on that platform.
+Three classes of suites — do not present class 2 as class 1:
+
+1. **Real player + real subtitles**: `nebula` (free video), `vimeo`
+   (free public video with captions), `dropout` (`embed.vhx.tv`
+   player). (`youtube` loads the real page, but caption text is rarely
+   present — it asserts init + live settings propagation.)
+2. **Live domain + injected subtitle DOM**: `crunchyroll`, `max`,
+   `netflix`, `disneyplus`. Subscription-gated; the suite loads the real
+   public page and injects platform-shaped subtitle DOM.
+3. **Logic-only**: `per-site`, `presets`.
+
+`primevideo` is login-gated (Amazon credentials) and excluded from
+unattended runs.
 
 ## How Settings Are Changed
 
 MV3 service workers go to sleep after ~30 seconds. Directly evaluating
 `chrome.storage.sync.set()` in the SW context is unreliable in automated
-tests.
+tests — it silently no-ops once the worker is idle.
 
 Instead, the tests open the extension's **popup page** in a new tab:
 

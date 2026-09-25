@@ -218,6 +218,36 @@
   workflow via branch protection is the server-side equivalent.
 
 ## 2026-09-25 — CI workflow: schedule co 12h + manual dispatch
+
 - `ci.yml` odpala się teraz także z harmonogramu `0 */12 * * *`
   (00:00/12:00 UTC) i ręcznie przez workflow_dispatch. Repo publiczne,
   więc minuty Actions są darmowe/nielimitowane.
+
+## 2026-09-25 — weekly E2E rozszerzone o max/netflix/disneyplus + 3 bugfixe
+
+- Udowodnione na GitHub runnerach (tymczasowe sondy, potem usunięte):
+  max 26/26 (run 36122727750), netflix 29/29 (36123610625),
+  disneyplus 31/31 (36123088925). Prime Video wykluczone uczciwie:
+  wymaga logowania Amazon (zahardkodowane hasło testowego konta w repo),
+  z IP datacenter prawie na pewno CAPTCHA/OTP — nie do unattended.
+- Uczciwa klasyfikacja pokrycia (workflow + e2e/README.md): (1) real
+  player + real subtitles: nebula, vimeo, dropout; (2) live domain +
+  injected subtitle DOM: crunchyroll, max, netflix, disneyplus — testują
+  pipeline CSS, NIE prawdziwy player; (3) logic-only: per-site, presets.
+  Usunięte kłamstwo "Nothing is mocked" z README.
+- Bugfix 1 (e2e/helpers.js): `resetStorageViaPopup` klikał nieistniejący
+  #reset-btn (usunięty w 1ae34d8) i cicho nic nie robił → wycieki ustawień
+  między sekcjami. Najpierw SW-based clear, ale…
+- Bugfix 2 (src/main.ts): onChanged bez newValue (storage.clear/remove)
+  był ignorowany → in-memory settings trzymały stale wartości. Teraz
+  fallback do DEFAULTS[key]. Test jednostkowy to weryfikuje (nie tylko
+  "nie rzuca").
+- Bugfix 3 (e2e/helpers.js): SW-based clear cicho failował mid-suite
+  (MV3 worker idle → znika z browser.targets()). `resetStorage` czyści
+  teraz z fresh popup page (bez zależności od SW) i WERYFIKUJE, że storage
+  jest pusty.
+- Bugfix 4 (e2e/netflix.e2e.js): asercja High Contrast oczekiwała
+  rgb(0,0,0), a prawdziwy preset to black @ 75% opacity (src/presets.ts).
+- `e2e-weekly.yml`: suity max, netflix, disneyplus dopisane do pętli;
+  nagłówek przepisany uczciwie (3 klasy pokrycia).
+- Full `npm run ci` green (944 testów).

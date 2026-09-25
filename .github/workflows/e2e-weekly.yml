@@ -2,9 +2,27 @@ name: Weekly live-site E2E
 
 # Regression net for site DOM changes (e.g. Nebula 2026-09-24: one extra
 # wrapper div broke bg opacity/color because selectors pointed one level
-# too shallow). Runs only the suites that need no login, against the live
-# sites, every Monday morning. Login-gated suites (netflix, disneyplus,
-# max, primevideo) are excluded — they cannot run unattended.
+# too shallow). Runs every Monday morning — only suites that run
+# unattended (no login needed).
+#
+# COVERAGE HONESTY — the suites fall into three classes:
+#
+#   1. Real player + real subtitles: nebula (free video), vimeo (free
+#      public video with captions), dropout (embed.vhx.tv player).
+#      Full live-player regression.
+#   2. Live domain + injected subtitle DOM: crunchyroll, max, netflix,
+#      disneyplus. These need a paid subscription, so the suite loads the
+#      real public page (proving host detection + no CSP/script breakage)
+#      and injects platform-shaped subtitle DOM. They exercise the CSS
+#      pipeline — hostname detection, selector application, presets,
+#      per-site overrides — NOT a real player. (Max currently 403s GitHub
+#      runners; the suite still validates detection + CSS on the block
+#      page. YouTube is a real page but captions are rarely present, so
+#      it asserts init + live settings propagation instead.)
+#   3. Logic-only: per-site, presets.
+#
+# Login-gated primevideo is excluded — it needs Amazon credentials and
+# cannot run unattended.
 on:
   schedule:
     - cron: '0 6 * * 1' # Mondays 06:00 UTC
@@ -33,7 +51,7 @@ jobs:
       - name: Run no-login live-site E2E suites
         run: |
           set -e
-          for suite in nebula youtube vimeo crunchyroll dropout per-site presets; do
+          for suite in nebula youtube vimeo crunchyroll dropout max netflix disneyplus per-site presets; do
             echo ""
             echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
             echo "  Running e2e/${suite}.e2e.js…"
