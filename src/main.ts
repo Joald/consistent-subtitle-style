@@ -1,4 +1,4 @@
-import { loadSettings, Settings, loadActivePreset } from './storage.js';
+import { loadSettings, Settings, loadActivePreset, DEFAULTS } from './storage.js';
 import { detectPlatform, getPlatformConfig } from './platforms/index.js';
 import { debug } from './debug.js';
 import { CSS_SETTING_MAPPINGS, generateCombinedCssRules } from './css-mappings.js';
@@ -371,11 +371,11 @@ class SubtitleStylerApp {
           if (key in this.currentSettings) {
             // Depending on how bridge sends it, it might be { newValue: "dropshadow" }
             const change = changes[key];
-            if (change?.newValue !== undefined) {
-              const newValue = change.newValue as string;
-              if (this.settings.set(key, newValue)) {
-                this.currentSettings = this.settings.toObject();
-              }
+            // A removed key (storage.clear()/remove()) carries no newValue —
+            // fall back to the default instead of keeping the stale value.
+            const newValue = (change?.newValue ?? DEFAULTS[key]) as string;
+            if (this.settings.set(key, newValue)) {
+              this.currentSettings = this.settings.toObject();
             }
           }
         });

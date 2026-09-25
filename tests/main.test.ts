@@ -28,6 +28,17 @@ vi.mock('../src/storage.js', () => ({
       this.merge(r);
     }
   },
+  DEFAULTS: {
+    characterEdgeStyle: 'auto',
+    backgroundOpacity: 'auto',
+    windowOpacity: 'auto',
+    fontColor: 'auto',
+    fontOpacity: 'auto',
+    backgroundColor: 'auto',
+    windowColor: 'auto',
+    fontFamily: 'auto',
+    fontSize: 'auto',
+  },
 }));
 
 vi.mock('../src/site-settings.js', () => ({
@@ -372,24 +383,43 @@ describe('SubtitleStylerApp', () => {
       expect(el).not.toBeNull();
     });
 
-    it('handles message with missing newValue gracefully', async () => {
-      await setupMocks();
+    it('falls back to default when a setting key is removed (missing newValue)', async () => {
+      await setupMocks({
+        settings: { ...ALL_AUTO, fontColor: 'red', backgroundColor: 'black' },
+      });
       await initMain();
 
       const messageHandler = addEventListenerSpy.mock.calls.find(
         (c: unknown[]) => c[0] === 'message',
       )?.[1] as (ev: MessageEvent) => void;
 
-      // Should not throw
+      generateCombinedCssRulesMock.mockClear();
+
+      // Simulates storage.clear()/remove(): the change carries no newValue,
+      // only oldValue. The in-memory setting must revert to the default
+      // instead of keeping its stale value.
       expect(() => {
         messageHandler({
           source: window,
           data: {
             type: 'subtitleStylerChanged',
-            data: { fontColor: {} },
+            data: { fontColor: { oldValue: 'red' } },
           },
         } as unknown as MessageEvent);
       }).not.toThrow();
+
+      const calls = generateCombinedCssRulesMock.mock.calls;
+      // Styles were re-applied (background group still present)…
+      const bgCalls = calls.filter((c: unknown[]) => c[0] === 'background');
+      expect(bgCalls.length).toBeGreaterThan(0);
+      const lastBgSettings = bgCalls[bgCalls.length - 1]![1] as Record<string, string>;
+      expect(lastBgSettings['backgroundColor']).toBe('black');
+      // …but the removed fontColor no longer leaks its stale 'red' value.
+      const redLeak = calls.some(
+        (c: unknown[]) =>
+          ((c[1] as Record<string, string> | undefined)?.['fontColor'] ?? '') === 'red',
+      );
+      expect(redLeak).toBe(false);
     });
 
     it('handles message with unknown setting key gracefully', async () => {

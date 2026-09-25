@@ -8,6 +8,7 @@ on:
     paths:
       - '.github/workflows/e2e-max-probe.yml'
       - 'e2e/helpers.js'
+      - 'src/main.ts'
 
 jobs:
   probe:
