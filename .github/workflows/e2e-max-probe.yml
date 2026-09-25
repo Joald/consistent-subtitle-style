@@ -4,6 +4,9 @@ name: E2E max probe (temporary)
 # Delete this file after the verdict.
 on:
   workflow_dispatch:
+  push:
+    paths:
+      - '.github/workflows/e2e-max-probe.yml'
 
 jobs:
   probe:
