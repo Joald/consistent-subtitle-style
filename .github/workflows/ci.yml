@@ -10,6 +10,10 @@ on:
   push:
     branches: [main]
   pull_request:
+  # Heartbeat: re-verify the gate twice a day even without pushes.
+  schedule:
+    - cron: '0 */12 * * *'
+  workflow_dispatch:
 
 jobs:
   ci:
