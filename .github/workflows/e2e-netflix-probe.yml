@@ -8,6 +8,7 @@ on:
     paths:
       - '.github/workflows/e2e-netflix-probe.yml'
       - 'e2e/helpers.js'
+      - 'e2e/netflix.e2e.js'
       - 'src/main.ts'
 
 jobs:
