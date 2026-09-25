@@ -205,6 +205,7 @@
 - Full `npm run ci` (format, lint, typecheck, 944 tests, prod build) green.
 
 ## 2026-09-24 — --no-verify guard (local CLI) + CI workflow (server signal)
+
 - New: `~/workspace/scripts/git-no-verify-guard.sh` installed as
   /usr/local/bin/git (shadows /usr/bin/git via PATH). Refuses
   `git commit --no-verify` / `-n` (incl. bundles like -nm) and
@@ -215,3 +216,8 @@
   and on PRs. Server can never detect --no-verify itself (flag is purely
   client-side, not in the push protocol); a required status check on this
   workflow via branch protection is the server-side equivalent.
+
+## 2026-09-25 — CI workflow: schedule co 12h + manual dispatch
+- `ci.yml` odpala się teraz także z harmonogramu `0 */12 * * *`
+  (00:00/12:00 UTC) i ręcznie przez workflow_dispatch. Repo publiczne,
+  więc minuty Actions są darmowe/nielimitowane.
