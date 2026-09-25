@@ -423,12 +423,13 @@ async function run() {
       page,
       BG_SEL,
       'backgroundColor',
-      (v) => v && (v.includes('0, 0, 0') || v === 'rgb(0, 0, 0)'),
+      // High Contrast preset = black at 75% opacity (see src/presets.ts)
+      (v) => v != null && v.includes('0 0 0') && v.includes('0.75'),
       { timeoutMs: 5_000 },
     );
     assert(
-      hcBg && (hcBg.includes('0, 0, 0')),
-      'High Contrast preset: black background',
+      hcBg != null && hcBg.includes('0 0 0') && hcBg.includes('0.75'),
+      'High Contrast preset: black background at 75%',
       `got: ${hcBg}`,
     );
 
