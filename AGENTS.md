@@ -208,3 +208,18 @@ working** — `color`/`font-weight` inherit down to the text, `background-color`
 so a too-shallow selector paints an invisible full-width band instead of the pill.
 When only bg styling breaks on Nebula, re-verify the live DOM depth first
 (free video page, no login needed) — don't touch the CSS generation logic.
+
+### Nebula promo dialog swallows the "Watch video" click (lesson 2026-09-28)
+
+Nebula shows a promo dialog ("Special price for fans of …", with a
+`button[aria-label="close"]`) on page load that overlays the video thumbnail
+and partially covers the `button[aria-label="Play video"]` free-play button.
+Puppeteer's `page.click()` clicks coordinates — it does NOT verify the click
+landed on the element — so the click hits the dialog, the free-sample redeem
+(`freeVideoFriendlySlug` store write → player mount) never fires, and
+`#video-player` never appears. Signature: button found + clicked immediately,
+then the full 18 s `#video-player` polling loop expires with nothing.
+Fix in the E2E suite: dismiss the dialog via
+`button[aria-label="close"]` before searching for the play button AND again
+right before clicking (it can pop up late). There is no cookie-consent banner
+on Nebula — don't add cookie handling, dismiss the promo dialog.

@@ -87,6 +87,26 @@ async function run() {
     // ── Click "Watch video" (free) ───────────────────────────────────────
     console.log('\n▶️  Starting free video');
 
+    // Nebula shows a promo dialog ("Special price for fans of …") on page load
+    // that overlays the thumbnail and partially covers the "Watch video" button.
+    // A click then lands on the dialog instead of the button, the free-sample
+    // redeem never fires, and #video-player never mounts. Dismiss it first.
+    // (Root cause of the 2026-09-28 CI failure: button found + clicked, 18 s of
+    // polling, no player — the click was swallowed by this dialog.)
+    const dismissPromoDialog = async () => {
+      await page
+        .evaluate(() => {
+          const closeBtn = document.querySelector('button[aria-label="close"]');
+          if (closeBtn) {
+            closeBtn.click();
+            return true;
+          }
+          return false;
+        })
+        .catch(() => false);
+    };
+    if (await dismissPromoDialog()) await sleep(500);
+
     let playerLoaded = false;
     const PLAY_SELECTORS = [
       'button[aria-label="Play video"]',
@@ -120,6 +140,8 @@ async function run() {
     }
 
     if (playSelector) {
+      // The promo dialog can also pop up between the search and the click.
+      if (await dismissPromoDialog()) await sleep(500);
       if (playSelector === 'text-match') {
         await page.evaluate(() => {
           for (const b of document.querySelectorAll('button')) {

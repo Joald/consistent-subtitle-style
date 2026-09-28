@@ -50,11 +50,23 @@ jobs:
 
       - name: Run no-login live-site E2E suites
         run: |
-          set -e
+          FAILED_SUITES=""
           for suite in nebula youtube vimeo crunchyroll dropout max netflix disneyplus per-site presets; do
             echo ""
             echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
             echo "  Running e2e/${suite}.e2e.js…"
             echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
-            bun "e2e/${suite}.e2e.js"
+            # Do NOT abort the loop on a failing suite (no set -e): one red
+            # suite must not hide the results of all the suites after it.
+            # Failures are collected and the step fails at the end instead.
+            if ! bun "e2e/${suite}.e2e.js"; then
+              FAILED_SUITES="${FAILED_SUITES} ${suite}"
+            fi
           done
+          if [ -n "${FAILED_SUITES}" ]; then
+            echo ""
+            echo "❌ Failed suites:${FAILED_SUITES}"
+            exit 1
+          fi
+          echo ""
+          echo "✅ All E2E suites passed"
