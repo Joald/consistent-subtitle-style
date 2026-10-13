@@ -23,9 +23,9 @@ const { assert, skip, summary } = createTestRunner();
 
 // Vimeo embed — same as vimeo.e2e.js, reliable free video
 const VIMEO_URLS = [
-  'https://player.vimeo.com/video/824804225?texttrack=en',
-  'https://player.vimeo.com/video/783455878?texttrack=en',
-  'https://player.vimeo.com/video/76979871?texttrack=en',
+  'https://player.vimeo.com/video/824804225?texttrack=en&autoplay=1',
+  'https://player.vimeo.com/video/783455878?texttrack=en&autoplay=1',
+  'https://player.vimeo.com/video/76979871?texttrack=en&autoplay=1',
 ];
 
 // Preset definitions (must match src/presets.ts)
@@ -87,17 +87,15 @@ async function openPopup(browser, extId) {
 async function getPresetValue(popupPage) {
   return popupPage.evaluate(() => {
     const sel = document.getElementById('preset-select');
-    return sel ? sel.value : null;
+    return sel ? (sel.dataset.selectedValue ?? null) : null;
   });
 }
 
 async function selectPreset(popupPage, presetId) {
   await popupPage.evaluate((id) => {
     const sel = document.getElementById('preset-select');
-    if (sel) {
-      sel.value = id;
-      sel.dispatchEvent(new Event('change', { bubbles: true }));
-    }
+    const opt = sel?.querySelector(`.select-option[data-value="${id}"]`);
+    if (opt) opt.click();
   }, presetId);
   await sleep(1500); // Wait for preset to apply + storage sync + message broadcast
 }
@@ -160,6 +158,25 @@ async function run() {
     // Wait for extension to init
     await sleep(3000);
 
+    // Start playback + enable captions so .vp-captions actually renders
+    // for the visual verification phases.
+    if (loaded) {
+      await page.evaluate(() => {
+        const v = document.querySelector('video');
+        if (v?.paused) v.play().catch(() => {});
+        if (v?.textTracks) {
+          for (const t of v.textTracks) {
+            if (t.kind === 'subtitles' || t.kind === 'captions') t.mode = 'showing';
+          }
+        }
+      });
+      for (let i = 0; i < 20; i++) {
+        const has = await page.evaluate(() => !!document.querySelector('.vp-captions'));
+        if (has) break;
+        await sleep(1000);
+      }
+    }
+
     // ── Phase 2: Popup preset UI ───────────────────────────────────────
     console.log('\n── Popup preset UI ──');
     let popupPage = await openPopup(browser, extId);
@@ -168,18 +185,23 @@ async function run() {
     const presetInfo = await popupPage.evaluate(() => {
       const sel = document.getElementById('preset-select');
       if (!sel) return null;
-      const options = Array.from(sel.options).map((o) => ({
-        value: o.value,
+      const options = Array.from(sel.querySelectorAll('.select-option')).map((o) => ({
+        value: o.dataset.value,
         text: o.textContent,
-        disabled: o.disabled,
+        disabled: false,
       }));
-      return { tagName: sel.tagName, optionCount: options.length, options };
+      return {
+        tagName: sel.tagName,
+        isCustomSelect: sel.classList.contains('custom-select'),
+        optionCount: options.length,
+        options,
+      };
     });
 
     assert(presetInfo !== null, 'Preset dropdown exists');
     assert(
-      presetInfo?.tagName === 'SELECT',
-      'Preset dropdown is a <select>',
+      presetInfo?.isCustomSelect === true,
+      'Preset dropdown is a custom-select component',
       presetInfo?.tagName,
     );
 
@@ -339,7 +361,9 @@ async function run() {
 
     // All dropdowns should be 'auto'
     const minDropdowns = await getPopupDropdownValues(popupPage);
-    const allAuto = Object.entries(minDropdowns).every(([, v]) => v === 'auto');
+    const allAuto = Object.entries(minDropdowns)
+      .filter(([k]) => k !== 'preset')
+      .every(([, v]) => v === 'auto');
     assert(
       allAuto,
       'Do Nothing: all settings are "auto"',

@@ -421,6 +421,10 @@ export async function waitForStyle(page, selector, cssProp, predicate, opts = {}
 /**
  * Set a per-site override via the extension page.
  * The siteSettings storage key holds a map: { [platform]: { settings, activePreset } }
+ * where settings is the canonical SiteSettings shape — every key wrapped as
+ * { value, enabled }. Writing the legacy plain format here relied on the
+ * product's migration path running before assertions read storage back
+ * (which is why storage assertions saw "[object Object]").
  */
 export async function setSiteOverride(browser, extId, platform, settings, activePreset = null) {
   const swPage = await browser.newPage();
@@ -428,6 +432,10 @@ export async function setSiteOverride(browser, extId, platform, settings, active
     waitUntil: 'networkidle2',
     timeout: 5000,
   });
+
+  const wrapped = Object.fromEntries(
+    Object.entries(settings).map(([key, value]) => [key, { value, enabled: true }]),
+  );
 
   const result = await swPage.evaluate(
     async (p, s, ap) => {
@@ -442,7 +450,7 @@ export async function setSiteOverride(browser, extId, platform, settings, active
       }
     },
     platform,
-    settings,
+    wrapped,
     activePreset,
   );
 

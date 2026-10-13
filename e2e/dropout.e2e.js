@@ -46,6 +46,30 @@ async function getCaptionStyles(page) {
   });
 }
 
+
+/** Reload the embed and wait until captions are visible again. */
+async function reloadEmbed(page) {
+  await page.goto(EMBED_URL, { waitUntil: 'networkidle2', timeout: 30_000 });
+  await sleep(2000);
+  await page.evaluate(() => {
+    const v = document.querySelector('video');
+    if (v?.paused) v.play().catch(() => {});
+    for (const b of document.querySelectorAll('button')) {
+      if ((b.textContent || '').includes('CC')) {
+        b.click();
+        return;
+      }
+    }
+  });
+  for (let i = 0; i < 15; i++) {
+    const txt = await page.evaluate(
+      () => document.querySelector('.vp-captions')?.innerText?.trim() || '',
+    );
+    if (txt.length > 0) break;
+    await sleep(1000);
+  }
+}
+
 async function run() {
   console.log('Launching Chrome with extension…');
   const browser = await launchBrowser();
@@ -260,7 +284,12 @@ async function run() {
     await setStorage(browser, extId, { backgroundColor: 'blue', backgroundOpacity: '75' });
     await sleep(3000);
 
-    const afterBgOpacity = await getCaptionStyles(page);
+    let afterBgOpacity = null;
+    for (let i = 0; i < 15; i++) {
+      afterBgOpacity = await getCaptionStyles(page);
+      if (afterBgOpacity?.lineBackground?.includes('0.75')) break;
+      await sleep(1000);
+    }
     const bgOpColor = afterBgOpacity?.lineBackground;
     assert(
       bgOpColor && bgOpColor.includes('0.75'),
@@ -301,6 +330,9 @@ async function run() {
 
     // ── Combined settings ────────────────────────────────────────────────
     console.log('\n🔀  Combined settings change');
+    await resetStorage(browser, extId);
+    await sleep(1000);
+    await reloadEmbed(page);
     await setStorage(browser, extId, {
       fontColor: 'cyan',
       fontFamily: 'casual',
@@ -329,6 +361,7 @@ async function run() {
     console.log('\n🎨  Preset: High Contrast');
     await resetStorage(browser, extId);
     await sleep(2000);
+    await reloadEmbed(page);
     await setStorage(browser, extId, PRESET_HIGH_CONTRAST);
     await sleep(3000);
 
@@ -360,6 +393,7 @@ async function run() {
     console.log('\n🌐  Per-site override');
     await resetStorage(browser, extId);
     await sleep(1000);
+    await reloadEmbed(page);
 
     // Set global fontColor=red
     await setStorage(browser, extId, { fontColor: 'red' });

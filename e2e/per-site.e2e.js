@@ -3,8 +3,8 @@
  *
  * Tests that per-site overrides take priority over global settings.
  * Uses Vimeo embeds (no login required) for visual verification.
- * Manipulates chrome.storage.sync directly via the service worker
- * to set per-site overrides for the 'vimeo' platform.
+ * Per-site overrides are written via the shared helpers (canonical
+ * wrapped SiteSettings format) for the 'vimeo' platform.
  *
  * Run:
  *   DISPLAY=:99 bun e2e/per-site.e2e.js
@@ -18,66 +18,46 @@ import {
   sleep,
   waitForStyle,
   createTestRunner,
+  setSiteOverride,
+  clearSiteOverrides,
 } from './helpers.js';
 
 const { assert, skip, summary } = createTestRunner();
 
-// Vimeo embed — reliable free video
+// Vimeo embed — reliable free video (autoplay so captions actually render)
 const VIMEO_URLS = [
-  'https://player.vimeo.com/video/824804225?texttrack=en',
-  'https://player.vimeo.com/video/783455878?texttrack=en',
-  'https://player.vimeo.com/video/76979871?texttrack=en',
+  'https://player.vimeo.com/video/824804225?texttrack=en&autoplay=1',
+  'https://player.vimeo.com/video/783455878?texttrack=en&autoplay=1',
+  'https://player.vimeo.com/video/76979871?texttrack=en&autoplay=1',
 ];
 
 /**
- * Set a per-site override via the service worker.
- * The siteSettings storage key holds a map: { [platform]: { settings, activePreset } }
+ * Start playback and enable captions, then wait until the captions
+ * container exists AND shows text. Without this the .vp-captions element
+ * never renders and every visual assertion reads null.
  */
-async function setSiteOverride(browser, extId, platform, settings, activePreset = null) {
-  // Open service worker page
-  const swPage = await browser.newPage();
-  await swPage.goto(`chrome-extension://${extId}/index.html`, {
-    waitUntil: 'networkidle2',
-    timeout: 5000,
-  });
-
-  const result = await swPage.evaluate(
-    async (p, s, ap) => {
-      try {
-        // Load existing site settings
-        const data = await chrome.storage.sync.get('siteSettings');
-        const existing = data.siteSettings || {};
-        existing[p] = { settings: s, activePreset: ap };
-        await chrome.storage.sync.set({ siteSettings: existing });
-        return { ok: true };
-      } catch (e) {
-        return { ok: false, error: e.message };
+async function enableCaptions(page) {
+  await page.evaluate(() => {
+    const v = document.querySelector('video');
+    if (v?.paused) v.play().catch(() => {});
+    for (const b of document.querySelectorAll('button')) {
+      if ((b.textContent || '').trim() === 'CC') b.click();
+    }
+    if (v?.textTracks) {
+      for (const t of v.textTracks) {
+        if (t.kind === 'subtitles' || t.kind === 'captions') t.mode = 'showing';
       }
-    },
-    platform,
-    settings,
-    activePreset,
-  );
-
-  await swPage.close();
-  return result.ok;
-}
-
-/**
- * Clear all per-site overrides.
- */
-async function clearSiteOverrides(browser, extId) {
-  const swPage = await browser.newPage();
-  await swPage.goto(`chrome-extension://${extId}/index.html`, {
-    waitUntil: 'networkidle2',
-    timeout: 5000,
+    }
   });
-
-  await swPage.evaluate(async () => {
-    await chrome.storage.sync.set({ siteSettings: {} });
-  });
-
-  await swPage.close();
+  for (let i = 0; i < 20; i++) {
+    const state = await page.evaluate(() => {
+      const el = document.querySelector('.vp-captions');
+      return { exists: !!el, text: el?.innerText?.trim() || '' };
+    });
+    if (state.exists && state.text) return true;
+    await sleep(1000);
+  }
+  return false;
 }
 
 /**
@@ -144,6 +124,7 @@ async function run() {
 
     // Wait for extension to initialize
     await sleep(3000);
+    await enableCaptions(page);
 
     // ── Phase 2: Set global settings ───────────────────────────────────
     console.log('\n── Set global settings (fontColor=red) ──');
@@ -190,15 +171,16 @@ async function run() {
       JSON.stringify(Object.keys(siteSettings)),
     );
     assert(
-      siteSettings.vimeo?.settings?.fontColor === 'cyan',
+      siteSettings.vimeo?.settings?.fontColor?.value === 'cyan',
       'Vimeo override has fontColor=cyan',
-      `got: ${siteSettings.vimeo?.settings?.fontColor}`,
+      `got: ${JSON.stringify(siteSettings.vimeo?.settings?.fontColor)}`,
     );
 
     // Reload the Vimeo page to pick up the per-site override
     console.log('\n── Reload Vimeo to apply per-site override ──');
     await page.reload({ waitUntil: 'networkidle2', timeout: 25_000 });
     await sleep(3000);
+    await enableCaptions(page);
 
     // Verify per-site cyan color on Vimeo
     const siteColor = await waitForStyle(
@@ -231,6 +213,7 @@ async function run() {
     // Reload Vimeo — should still use per-site cyan, not global yellow
     await page.reload({ waitUntil: 'networkidle2', timeout: 25_000 });
     await sleep(3000);
+    await enableCaptions(page);
 
     const afterGlobalChange = await waitForStyle(
       page,
@@ -264,6 +247,7 @@ async function run() {
     // Reload Vimeo — should now use global yellow
     await page.reload({ waitUntil: 'networkidle2', timeout: 25_000 });
     await sleep(3000);
+    await enableCaptions(page);
 
     const fallbackColor = await waitForStyle(
       page,
@@ -317,19 +301,20 @@ async function run() {
       `platforms: ${Object.keys(multiSiteSettings).join(', ')}`,
     );
     assert(
-      multiSiteSettings.youtube?.settings?.fontColor === 'green',
+      multiSiteSettings.youtube?.settings?.fontColor?.value === 'green',
       'YouTube override: fontColor=green',
-      `got: ${multiSiteSettings.youtube?.settings?.fontColor}`,
+      `got: ${JSON.stringify(multiSiteSettings.youtube?.settings?.fontColor)}`,
     );
     assert(
-      multiSiteSettings.vimeo?.settings?.fontColor === 'white',
+      multiSiteSettings.vimeo?.settings?.fontColor?.value === 'white',
       'Vimeo override: fontColor=white',
-      `got: ${multiSiteSettings.vimeo?.settings?.fontColor}`,
+      `got: ${JSON.stringify(multiSiteSettings.vimeo?.settings?.fontColor)}`,
     );
 
     // Reload Vimeo — should use Vimeo-specific white, not YouTube's green
     await page.reload({ waitUntil: 'networkidle2', timeout: 25_000 });
     await sleep(3000);
+    await enableCaptions(page);
 
     const vimeoSpecific = await waitForStyle(
       page,

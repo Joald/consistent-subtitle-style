@@ -29,6 +29,65 @@ const { assert, skip, summary } = createTestRunner();
 // Selector for Nebula subtitle text
 const SUB_SEL = '#video-player [data-subtitles-container] > div > div > div > div';
 
+
+/**
+ * Restart the free player after a page reload. A reload returns Nebula to
+ * the pre-play state (promo dialog + "Watch video" gate), so the per-site
+ * reload checks must re-run the same start flow as the initial load —
+ * merely re-enabling text tracks leaves no #video-player and no subtitle
+ * element at all (the 2026-10 weekly failures: waitForStyle → null).
+ */
+async function restartNebulaPlayer(page) {
+  await page
+    .evaluate(() => {
+      document.querySelector('button[aria-label="close"]')?.click();
+    })
+    .catch(() => {});
+  await sleep(500);
+
+  await page.evaluate(() => {
+    for (const b of document.querySelectorAll('button')) {
+      const label = (b.getAttribute('aria-label') || '').toLowerCase();
+      const text = (b.textContent || '').toLowerCase();
+      if (
+        label.includes('play') ||
+        (text.includes('play') && (text.includes('video') || text.includes('watch'))) ||
+        text.includes('watch video')
+      ) {
+        b.click();
+        return;
+      }
+    }
+  });
+
+  for (let i = 0; i < 20; i++) {
+    const mounted = await page.evaluate(() => !!document.querySelector('#video-player'));
+    if (mounted) break;
+    await sleep(1000);
+  }
+
+  await page.evaluate(() => {
+    const v = document.querySelector('video');
+    if (v?.paused) v.play().catch(() => {});
+    if (v?.textTracks) {
+      for (const t of v.textTracks) {
+        if (t.kind === 'subtitles' || t.kind === 'captions') t.mode = 'showing';
+      }
+    }
+  });
+
+  for (let i = 0; i < 20; i++) {
+    const ready = await page.evaluate((sel) => {
+      const el = document.querySelector(sel);
+      const txt = document.querySelector('[data-subtitles-container]')?.textContent?.trim() || '';
+      return !!el && txt.length > 0;
+    }, SUB_SEL);
+    if (ready) return true;
+    await sleep(1000);
+  }
+  return false;
+}
+
 async function run() {
   console.log('Launching Chrome with extension…');
   const browser = await launchBrowser({ freshProfile: true });
@@ -501,24 +560,7 @@ async function run() {
       await page.reload({ waitUntil: 'networkidle2', timeout: 30_000 });
       await sleep(3000);
 
-      // Re-enable subtitles after reload
-      await page.evaluate(() => {
-        const v = document.querySelector('video');
-        if (v?.textTracks) {
-          for (const t of v.textTracks) {
-            if (t.kind === 'subtitles' || t.kind === 'captions') t.mode = 'showing';
-          }
-        }
-      });
-
-      // Wait for subtitle text to reappear
-      for (let i = 0; i < 15; i++) {
-        const txt = await page.evaluate(
-          () => document.querySelector('[data-subtitles-container]')?.textContent?.trim() || '',
-        );
-        if (txt) break;
-        await sleep(1000);
-      }
+      await restartNebulaPlayer(page);
 
       const siteCyan = await waitForStyle(
         page,
@@ -540,22 +582,7 @@ async function run() {
       await page.reload({ waitUntil: 'networkidle2', timeout: 30_000 });
       await sleep(3000);
 
-      // Re-enable subtitles
-      await page.evaluate(() => {
-        const v = document.querySelector('video');
-        if (v?.textTracks) {
-          for (const t of v.textTracks) {
-            if (t.kind === 'subtitles' || t.kind === 'captions') t.mode = 'showing';
-          }
-        }
-      });
-      for (let i = 0; i < 15; i++) {
-        const txt = await page.evaluate(
-          () => document.querySelector('[data-subtitles-container]')?.textContent?.trim() || '',
-        );
-        if (txt) break;
-        await sleep(1000);
-      }
+      await restartNebulaPlayer(page);
 
       const fallbackRed = await waitForStyle(
         page,
