@@ -25,10 +25,14 @@ import {
 const { assert, skip, summary } = createTestRunner();
 
 // Vimeo embed — reliable free video (autoplay so captions actually render)
+// Same video IDs as vimeo.e2e.js (verified to load a player + captions).
+// The previously used 824804225 no longer renders a player/captions, and
+// because page.goto didn't throw, the suite ran all visual assertions
+// against a page with no .vp-captions element at all (every read: null).
 const VIMEO_URLS = [
-  'https://player.vimeo.com/video/824804225?texttrack=en&autoplay=1',
-  'https://player.vimeo.com/video/783455878?texttrack=en&autoplay=1',
   'https://player.vimeo.com/video/76979871?texttrack=en&autoplay=1',
+  'https://player.vimeo.com/video/347119375?texttrack=en&autoplay=1',
+  'https://player.vimeo.com/video/253989945?texttrack=en&autoplay=1',
 ];
 
 /**
@@ -104,9 +108,16 @@ async function run() {
       console.log(`  Trying: ${url}`);
       try {
         await page.goto(url, { waitUntil: 'networkidle2', timeout: 25_000 });
-        loaded = true;
-        console.log('  ✓ Video loaded');
-        break;
+        await sleep(2000);
+        // A resolved goto is not enough — verify a player actually mounted.
+        loaded = await page.evaluate(
+          () => !!(document.querySelector('video') || document.querySelector('.player')),
+        );
+        if (loaded) {
+          console.log('  ✓ Video loaded');
+          break;
+        }
+        console.log('  ✗ No player found');
       } catch (e) {
         console.log(`  ✗ ${e.message}`);
       }
