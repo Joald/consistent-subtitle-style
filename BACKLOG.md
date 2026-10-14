@@ -280,3 +280,12 @@
   kontenera presetu; napisy włączane do faz wizualnych.
 - helpers.setSiteOverride zapisuje kanoniczny format SiteSettings
   ({value, enabled}) zamiast polegać na migracji.
+
+## 2026-10-14 — live E2E: weekly → daily + monitoring runów
+
+- `e2e-weekly.yml` przemianowane na `e2e-daily.yml`, cron `0 6 * * *`
+  (codziennie 06:00 UTC) — decyzja Jacka po trzech czerwonych weekly
+  z rzędu. Repo publiczne, więc koszt minut Actions to nie problem.
+- papAI monitoruje runy cronem `css-e2e-daily-monitor`: ping do Jacka
+  tylko, gdy daily run failuje (z listą zepsutych suitów) albo w ogóle
+  nie wystartował. Zielony run = cisza.

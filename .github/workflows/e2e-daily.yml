@@ -1,8 +1,8 @@
-name: Weekly live-site E2E
+name: Daily live-site E2E
 
 # Regression net for site DOM changes (e.g. Nebula 2026-09-24: one extra
 # wrapper div broke bg opacity/color because selectors pointed one level
-# too shallow). Runs every Monday morning — only suites that run
+# too shallow). Runs every morning — only suites that run
 # unattended (no login needed).
 #
 # COVERAGE HONESTY — the suites fall into three classes:
@@ -25,7 +25,7 @@ name: Weekly live-site E2E
 # cannot run unattended.
 on:
   schedule:
-    - cron: '0 6 * * 1' # Mondays 06:00 UTC
+    - cron: '0 6 * * *' # Daily 06:00 UTC
   workflow_dispatch: # manual trigger from the Actions tab
 
 jobs:
