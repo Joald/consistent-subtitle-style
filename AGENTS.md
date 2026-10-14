@@ -223,3 +223,20 @@ Fix in the E2E suite: dismiss the dialog via
 `button[aria-label="close"]` before searching for the play button AND again
 right before clicking (it can pop up late). There is no cookie-consent banner
 on Nebula — don't add cookie handling, dismiss the promo dialog.
+
+### E2E suite gotchas (lessons 2026-10-14)
+
+- A resolved `page.goto` is NOT proof a player loaded. Suites must verify
+  a player mounted (`video`/`.player`) before running visual assertions —
+  per-site/presets ran for weeks against a dead Vimeo video (824804225)
+  with no `.vp-captions` element at all (every style read: null). Share
+  the known-good Vimeo video IDs with `vimeo.e2e.js`.
+- The popup preset selector and per-site storage changed shape: presets
+  are a custom-select component (`#preset-select` div, `.select-option`
+  children, `dataset.selectedValue`) — NOT a native `<select>`; and
+  `siteSettings` values are wrapped `{ value, enabled }` objects.
+- Dropout native/inline styles survive a storage clear on the live page:
+  E2E sections that reset must also reload the embed, or stale values
+  (e.g. fontOpacity 50%) leak into later assertions.
+- Nebula reload returns to the pre-play gate: after `page.reload()` the
+  suite must re-dismiss the promo dialog and re-click "Watch video".

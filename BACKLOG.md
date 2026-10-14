@@ -251,3 +251,32 @@
 - `e2e-weekly.yml`: suity max, netflix, disneyplus dopisane do pętli;
   nagłówek przepisany uczciwie (3 klasy pokrycia).
 - Full `npm run ci` green (944 testów).
+
+## 2026-10-14 — weekly E2E: naprawione wszystkie deterministyczne awarie
+
+- Weekly failował 28.09, 5.10 i 12.10; logi z 5.10 i 12.10 były
+  identyczne co do asercji — to nie flakiness, tylko deterministyczne
+  błędy w suitach. Diagnoza z logów + poprawki udowodnione sondą na GH
+  runnerach (run 38522798877): nebula 37/37, crunchyroll 26/26,
+  dropout 35/35, per-site 17/17, presets 24/24.
+- nebula: po page.reload() player wraca za bramkę "Watch video" —
+  testy per-site tylko włączały textTracks, więc nie było elementu
+  napisów (waitForStyle → null). Reloady restartują teraz player.
+- crunchyroll: Cloudflare 403 na runnerach; suite to live-domain +
+  mock DOM (jak Max) — akceptuje challenge page, gdy domena osiągnięta
+  i content script wykrył platformę.
+- dropout: style natywne/inline przeżywają resetStorage na żywej
+  stronie (fontOpacity 50% wyciekało do Combined/High Contrast/
+  per-site) — sekcje robią reset + reload embeda. Asercje bg opacity
+  pollują (captionsLine istnieje tylko przy aktywnym cue).
+- per-site: suite nigdy nie włączał napisów (brak autoplay/CC) i
+  ładował martwy film 824804225 bez weryfikacji playera; zapis/odczyt
+  siteSettings był w legacy formacie. Teraz: te same ID filmów co
+  vimeo.e2e.js, weryfikacja playera, enableCaptions po load/reloadach,
+  kanoniczny format wrapped przez wspólne helpery.
+- presets: selektor presetów to custom-select, nie natywny <select> —
+  stare helpery (.value/change) cicho nic nie robiły, a sonda opcji
+  crashowała. Przepisane pod custom component; all-auto nie liczy już
+  kontenera presetu; napisy włączane do faz wizualnych.
+- helpers.setSiteOverride zapisuje kanoniczny format SiteSettings
+  ({value, enabled}) zamiast polegać na migracji.
