@@ -289,3 +289,7 @@
 - papAI monitoruje runy cronem `css-e2e-daily-monitor`: ping do Jacka
   tylko, gdy daily run failuje (z listą zepsutych suitów) albo w ogóle
   nie wystartował. Zielony run = cisza.
+
+## 2026-10-16 — live E2E: slot 06:00 UTC → 00:00 UTC
+
+- Cron workflow daily zmieniony z `0 6 * * *` na `0 0 * * *` (północ UTC) — decyzja Jacka. Uwaga: GitHub odpala scheduled runy tego workflow z wielogodzinnym opóźnieniem (15.10: slot 06:00 UTC, start 11:01 UTC), więc realny start bywa nad ranem; monitor runów ustawiony z odpowiednim buforem.
