@@ -2,6 +2,11 @@
   <img src="images/logo-512.png" alt="Consistent Subtitle Style Logo" width="512">
 </p>
 
+<p align="center">
+  <a href="https://github.com/Joald/consistent-subtitle-style/actions/workflows/ci.yml"><img src="https://github.com/Joald/consistent-subtitle-style/actions/workflows/ci.yml/badge.svg?branch=main" alt="CI status"></a>
+  <a href="https://github.com/Joald/consistent-subtitle-style/actions/workflows/e2e-daily.yml"><img src="https://github.com/Joald/consistent-subtitle-style/actions/workflows/e2e-daily.yml/badge.svg?branch=main" alt="Daily live-site E2E status"></a>
+</p>
+
 ## Overview
 
 A Chrome extension that applies persistent, customizable subtitle styles across streaming platforms. Features a hybrid styling approach using native APIs where available (YouTube) with CSS injection fallback for other platforms. Currently supports **YouTube**, **Nebula**, **Dropout**, **Prime Video**, **Max (HBO Max)**, **Crunchyroll**, **Disney+**, **Netflix**, and **Vimeo**.
