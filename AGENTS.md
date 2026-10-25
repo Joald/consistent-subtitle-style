@@ -240,3 +240,9 @@ on Nebula — don't add cookie handling, dismiss the promo dialog.
   (e.g. fontOpacity 50%) leak into later assertions.
 - Nebula reload returns to the pre-play gate: after `page.reload()` the
   suite must re-dismiss the promo dialog and re-click "Watch video".
+- Never check for the Vimeo player once after a fixed sleep. Use the
+  shared `loadVimeoPlayer` helper (fresh page per attempt,
+  `waitForFunction` up to 20 s, one full retry pass over the URL list).
+  A single `sleep(2000)` check false-failed per-site on 2026-10-25
+  ("No player found" ×3, whole daily run red with zero failed
+  assertions) while the vimeo suite loaded fine in the same run.

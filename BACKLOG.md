@@ -293,3 +293,17 @@
 ## 2026-10-16 — live E2E: slot 06:00 UTC → 00:00 UTC
 
 - Cron workflow daily zmieniony z `0 6 * * *` na `0 0 * * *` (północ UTC) — decyzja Jacka. Uwaga: GitHub odpala scheduled runy tego workflow z wielogodzinnym opóźnieniem (15.10: slot 06:00 UTC, start 11:01 UTC), więc realny start bywa nad ranem; monitor runów ustawiony z odpowiednim buforem.
+
+## 2026-10-25 — per-site: fałszywy "No player found" wywalił cały daily run
+
+- Daily run 40152410710: failure przy ZERO padniętych asercji. 9/10
+  suitów zielonych; per-site zgłosił "No player found" dla wszystkich
+  trzech filmów Vimeo, pominął testy wizualne i wyszedł z kodem 1,
+  mimo że suite vimeo w tym samym runie załadował player bez problemu.
+- Przyczyna: loader per-site/presets sprawdzał DOM raz, po sleep(2000),
+  na reużywanej stronie. Przy wolniejszym mouncie playera na obciążonym
+  runnerze check po prostu nie trafiał w okno.
+- Fix (e3373a6): wspólny helper `loadVimeoPlayer` w e2e/helpers.js —
+  świeża strona na próbę, domcontentloaded + waitForFunction (polling
+  do 20 s) zamiast fixed sleep, jedna pełna runda retry przed poddaniem.
+  Dowód: sonda 40204485580 — per-site 17/17, presets 24/24.
