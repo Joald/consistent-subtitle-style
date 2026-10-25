@@ -416,6 +416,43 @@ export async function waitForStyle(page, selector, cssProp, predicate, opts = {}
   return lastValue; // timed out — return last value for assertion message
 }
 
+/**
+ * Load a Vimeo embed and wait until the player actually mounts.
+ *
+ * A resolved page.goto is not enough: Vimeo's player app can mount the
+ * <video>/.player element well after navigation, and on loaded GitHub
+ * runners a single fixed sleep + one DOM check can miss it entirely
+ * (2026-10-25: per-site saw "No player found" for all three videos while
+ * the vimeo suite loaded fine minutes earlier in the same run). Each
+ * attempt gets a fresh page, waits on the DOM instead of sleeping, and
+ * the whole URL list is retried once before giving up.
+ *
+ * @param {Browser} browser
+ * @param {string[]} urls  Embed URLs to try, in order
+ * @returns {Promise<Page|null>} Page with a mounted player, or null
+ */
+export async function loadVimeoPlayer(browser, urls) {
+  for (let pass = 1; pass <= 2; pass++) {
+    for (const url of urls) {
+      console.log(`  Trying: ${url} (pass ${pass})`);
+      const page = await browser.newPage();
+      try {
+        await page.goto(url, { waitUntil: 'domcontentloaded', timeout: 30_000 });
+        await page.waitForFunction(
+          () => !!(document.querySelector('video') || document.querySelector('.player')),
+          { timeout: 20_000, polling: 500 },
+        );
+        console.log('  ✓ Video loaded');
+        return page;
+      } catch (e) {
+        console.log(`  ✗ No player found (${e.message.split('\n')[0]})`);
+        await page.close().catch(() => {});
+      }
+    }
+  }
+  return null;
+}
+
 // ── Per-site override helpers ────────────────────────────────────────────────
 
 /**

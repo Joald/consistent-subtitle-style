@@ -17,6 +17,7 @@ import {
   sleep,
   waitForStyle,
   createTestRunner,
+  loadVimeoPlayer,
 } from './helpers.js';
 
 const { assert, skip, summary } = createTestRunner();
@@ -135,29 +136,8 @@ async function run() {
 
     // ── Phase 1: Load Vimeo embed for visual verification ──────────────
     console.log('\n── Loading Vimeo embed ──');
-    const page = await browser.newPage();
-    const consoleLogs = [];
-    page.on('console', (msg) => consoleLogs.push(msg.text()));
-
-    let loaded = false;
-    for (const url of VIMEO_URLS) {
-      console.log(`  Trying: ${url}`);
-      try {
-        await page.goto(url, { waitUntil: 'networkidle2', timeout: 25_000 });
-        await sleep(2000);
-        // A resolved goto is not enough — verify a player actually mounted.
-        loaded = await page.evaluate(
-          () => !!(document.querySelector('video') || document.querySelector('.player')),
-        );
-        if (loaded) {
-          console.log('  ✓ Video loaded');
-          break;
-        }
-        console.log('  ✗ No player found');
-      } catch (e) {
-        console.log(`  ✗ ${e.message}`);
-      }
-    }
+    const page = await loadVimeoPlayer(browser, VIMEO_URLS);
+    const loaded = !!page;
 
     if (!loaded) {
       console.log('  No Vimeo video loaded — skipping visual tests');
