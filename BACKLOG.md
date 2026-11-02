@@ -307,3 +307,27 @@
   świeża strona na próbę, domcontentloaded + waitForFunction (polling
   do 20 s) zamiast fixed sleep, jedna pełna runda retry przed poddaniem.
   Dowód: sonda 40204485580 — per-site 17/17, presets 24/24.
+
+## 2026-11-02 — youtube: brak playera po goto wywalił cały daily run
+
+- Daily run 41380173725: tylko youtube czerwony (1 passed, 14 failed,
+  3 skipped), pozostałe 9 suitów zielonych, ten sam commit co zielony
+  run z 2026-11-01 — więc nie regresja kodu, tylko stan strony.
+  Signature: goto się powiódł, ale brak `.html5-video-player`, brak
+  `<video>`, brak przycisku CC i brak logów bridge — wszystkie 14
+  asercji zakładało zamontowanego playera, więc jedna brakująca
+  precondycja skaskadowała w 14 faili.
+- Live check tego samego dnia: normalna strona watch pod dialogiem
+  "Before you continue to YouTube" (Reject all / Accept all). Stary
+  bot-check szukał tylko "not a bot" / "confirm you" i nie widział
+  tego gate'a, a suite sprawdzał DOM raz, po fixed sleep(5000).
+- Fix (tylko e2e/youtube.e2e.js, asercje bez zmian): po goto poll
+  do 25 s na zamontowanego playera, na każdej próbie text-based
+  dismiss consent gate'a (Reject all w pierwszej kolejności, walk po
+  shadow DOM, match też po aria-label "Reject the use of cookies…");
+  gdy player dalej nie wstaje, suite loguje diagnostykę (URL, tytuł,
+  markery strony, snippet body) i wychodzi SKIPPED, jak vimeo przy
+  braku filmu i jak stary bot-wall path — brak strony watch to nie
+  asercja o produkcie. Gdy player wstaje, wszystkie 18 asercji leci
+  jak dawniej.
+- Dowód: sonda youtube-only (numer runu po zielonym przebiegu).

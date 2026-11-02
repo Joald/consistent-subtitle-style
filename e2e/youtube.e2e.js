@@ -28,6 +28,65 @@ const { assert, skip, summary } = createTestRunner();
 
 const YT_URL = 'https://www.youtube.com/watch?v=dQw4w9WgXcQ';
 
+/**
+ * Dismiss YouTube's "Before you continue to YouTube" consent gate, if
+ * present. Text-based (not class-based): YouTube's consent markup is
+ * Polymer/shadow-DOM, so the search walks shadow roots and matches the
+ * visible button text. Prefers "Reject all", falls back to "Accept all".
+ * No-op (returns false) when no consent button is on the page.
+ */
+async function dismissYouTubeConsent(page) {
+  try {
+    return await page.evaluate(() => {
+      const candidates = [];
+      const visit = (node) => {
+        if (node.nodeType === 1) {
+          const el = node;
+          if (el.shadowRoot) visit(el.shadowRoot);
+          const text = (el.textContent || '').trim().toLowerCase();
+          const ariaLabel = (el.getAttribute('aria-label') || '').toLowerCase();
+          const isButton =
+            el.tagName === 'BUTTON' || el.getAttribute('role') === 'button';
+          if (
+            isButton &&
+            (text === 'reject all' ||
+              text === 'accept all' ||
+              ariaLabel.startsWith('reject the use of cookies') ||
+              ariaLabel.startsWith('accept the use of cookies'))
+          ) {
+            candidates.push(el);
+          }
+          for (const child of el.children) visit(child);
+        } else if (node.nodeType === 11) {
+          for (const child of node.children) visit(child);
+        }
+      };
+      visit(document.documentElement);
+      const visible = candidates.filter((el) => {
+        const rect = el.getClientRects()[0];
+        return rect && rect.width > 0 && rect.height > 0;
+      });
+      const pool = visible.length > 0 ? visible : candidates;
+      const isReject = (el) => {
+        const text = (el.textContent || '').trim().toLowerCase();
+        const ariaLabel = (el.getAttribute('aria-label') || '').toLowerCase();
+        return text === 'reject all' || ariaLabel.startsWith('reject the use of cookies');
+      };
+      const isAccept = (el) => {
+        const text = (el.textContent || '').trim().toLowerCase();
+        const ariaLabel = (el.getAttribute('aria-label') || '').toLowerCase();
+        return text === 'accept all' || ariaLabel.startsWith('accept the use of cookies');
+      };
+      const target = pool.find(isReject) || pool.find(isAccept);
+      if (!target) return false;
+      target.click();
+      return true;
+    });
+  } catch {
+    return false;
+  }
+}
+
 async function run() {
   console.log('Launching Chrome with extension…');
   const browser = await launchBrowser({ freshProfile: true });
@@ -37,26 +96,71 @@ async function run() {
     const consoleLogs = [];
     page.on('console', (msg) => consoleLogs.push(msg.text()));
 
-    // ── Navigate & init ──────────────────────────────────────────────────
+    // ── Navigate & wait for the watch page to actually mount a player ───
+    // A resolved page.goto is NOT proof a player loaded (same lesson as
+    // the Vimeo loader, 2026-10-25): on 2026-11-02 the daily run resolved
+    // goto, found no .html5-video-player, no <video> and no bridge logs,
+    // and then cascade-failed 14 assertions that all presuppose a mounted
+    // player. The live check that day showed a normal watch page under a
+    // "Before you continue to YouTube" consent dialog, so the gate is
+    // dismissed on every poll pass until the player is up.
     console.log('\n🔧  Extension loading on YouTube');
-    await page.goto(YT_URL, { waitUntil: 'networkidle2', timeout: 30_000 });
-    await sleep(5000);
+    try {
+      await page.goto(YT_URL, { waitUntil: 'networkidle2', timeout: 30_000 });
+    } catch (e) {
+      console.log(`  ⚠️  Navigation to YouTube failed: ${e.message}`);
+    }
 
-    // Check for bot wall
-    const isBot = await page.evaluate(
-      () =>
-        document.body?.innerText?.includes('not a bot') ||
-        document.body?.innerText?.includes('confirm you') ||
-        false,
-    );
-    if (isBot) {
-      console.log('\n⚠️  YouTube bot detection triggered — skipping YouTube E2E tests.');
-      console.log('    This is expected in some CI/headless environments.');
+    let playerMounted = false;
+    for (let attempt = 0; attempt < 25 && !playerMounted; attempt++) {
+      if (await dismissYouTubeConsent(page)) {
+        console.log('  Dismissed YouTube consent dialog');
+        await sleep(2000);
+      }
+      playerMounted = await page
+        .evaluate(
+          () =>
+            !!document.querySelector('.html5-video-player') ||
+            !!document.querySelector('video'),
+        )
+        .catch(() => false);
+      if (!playerMounted) await sleep(1000);
+    }
+
+    if (!playerMounted) {
+      // No watch page, no product behaviour to assert — same contract as
+      // the Vimeo suite (no video loads → skip) and the old bot-wall path
+      // (bot interstitial → skip). Log diagnostics so the next failure of
+      // this kind is identifiable from the log instead of 14 cascading
+      // assertion failures.
+      const diag = await page
+        .evaluate(() => ({
+          url: window.location.href,
+          title: document.title,
+          body: (document.body?.innerText || '').slice(0, 500),
+          markers: [
+            'not a bot',
+            'confirm you',
+            'Before you continue',
+            'unusual traffic',
+            'Video unavailable',
+          ].filter((m) => (document.body?.innerText || '').includes(m)),
+        }))
+        .catch(() => ({ url: 'unknown', title: '', body: '', markers: [] }));
+      console.log('\n⚠️  No YouTube player mounted — skipping YouTube E2E tests.');
+      console.log(`    URL: ${diag.url}`);
+      console.log(`    Title: ${diag.title}`);
+      if (diag.markers.length > 0) {
+        console.log(`    Page markers: ${diag.markers.join(', ')}`);
+      }
+      console.log(`    Body snippet: ${diag.body}`);
       console.log('\n' + '═'.repeat(50));
-      console.log('  YouTube: SKIPPED (bot detection)');
+      console.log('  YouTube: SKIPPED (no player mounted)');
       console.log('═'.repeat(50));
       return;
     }
+    // Let the bridge/main scripts log init after the (re)mount.
+    await sleep(2000);
 
     const extId = await getExtensionId(browser);
     assert(extId, 'Extension ID found');

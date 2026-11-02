@@ -246,3 +246,14 @@ on Nebula — don't add cookie handling, dismiss the promo dialog.
   A single `sleep(2000)` check false-failed per-site on 2026-10-25
   ("No player found" ×3, whole daily run red with zero failed
   assertions) while the vimeo suite loaded fine in the same run.
+- YouTube consent gate (lesson 2026-11-02): a normal watch page can sit
+  under a "Before you continue to YouTube" dialog, and on a runner the
+  gate can leave no `.html5-video-player`, no `<video>` and no bridge
+  logs at all — which cascade-failed 14 YouTube assertions on
+  2026-11-02 at the same commit that passed the day before. The suite
+  now polls up to 25 s for a mounted player, dismisses the gate on
+  every pass with a text-based, shadow-DOM-walking "Reject all" click
+  (never class-based), and SKIPs with URL/title/body diagnostics when
+  no player mounts — a missing watch page is a precondition, not a
+  product assertion, same as Vimeo's no-video skip. The old two-string
+  bot check is subsumed by that path.
