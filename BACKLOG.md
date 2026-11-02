@@ -330,4 +330,8 @@
   braku filmu i jak stary bot-wall path — brak strony watch to nie
   asercja o produkcie. Gdy player wstaje, wszystkie 18 asercji leci
   jak dawniej.
-- Dowód: sonda youtube-only (numer runu po zielonym przebiegu).
+- Dowód: sonda youtube-only 41424931818 — YouTube 18/18, w tym
+  asercje native API, bez SKIPPED. Uwaga uczciwa: w tym przebiegu
+  player zamontował się od razu, więc dismiss consent gate'a nie
+  został wywołany — ta ścieżka pozostaje nieprzetestowana na runnerze,
+  ale brak playera nie wywali już runu, tylko da SKIPPED z diagnostyką.
